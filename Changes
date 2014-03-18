@@ -1,0 +1,39 @@
+Revision history for {{$dist->name}}
+
+{{$NEXT}}
+
+0.07    2014-Mar-05
+        Fixed an autodefer bug.
+
+0.06    2014-Feb-23
+        IronCache API changed to use named parameters.
+
+0.05    2013-Dec-04
+        IronWorker API changed to use named parameters.
+
+0.04    2013-Dec-04
+        Complete IronWorker
+
+0.03    2013-Dec-04
+        Fixed some parts of documentation.
+
+0.02    2013-Dec-01
+        First public release.
+        IronWorker code package handling added. Other IronWorker stuff still missing.
+
+0.01_04 2013-Oct-20
+        Developer release. Working IronMQ Client.
+        Logging rethought.
+                Api classes have logging format.
+                All activities using IO::Iron::Connection (actually making a REST operation to Iron services) will be logged.
+                Removed logging from Client classes.
+
+0.01_03 2013-Aug-16
+        Developer release. Working IronMQ Client.
+
+0.01_02 2013-Aug-16
+        Developer release. Working IronMQ Client.
+
+0.01_01 2013-Aug-16
+        Developer release. Working IronMQ Client.
+
