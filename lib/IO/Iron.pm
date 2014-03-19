@@ -182,6 +182,16 @@ Please read individual client's documentation for using them.
 =cut
 
 
+=head1 TESTING
+
+Subdirectory integ_t contains "integration" tests which require an active Iron.io account and Internet connection.
+To run the tests, create first three files in the main directory: 
+iron_cache.json, iron_mq.json, iron_worker.json.
+Set at least the following attributes: project_id, token and host.
+
+=cut
+
+
 =head1 FUNCTIONS
 
 =head2 ironcache
