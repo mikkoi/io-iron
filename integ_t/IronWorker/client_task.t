@@ -12,11 +12,10 @@ plan tests => 6;
 require IO::Iron::IronWorker::Client;
 
 #use Log::Any::Adapter ('Stderr');    # Activate to get all log messages.
-use Data::Dumper;
-$Data::Dumper::Maxdepth = 4;
-diag( "Testing IO::Iron::IronWorker::Client $IO::Iron::IronWorker::Client::VERSION, Perl $], $^X" );
+#use Data::Dumper;
+#$Data::Dumper::Maxdepth = 4;
+diag( "Testing IO::Iron::IronWorker::Client, Perl $], $^X" );
 ## Test case
-diag('Testing IO::Iron::IronWorker::Client');
 
 #my $worker_as_string_rev_01 = <<EOF;
 ##!/usr/bin/env perl

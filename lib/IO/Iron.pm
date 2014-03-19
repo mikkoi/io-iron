@@ -135,6 +135,9 @@ Clients:
 
 =back
 
+IO-Iron code is available at Github: L<IO-Iron|https://github.com/mikkoi/io-iron>
+for download with Git: L<https://github.com/mikkoi/io-iron.git|https://github.com/mikkoi/io-iron.git>.
+
 =head2 IO::Iron
 
 Package IO::Iron is only a "convenience" module for quick startup.
@@ -183,6 +186,8 @@ Subdirectory integ_t contains "integration" tests which require an active Iron.i
 To run the tests, create first three files in the main directory: 
 iron_cache.json, iron_mq.json, iron_worker.json.
 Set at least the following attributes: project_id, token and host.
+
+Execute B<prove> (L<prove|https://metacpan.org/pod/distribution/TAP-Parser/bin/prove>), e.g. B<prove -lv -Iinteg_t integ_t\Iron\iron_all.t>.
 
 =cut
 

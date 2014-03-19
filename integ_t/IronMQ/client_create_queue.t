@@ -19,7 +19,7 @@ require IO::Iron::IronMQ::Client;
 #use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
 #use Data::Dumper; $Data::Dumper::Maxdepth = 2;
 
-diag("Testing IO::Iron::IronMQ::Client $IO::Iron::IronMQ::Client::VERSION, Perl $], $^X");
+diag("Testing IO::Iron::IronMQ::Client, Perl $], $^X");
 
 ## Test case
 diag('Testing IO::Iron::IronMQ::Client method create_queue().');

@@ -18,9 +18,7 @@ require IO::Iron::IronWorker::Client;
 use Data::Dumper;
 $Data::Dumper::Maxdepth = 4;
 
-diag(
-"Testing IO::Iron::IronWorker::Client $IO::Iron::IronWorker::Client::VERSION, Perl $], $^X"
-);
+diag("Testing IO::Iron::IronWorker::Client, Perl $], $^X");
 
 ## Test case
 diag('Testing IO::Iron::IronWorker::Client');

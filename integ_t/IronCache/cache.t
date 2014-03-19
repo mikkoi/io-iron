@@ -18,7 +18,7 @@ require IO::Iron::IronCache::Item;
 #use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
 use Data::Dumper; $Data::Dumper::Maxdepth = 2;
 
-diag("Testing IO::Iron::IronCache::Client $IO::Iron::IronCache::Client::VERSION, Perl $], $^X");
+diag("Testing IO::Iron::IronCache::Client, Perl $], $^X");
 
 ## Test case
 ## Create cache, get cache, query all caches, get info about cache, delete cache.

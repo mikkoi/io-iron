@@ -14,7 +14,7 @@ use IO::Iron ':all';
 #use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
 #use Data::Dumper; $Data::Dumper::Maxdepth = 1;
 
-diag("Testing IO::Iron::IronMQ::Client $IO::Iron::IronMQ::Client::VERSION, Perl $], $^X");
+diag("Testing IO::Iron::IronMQ::Client, Perl $], $^X");
 
 my $iron_mq_client = ironmq( 'config' => 'iron_mq.json' );
 my @iron_mq_queues = $iron_mq_client->get_queues();
