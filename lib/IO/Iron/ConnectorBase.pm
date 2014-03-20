@@ -3,7 +3,7 @@ package IO::Iron::ConnectorBase;
 ## no critic (Documentation::RequirePodAtEnd)
 ## no critic (Documentation::RequirePodSections)
 
-use 5.008_001;
+use 5.010_000;
 use strict;
 use warnings FATAL => 'all';
 

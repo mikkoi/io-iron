@@ -4,7 +4,7 @@ package IO::Iron::IronCache::Item;
 ## no critic (Documentation::RequirePodSections)
 ## no critic (Subroutines::RequireArgUnpacking)
 
-use 5.008_001;
+use 5.010_000;
 use strict;
 use warnings FATAL => 'all';
 

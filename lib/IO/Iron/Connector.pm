@@ -6,7 +6,7 @@ package IO::Iron::Connector;
 ## no critic (RegularExpressions::RequireLineBoundaryMatching)
 ## no critic (RegularExpressions::ProhibitEscapedMetacharacters)
 
-use 5.008_001;
+use 5.010_000;
 use strict;
 use warnings FATAL => 'all';
 
