@@ -32,7 +32,7 @@ This package is for internal use of IO::Iron packages.
 =cut
 
 use Log::Any  qw{$log};
-use Hash::Util qw{lock_keys unlock_keys};
+use Hash::Util 0.06 qw{lock_keys unlock_keys};
 use Carp;
 use Carp::Assert;
 use Carp::Assert::More;

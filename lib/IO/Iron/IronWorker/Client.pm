@@ -153,7 +153,7 @@ See L<IO::Iron|IO::Iron> for requirements.
 =cut
 
 use Log::Any  qw{$log};
-use Hash::Util qw{lock_keys lock_keys_plus unlock_keys legal_keys};
+use Hash::Util 0.06 qw{lock_keys lock_keys_plus unlock_keys legal_keys};
 use Carp::Assert::More;
 use English '-no_match_vars';
 use Params::Validate qw(:all);

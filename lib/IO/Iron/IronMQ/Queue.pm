@@ -34,7 +34,7 @@ Please see IO::Iron::IronMQ::Queue for usage.
 =cut
 
 use Log::Any qw($log);
-use Hash::Util qw{lock_keys unlock_keys};
+use Hash::Util 0.06 qw{lock_keys unlock_keys};
 use Carp::Assert::More;
 use English '-no_match_vars';
 

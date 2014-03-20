@@ -35,7 +35,7 @@ This package is for internal use of IO::Iron packages.
 
 use Log::Any  qw{$log};
 use JSON;
-use Hash::Util qw{lock_keys lock_keys_plus unlock_keys legal_keys};
+use Hash::Util 0.06 qw{lock_keys lock_keys_plus unlock_keys legal_keys};
 use Carp::Assert;
 use Carp::Assert::More;
 use Carp;
