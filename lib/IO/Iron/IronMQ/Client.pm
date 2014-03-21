@@ -222,20 +222,20 @@ the following attributes:
 
 =back
 
-	my $iron_mq_msg_send_01 = IO::Iron::IronMQ::Message->new( {
+	my $iron_mq_msg_send_01 = IO::Iron::IronMQ::Message->new(
 			'body' => "My message",
-			} );
+			);
 	# Or
 	use YAML::Tiny;
 	%msg_body_hash_02 = (msg_body_text => 'My message 2', msg_body_item => {sub_item => 'Sub text'});
 	my $yaml = YAML::Tiny->new(); $yaml->[0] = \%msg_body_hash_02;
 	my $msg_body = $yaml->write_string();
-	my $iron_mq_msg_send_02 = IO::Iron::IronMQ::Message->new( {
+	my $iron_mq_msg_send_02 = IO::Iron::IronMQ::Message->new(
 			'body' => $msg_body,
 			'timeout' => $msg_timeout, # When reading from queue, after timeout (in seconds), item will be placed back onto queue.
 			'delay' => $msg_delay,	 # The item will not be available on the queue until this many seconds have passed.
 			'expires_in' => $msg_expires_in, # How long in seconds to keep the item on the queue before it is deleted.
-			} );
+			);
 	# Return YAML serialized structure:
 	my $yaml_de = YAML::Tiny->new(); $yaml_de = $yaml_de->read_string($iron_mq_msg_send_02->body());
 

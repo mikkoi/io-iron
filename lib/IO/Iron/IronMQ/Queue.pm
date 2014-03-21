@@ -241,15 +241,13 @@ sub pull {
 		$log->debugf( 'Pulled IronMQ Message (queue name=%s; message id=%s).',
 			$self->{'name'}, $msg->{'id'} );
 		my $message = IO::Iron::IronMQ::Message->new(
-			{
-				'body'           => $msg->{'body'},
-				'timeout'        => $msg->{'timeout'},
-				'id'             => $msg->{'id'},
-				'reserved_count' => $msg->{'reserved_count'},
-			}
+			'body'           => $msg->{'body'},
+			'timeout'        => $msg->{'timeout'},
+			'id'             => $msg->{'id'},
+			'reserved_count' => $msg->{'reserved_count'},
 		);
 		CORE::push @pulled_messages,
-		  $message;    # using CORE routine, not this class method.
+		  $message;    # using CORE routine, not this class' method.
 	}
 	$log->debugf( 'Pulled %d IronMQ Messages (queue name=%s).',
 		scalar @pulled_messages, $self->{'name'} );
@@ -296,14 +294,12 @@ sub peek {
 		$log->debugf( 'peeked IronMQ Message (queue name=%s; message id=%s.',
 			$self->{'name'}, $msg->{'id'} );
 		my $message = IO::Iron::IronMQ::Message->new(
-			{
-				'body'    => $msg->{'body'},
-				'timeout' => $msg->{'timeout'},
-				'id'      => $msg->{'id'},
-			}
+			'body'    => $msg->{'body'},
+			'timeout' => $msg->{'timeout'},
+			'id'      => $msg->{'id'},
 		);
 		CORE::push @peeked_messages,
-		  $message;    # using CORE routine, not this class method.
+		  $message;    # using CORE routine, not this class' method.
 	}
 	$log->tracef( 'Exiting peek: %s',
 		@peeked_messages ? @peeked_messages : '[NONE]' );

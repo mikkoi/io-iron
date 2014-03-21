@@ -41,25 +41,25 @@ subtest 'Setup for testing' => sub {
 	diag("Created message queue " . $unique_queue_name_01 . ".");
 	
 	# Let's create some messages
-	my $iron_mq_msg_send_01 = IO::Iron::IronMQ::Message->new( {
+	my $iron_mq_msg_send_01 = IO::Iron::IronMQ::Message->new(
 			'body' => 'My message #01',
-			} );
+			);
 	use YAML::Tiny; # For serializing/deserializing a hash.
 	%msg_body_hash_02 = (msg_body_text => 'My message #02', msg_body_item => {sub_item => 'Sub text'});
 	my $yaml = YAML::Tiny->new(); $yaml->[0] = \%msg_body_hash_02;
 	my $msg_body = $yaml->write_string();
-	my $iron_mq_msg_send_02 = IO::Iron::IronMQ::Message->new( {
+	my $iron_mq_msg_send_02 = IO::Iron::IronMQ::Message->new(
 			'body' => $msg_body,
 			'timeout' => 60, # When reading from queue, after timeout (in seconds), item will be placed back onto queue.
 			'delay' => 0,	 # The item will not be available on the queue until this many seconds have passed.
 			'expires_in' => 60, # How long in seconds to keep the item on the queue before it is deleted.
-			} );
+			);
 	my ($iron_mq_msg_send_03, $iron_mq_msg_send_04, $iron_mq_msg_send_05, $iron_mq_msg_send_06);
 	{ use utf8;
-		$iron_mq_msg_send_03 = IO::Iron::IronMQ::Message->new( { 'body' => 'My message #03'  . '_latin1'} );
-		$iron_mq_msg_send_04 = IO::Iron::IronMQ::Message->new( { 'body' => 'My message #04'  . '_räksmörgås'} );
-		$iron_mq_msg_send_05 = IO::Iron::IronMQ::Message->new( { 'body' => 'My message #05'  . '_三明治'} );
-		$iron_mq_msg_send_06 = IO::Iron::IronMQ::Message->new( { 'body' => 'My message #06' } );
+		$iron_mq_msg_send_03 = IO::Iron::IronMQ::Message->new( 'body' => 'My message #03'  . '_latin1' );
+		$iron_mq_msg_send_04 = IO::Iron::IronMQ::Message->new( 'body' => 'My message #04'  . '_räksmörgås' );
+		$iron_mq_msg_send_05 = IO::Iron::IronMQ::Message->new( 'body' => 'My message #05'  . '_三明治' );
+		$iron_mq_msg_send_06 = IO::Iron::IronMQ::Message->new( 'body' => 'My message #06' );
 	}
 	push @send_messages, $iron_mq_msg_send_01, $iron_mq_msg_send_02, $iron_mq_msg_send_03, $iron_mq_msg_send_04, $iron_mq_msg_send_05, $iron_mq_msg_send_06;
 	diag("Created 6 messages for sending.");

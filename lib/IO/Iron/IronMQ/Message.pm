@@ -36,6 +36,7 @@ use Log::Any  qw($log);
 use Hash::Util 0.06 qw{lock_keys unlock_keys};
 use Carp::Assert::More;
 use English '-no_match_vars';
+use Params::Validate qw(:all);
 
 # CONSTANTS for this module
 
@@ -50,8 +51,18 @@ Creator function.
 =cut
 
 sub new {
-	my ($class, $params) = @_;
-	$log->tracef('Entering new(%s, %s)', $class, $params);
+	my $class = shift;
+	my %params = validate(
+		@_, {
+			'body' => { type => SCALAR, },                      # Message body (free text), can be empty.
+			'timeout' => { type => SCALAR, optional => 1, },    # When reading from queue, after timeout (in seconds), item will be placed back onto queue.
+			'delay' => { type => SCALAR, optional => 1, },      # The item will not be available on the queue until this many seconds have passed.
+			'expires_in' => { type => SCALAR, optional => 1, }, # How long in seconds to keep the item on the queue before it is deleted.
+			'id' => { type => SCALAR, optional => 1, },         # Message id from IronMQ queue (after message has been pulled/peeked).
+			'reserved_count' => { type => SCALAR, optional => 1, }, # FIXME item reserved_count
+		}
+	);
+	$log->tracef('Entering new(%s, %s)', $class, %params);
 	my $self;
 	my @self_keys = ( ## no critic (CodeLayout::ProhibitQuotedWordLists)
 			'body',                        # Message body (free text), can be empty.
@@ -62,14 +73,13 @@ sub new {
 			'reserved_count',              # FIXME item reserved_count
 	);
 	lock_keys(%{$self}, @self_keys);
-	$self->{'body'} = defined $params->{'body'} ? $params->{'body'} : undef;
-	$self->{'timeout'} = defined $params->{'timeout'} ? $params->{'timeout'} : undef;
-	$self->{'delay'} = defined $params->{'delay'} ? $params->{'delay'} : undef;
-	$self->{'expires_in'} = defined $params->{'expires_in'} ? $params->{'expires_in'} : undef;
-	$self->{'id'} = defined $params->{'id'} ? $params->{'id'} : undef;
-	$self->{'reserved_count'} = defined $params->{'reserved_count'} ? $params->{'reserved_count'} : undef;
+	$self->{'body'} = defined $params{'body'};
+	$self->{'timeout'} = defined $params{'timeout'} ? $params{'timeout'} : undef;
+	$self->{'delay'} = defined $params{'delay'} ? $params{'delay'} : undef;
+	$self->{'expires_in'} = defined $params{'expires_in'} ? $params{'expires_in'} : undef;
+	$self->{'id'} = defined $params{'id'} ? $params{'id'} : undef;
+	$self->{'reserved_count'} = defined $params{'reserved_count'} ? $params{'reserved_count'} : undef;
 	# All of the above can be undefined, except the body: the message can not be empty.
-	assert_defined( $self->{'body'}, 'body is defined and is not blank.' );
 	# If timeout, delay or expires_in are undefined, the IronMQ defaults (at the server) will be used.
 
 	unlock_keys(%{$self});
@@ -80,108 +90,49 @@ sub new {
 	return $blessed_ref;
 }
 
-=head2 body
+=head2 Getters/setters
 
-Set or get body.
+Set or get a property.
+When setting, returns the reference to the object.
+
+=over 8
+
+=item body           Message body (free text), can be empty.
+
+=item timeout        When reading from queue, after timeout (in seconds), item will be placed back onto queue.
+
+=item delay          The item will not be available on the queue until this many seconds have passed.
+
+=item expires_in     How long in seconds to keep the item on the queue before it is deleted.
+
+=item id             Message id from IronMQ queue (after message has been pulled/peeked).
+
+=item reserved_count Item reserved count.
+
+=back
 
 =cut
 
-sub body {
-	my ($self, $msg_body) = @_;
-	$log->tracef('Entering body()');
-	if( defined $msg_body ) {
-		$self->{'body'} = $msg_body;
-		return 1;
+sub body { return $_[0]->_access_internal('body', $_[1]); }
+sub timeout { return $_[0]->_access_internal('timeout', $_[1]); }
+sub delay { return $_[0]->_access_internal('delay', $_[1]); }
+sub expires_in { return $_[0]->_access_internal('expires_in', $_[1]); }
+sub id { return $_[0]->_access_internal('id', $_[1]); }
+sub reserved_count { return $_[0]->_access_internal('reserved_count', $_[1]); }
+
+# TODO Move _access_internal() to IO::Iron::Common.
+
+sub _access_internal {
+	my ($self, $var_name, $var_value) = @_;
+	$log->tracef('_access_internal(%s, %s)', $var_name, $var_value);
+	if( defined $var_value ) {
+		$self->{$var_name} = $var_value;
+		return $self;
 	}
 	else {
-		return $self->{'body'};
+		return $self->{$var_name};
 	}
 }
-
-=head2 timeout
-
-Set or get timeout.
-
-=cut
-
-sub timeout {
-	my ($self, $msg_timeout) = @_;
-	$log->tracef('Entering timeout()');
-	if( defined $msg_timeout ) {
-		$self->{'timeout'} = $msg_timeout;
-		return 1;
-	}
-	else {
-		return $self->{'timeout'};
-	}
-}
-
-=head2 delay
-
-Set or get delay.
-
-=cut
-
-sub delay {
-	my ($self, $msg_delay) = @_;
-	$log->tracef('Entering delay()');
-	if( defined $msg_delay ) {
-		$self->{'delay'} = $msg_delay;
-		return 1;
-	}
-	else {
-		return $self->{'delay'};
-	}
-}
-
-=head2 expires_in
-
-Set or get expires_in.
-
-=cut
-
-sub expires_in {
-	my ($self, $msg_expires_in) = @_;
-	$log->tracef('Entering expires_in()');
-	if( defined $msg_expires_in ) {
-		$self->{'expires_in'} = $msg_expires_in;
-		return 1;
-	}
-	else {
-		return $self->{'expires_in'};
-	}
-}
-
-=head2 id
-
-Set or get id.
-
-=cut
-
-sub id {
-	my ($self, $msg_id) = @_;
-	$log->tracef('Entering id()');
-	if( defined $msg_id ) {
-		$self->{'id'} = $msg_id;
-		return 1;
-	}
-	else {
-		return $self->{'id'};
-	}
-}
-
-=head2 reserved_count
-
-Return: reserved_count
-
-=cut
-
-sub reserved_count {
-	my ($self) = @_;
-	$log->tracef('Entering reserved_count()');
-	return $self->{'reserved_count'};
-}
-
 
 
 =head1 AUTHOR
