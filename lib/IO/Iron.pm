@@ -34,12 +34,6 @@ Iron.io libraries are currently being developed so changes in the API are
 possible.
 
 
-=head1 TESTING
-
-To run the tests that come with this distribution you need an Iron.io
-account.
-
-
 =head1 SYNOPSIS
 
     use IO::Iron;
@@ -182,10 +176,10 @@ Please read individual client's documentation for using them.
 
 =head1 TESTING
 
-Subdirectory integ_t contains "integration" tests which require an active Iron.io account and Internet connection.
+Subdirectory F<integ_t> contains "integration" tests which require an active Iron.io account and Internet connection.
 To run the tests, create first three files in the main directory: 
-iron_cache.json, iron_mq.json, iron_worker.json.
-Set at least the following attributes: project_id, token and host.
+F<iron_cache.json>, F<iron_mq.json>, F<iron_worker.json>.
+Set at least the following attributes: B<project_id>, B<token> and B<host>.
 
 Execute B<prove> (L<prove|https://metacpan.org/pod/distribution/TAP-Parser/bin/prove>), e.g. B<prove -lv -Iinteg_t integ_t\Iron\iron_all.t>.
 

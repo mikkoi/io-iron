@@ -5,6 +5,7 @@ use warnings FATAL => 'all';
 use Test::More;
 
 use lib 't';
+use lib 'integ_t';
 use common;
 
 plan tests => 3;
