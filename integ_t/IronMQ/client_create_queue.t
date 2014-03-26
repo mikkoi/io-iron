@@ -8,6 +8,7 @@ use Log::Any::Test;    # should appear before 'use Log::Any'!
 use Log::Any qw($log);
 
 use lib 't';
+use lib 'integ_t';
 use common;
 
 plan tests => 4; # Setup, Do, Verify, Cleanup
@@ -32,7 +33,7 @@ my $queried_queue;
 subtest 'Setup for testing' => sub {
 	plan tests => 1;
 	# Create an IronMQ client.
-	$iron_mq_client = IO::Iron::IronMQ::Client->new( { 'config' => 'iron_mq.json' } );
+	$iron_mq_client = IO::Iron::IronMQ::Client->new( 'config' => 'iron_mq.json' );
 	# Create a new queue name.
 	$queue_name = common::create_unique_queue_name();
 	is(1, 1, 'Everything ok.');
@@ -44,7 +45,7 @@ subtest 'Create queue' => sub {
 	plan tests => 3;
 	# Create a new queue.
 	$log->clear();
-	$created_queue = $iron_mq_client->create_queue($queue_name);
+	$created_queue = $iron_mq_client->create_queue( 'name' => $queue_name );
 	$queue_id = $created_queue->id();
 	#my $log_test = 0;
 	#map { $log_test = 1 if ($_->{level} eq 'info' 
@@ -61,7 +62,7 @@ subtest 'Create queue' => sub {
 
 subtest 'Confirm result' => sub {
 	plan tests => 3;
-	$queried_queue = $iron_mq_client->get_queue($queue_name);
+	$queried_queue = $iron_mq_client->get_queue( 'name' => $queue_name );
 	is($queried_queue->name(), $created_queue->name(), "Queried queue has the same name as created queue.");
 	is($queried_queue->id(), $created_queue->id(), "Queried queue has the same id as created queue.");
 	is($queried_queue->size(), 0, 'Queried queue size is 0.');
@@ -71,7 +72,7 @@ subtest 'Confirm result' => sub {
 subtest 'Clean up' => sub {
 	plan tests => 1;
 	# Delete queue. Confirm deletion.
-	my $delete_queue_ret = $iron_mq_client->delete_queue($queue_name);
+	my $delete_queue_ret = $iron_mq_client->delete_queue(  'name' => $queue_name );
 	is($delete_queue_ret, 1, "Queue is deleted.");
 	diag("All cleaned up.")
 };

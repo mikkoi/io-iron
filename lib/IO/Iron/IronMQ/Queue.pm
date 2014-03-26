@@ -37,6 +37,7 @@ use Log::Any qw($log);
 use Hash::Util 0.06 qw{lock_keys unlock_keys};
 use Carp::Assert::More;
 use English '-no_match_vars';
+use Params::Validate qw(:all);
 
 use IO::Iron::Common;
 use IO::Iron::IronMQ::Api;
@@ -83,53 +84,40 @@ sub new {
 	return $blessed_ref;
 }
 
-=head2 id
+=head2 Getters/setters
 
-=over
+Set or get a property.
+When setting, returns the reference to the object.
 
-=item Set or get id.
+=over 8
 
-=back
-
-=cut
-
-sub id {
-	my ( $self, $id ) = @_;
-	$log->tracef( 'Entering id(%s)', $id );
-	if ( defined $id ) {
-		$self->{'id'} = $id;
-		$log->tracef( 'Exiting id:%s', 1 );
-		return 1;
-	}
-	else {
-		$log->tracef( 'Exiting id:%s', $self->{'id'} );
-		return $self->{'id'};
-	}
-}
-
-=head2 name
-
-=over
-
-=item Set or get name.
+=item name         Cache name.
 
 =back
 
 =cut
 
-sub name {
-	my ( $self, $name ) = @_;
-	$log->tracef( 'Entering name(%s)', $name );
-	if ( defined $name ) {
-		$self->{'name'} = $name;
-		$log->tracef( 'Exiting name:%s', 1 );
-		return 1;
+sub id { return $_[0]->_access_internal('id', $_[1]); }
+sub name { return $_[0]->_access_internal('name', $_[1]); }
+
+# TODO Move _access_internal() to IO::Iron::Common.
+
+sub _access_internal {
+	my ($self, $var_name, $var_value) = @_;
+	$log->tracef('_access_internal(%s, %s)', $var_name, $var_value);
+	if( defined $var_value ) {
+		$self->{$var_name} = $var_value;
+		return $self;
 	}
 	else {
-		$log->tracef( 'Exiting name:%s', $self->{'name'} );
-		return $self->{'name'};
+		return $self->{$var_name};
 	}
 }
+
+
+
+
+
 
 =head2 push
 
@@ -146,11 +134,29 @@ or number of messages.
 
 sub push { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 	# TODO Limit the total size!
-	my ( $self, @messages ) = @_;
-	foreach my $message (@messages) {
-		assert_isa( $message, 'IO::Iron::IronMQ::Message',
-			'message is IO::Iron::IronMQ::Message.' );
-	}
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'messages' => {
+				type => ARRAYREF,
+				callbacks => {
+					'assert_class' => sub {
+						#my $messages = shift;
+						use Data::Dumper;
+						#print Dumper($_[0]);
+						foreach my $message (@{$_[0]}) {
+							#print Dumper($message);
+							assert_isa( $message, 'IO::Iron::IronMQ::Message',
+								'Message is IO::Iron::IronMQ::Message.' );
+								# FIXME Do this better!
+						}
+						1;
+					}
+				}
+			}, # one or more objects of class IO::Iron::IronMQ::Message.
+		}
+	);
+	my @messages = @{$params{'messages'}};
 	$log->tracef( 'Entering push(%s)', @messages );
 
 	my $queue_name = $self->name();
@@ -158,14 +164,20 @@ sub push { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 	my @message_contents;
 	foreach my $message (@messages) {
 		my ( $msg_body, $msg_timeout, $msg_delay, $msg_expires_in ) = (
-			$message->{'body'},  $message->{'timeout'},
-			$message->{'delay'}, $message->{'expires_in'},
+			$message->body(),  $message->timeout(),
+			$message->delay(), $message->expires_in(),
 		);
 		my $message_content = {};
 		$message_content->{'body'}       = $msg_body;
 		$message_content->{'timeout'}    = $msg_timeout if defined $msg_timeout;
 		$message_content->{'delay'}      = $msg_delay if defined $msg_delay;
 		$message_content->{'expires_in'} = $msg_expires_in if defined $msg_expires_in;
+		# Gimmick to ensure the proper jsonization of numbers
+		# Otherwise numbers might end up as strings.
+		$message_content->{'timeout'} += 0;
+		$message_content->{'delay'} += 0;
+		$message_content->{'expires_in'} += 0;
+
 		push @message_contents, $message_content;
 	}
 	my %item_body = ( 'messages' => \@message_contents );
@@ -216,14 +228,20 @@ empty list if no messages available.
 =cut
 
 sub pull {
-	my ( $self, $params ) = @_;
-	$log->tracef( 'Entering pull(%s)', $params );
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'n' => { type => SCALAR, optional => 1, },    # Number of messages to pull.
+			'timeout' => { type => SCALAR, optional => 1, }, # When reading from queue, after timeout (in seconds), item will be placed back onto queue.
+		}
+	);
+	$log->tracef( 'Entering pull(%s)', \%params );
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
 	my %query_params;
-	$query_params{'{n}'}       = $params->{'n'}       if $params->{'n'};
-	$query_params{'{timeout}'} = $params->{'timeout'} if $params->{'timeout'};
+	$query_params{'{n}'}       = $params{'n'}       if $params{'n'};
+	$query_params{'{timeout}'} = $params{'timeout'} if $params{'timeout'};
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
 		IO::Iron::IronMQ::Api::IRONMQ_GET_MESSAGES_FROM_A_QUEUE(),
@@ -260,7 +278,7 @@ sub pull {
 
 =over
 
-=item Params: [none]
+=item Params: n, number of messages to read
 
 =item Return: list of IO::Iron::IronMQ::Message objects, 
 empty list if no messages available.
@@ -270,13 +288,18 @@ empty list if no messages available.
 =cut
 
 sub peek {
-	my ( $self, $params ) = @_;
-	$log->tracef( 'Entering peek(%s)', $params );
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'n' => { type => SCALAR, optional => 1, }, # Number of messages to read.
+		}
+	);
+	$log->tracef( 'Entering peek(%s)', \%params );
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
 	my %query_params;
-	$query_params{'{n}'} = $params->{'n'} if $params->{'n'};
+	$query_params{'{n}'} = $params{'n'} if $params{'n'};
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
 		IO::Iron::IronMQ::Api::IRONMQ_PEEK_MESSAGES_ON_A_QUEUE(),
@@ -295,9 +318,11 @@ sub peek {
 			$self->{'name'}, $msg->{'id'} );
 		my $message = IO::Iron::IronMQ::Message->new(
 			'body'    => $msg->{'body'},
-			'timeout' => $msg->{'timeout'},
-			'id'      => $msg->{'id'},
+			'id'             => $msg->{'id'},
 		);
+		$message->reserved_count($msg->{'reserved_count'}) if $msg->{'reserved_count'};
+		# When peeking, timeout is not returned
+		# (it is irrelevent, because peeking does not reserve the message).
 		CORE::push @peeked_messages,
 		  $message;    # using CORE routine, not this class' method.
 	}
@@ -320,13 +345,21 @@ number of messages deleted.
 =cut
 
 sub delete { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
-	my ( $self, @message_ids ) = @_;
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'ids' => {
+				type => ARRAYREF,
+			}, # one or more id strings (alphanum text string).
+		}
+	);
+	my @message_ids = @{$params{'ids'}};
 	assert_positive(scalar @message_ids, 'There is one or more message ids.');
 	$log->tracef( 'Entering delete(%s)', @message_ids );
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
-	my %item_body  = ( 'ids' => \@message_ids );
+	my %item_body  = ( 'ids' => $params{'ids'} );
 
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
@@ -370,29 +403,35 @@ sub delete { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 =cut
 
 sub release {
-	my ( $self, $msg_id, $msg_delay ) = @_;
-	assert_nonblank( $msg_id, 'msg_id is a non null string.' );
-	$log->tracef( 'Entering release(%s)', $msg_id, $msg_delay );
-	$msg_delay = defined $msg_delay ? $msg_delay : 0;
-	assert_nonnegative_integer( $msg_delay, 'msg_delay is a non negative integer.' );
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'id' => { type => SCALAR }, # Message id.
+			'delay' => { type => SCALAR, optional => 1, }, # Delay before releasing.
+		}
+	);
+	assert_nonblank( $params{'id'}, 'Paramater id is a non null string.' );
+	assert_nonnegative_integer( $params{'delay'} ? $params{'delay'} : 0, 'Parameter delay is a non negative integer.' );
+	$log->tracef( 'Entering release(%s)', \%params );
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
 	my %item_body;
-	$item_body{'delay'} = $msg_delay if $msg_delay;
+	$item_body{'delay'} = $params{'delay'} if $params{'delay'};
+	# We do not give delay a default value (0); we let IronMQ use internal default values!
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
 		IO::Iron::IronMQ::Api::IRONMQ_RELEASE_A_MESSAGE_ON_A_QUEUE(),
 		{
 			'{Queue Name}' => $queue_name,
-			'{Message ID}'  => $msg_id,
+			'{Message ID}'  => $params{'id'},
 			'body'         => \%item_body,
 		}
 	  );
 	$self->{'last_http_status_code'} = $http_status_code;
 	$log->debugf(
 		'Released IronMQ Message(s) (queue name=%s; message id=%s; delay=%d)',
-		$queue_name, $msg_id, $msg_delay ? $msg_delay : 0 );
+		$queue_name, $params{'id'}, $params{'delay'} ? $params{'delay'} : 0 );
 
 	$log->tracef( 'Exiting release: %s', 1 );
 	return 1;
@@ -411,9 +450,15 @@ sub release {
 =cut
 
 sub touch {
-	my ( $self, $msg_id ) = @_;
-	assert_nonblank( $msg_id, 'msg_id is a non null string.' );
-	$log->tracef( 'Entering touch(%s)', $msg_id );
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'id' => { type => SCALAR }, # Message id.
+		}
+	);
+	assert_nonblank( $params{'id'}, 'Paramater id is a non null string.' );
+	$log->tracef( 'Entering touch(%s)', \%params );
+
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
@@ -423,13 +468,13 @@ sub touch {
 		IO::Iron::IronMQ::Api::IRONMQ_TOUCH_A_MESSAGE_ON_A_QUEUE(),
 		{
 			'{Queue Name}' => $queue_name,
-			'{Message ID}'  => $msg_id,
+			'{Message ID}'  => $params{'id'},
 			'body'         => \%item_body,    # Empty body.
 		}
 	  );
 	$self->{'last_http_status_code'} = $http_status_code;
 	$log->debugf( 'Touched IronMQ Message(s) (queue name=%s; message id(s)=%s.',
-		$queue_name, $msg_id );
+		$queue_name, $params{'id'} );
 
 	$log->tracef( 'Exiting touch: %s', 1 );
 	return 1;
@@ -448,7 +493,12 @@ sub touch {
 =cut
 
 sub clear {
-	my ($self) = @_;
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			# No parameters
+		}
+	);
 	$log->tracef('Entering clear()');
 
 	my $queue_name = $self->name();
@@ -483,7 +533,12 @@ sub clear {
 =cut
 
 sub size {
-	my ($self) = @_;
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			# No parameters
+		}
+	);
 	$log->tracef('Entering size().');
 
 	my $queue_name = $self->name();

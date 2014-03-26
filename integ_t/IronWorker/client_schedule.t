@@ -8,6 +8,7 @@ use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use File::Slurp;
 
 use lib 't';
+use lib 'integ_t';
 use common;
 
 plan tests => 6;

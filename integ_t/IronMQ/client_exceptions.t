@@ -6,6 +6,7 @@ use Test::More;
 use Test::Exception;
 
 use lib 't';
+use lib 'integ_t';
 use common;
 
 plan tests => 13;
@@ -23,17 +24,17 @@ diag("Testing IO::Iron::IronMQ::Client, Perl $], $^X");
 diag('Testing IO::Iron::IronMQ::Client');
 
 # Create an IronMQ client.
-my $iron_mq_client = IO::Iron::IronMQ::Client->new( { 'config' => 'iron_mq.json' } );
+my $iron_mq_client = IO::Iron::IronMQ::Client->new( 'config' => 'iron_mq.json' );
 
 # Create a new queue names.
 my $unique_queue_name_01 = common::create_unique_queue_name();
 
 throws_ok {
-	my $queried_iron_mq_queue_01 = $iron_mq_client->get_queue($unique_queue_name_01);
+	my $queried_iron_mq_queue_01 = $iron_mq_client->get_queue( 'name' => $unique_queue_name_01 );
 } 'IronHTTPCallException', 
 		'Throw IO::Iron::IronMQ::Exceptions::HTTPException when no message queue of given name.';
 throws_ok {
-	my $queried_iron_mq_queue_01 = $iron_mq_client->get_queue($unique_queue_name_01);
+	my $queried_iron_mq_queue_01 = $iron_mq_client->get_queue( 'name' => $unique_queue_name_01 );
 } '/IronHTTPCallException: status_code=404 response_message=Queue not found/', 
 		'Throw IO::Iron::IronMQ::Exceptions::HTTPException when no message queue of given name.';
 diag("Tried to get queue " . $unique_queue_name_01 . " which doesn't exist.");
@@ -41,17 +42,17 @@ diag("Tried to get queue " . $unique_queue_name_01 . " which doesn't exist.");
 ## Create a new queue.
 my $created_iron_mq_queue_01;
 lives_ok {
-	$created_iron_mq_queue_01 = $iron_mq_client->create_queue($unique_queue_name_01);
+	$created_iron_mq_queue_01 = $iron_mq_client->create_queue( 'name' => $unique_queue_name_01 );
 } 'Creating queue should not fail.';
 isa_ok($created_iron_mq_queue_01, "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
 is($created_iron_mq_queue_01->name(), $unique_queue_name_01, "Created queue has the given name.");
 diag("Created message queue " . $unique_queue_name_01 . ".");
 
 # Query the created queue.
-my $queried_iron_mq_queue_01 = $iron_mq_client->get_queue($unique_queue_name_01);
+my $queried_iron_mq_queue_01 = $iron_mq_client->get_queue( 'name' => $unique_queue_name_01 );
 isa_ok($queried_iron_mq_queue_01 , "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
 is($queried_iron_mq_queue_01->size(), 0, "Queried queue size is 0.");
-my $queried_iron_mq_queue_info_01 = $iron_mq_client->get_info_about_queue($unique_queue_name_01);
+my $queried_iron_mq_queue_info_01 = $iron_mq_client->get_info_about_queue( 'name' => $unique_queue_name_01 );
 is($queried_iron_mq_queue_01->size(), $queried_iron_mq_queue_info_01->{'size'}, "Queried queue size matches with queried info.");
 
 diag("Queried message queue " . $unique_queue_name_01 . ".");
@@ -72,19 +73,19 @@ is(scalar @found_queues, 1, "get_queues returned the one created queue.");
 
 # Delete queue. Confirm deletion.
 throws_ok {
-	my $delete_queue_ret_01 = $iron_mq_client->delete_queue("Non_existing_queue_name");
+	my $delete_queue_ret_01 = $iron_mq_client->delete_queue( 'name' => "Non_existing_queue_name" );
 } 'IronHTTPCallException', 
 		'Throw IO::Iron::IronMQ::Exceptions::HTTPException when no message queue of given name.';
 throws_ok {
-	my $delete_queue_ret_01 = $iron_mq_client->delete_queue("Non_existing_queue_name");
+	my $delete_queue_ret_01 = $iron_mq_client->delete_queue( 'name' => "Non_existing_queue_name" );
 } '/IronHTTPCallException: status_code=404 response_message=Queue not found/', 
 		'Throw IO::Iron::IronMQ::Exceptions::HTTPException when no message queue of given name.';
 diag("Tried to delete a non-existing message queue " . '\'Non_existing_queue_name\'' . ".");
 
-my $delete_queue_ret_01 = $iron_mq_client->delete_queue($unique_queue_name_01);
+my $delete_queue_ret_01 = $iron_mq_client->delete_queue( 'name' => $unique_queue_name_01 );
 is($delete_queue_ret_01, 1, "Queue is deleted.");
 throws_ok {
-	my $delete_queue_ret_01 = $iron_mq_client->get_queue($unique_queue_name_01);
+	my $delete_queue_ret_01 = $iron_mq_client->get_queue( 'name' => $unique_queue_name_01 );
 } 'IronHTTPCallException', 
 		'Throw IO::Iron::IronMQ::Exceptions::HTTPException when no message queue of given name.';
 diag("Deleted message queue " . $created_iron_mq_queue_01->name() . ".");

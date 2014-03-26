@@ -8,6 +8,7 @@ use Log::Any::Test;    # should appear before 'use Log::Any'!
 use Log::Any qw($log);
 
 use lib 't';
+use lib 'integ_t';
 use common;
 
 plan tests => 3;

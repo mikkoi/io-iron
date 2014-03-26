@@ -47,6 +47,9 @@ use Params::Validate qw(:all);
 =head2 new
 
 Creator function.
+UNDEF values not accepted.
+body is mandatory, timeout, delay, expires_in are optional.
+id and reserved_count are for internal use.
 
 =cut
 
@@ -73,7 +76,7 @@ sub new {
 			'reserved_count',              # FIXME item reserved_count
 	);
 	lock_keys(%{$self}, @self_keys);
-	$self->{'body'} = defined $params{'body'};
+	$self->{'body'} = $params{'body'};
 	$self->{'timeout'} = defined $params{'timeout'} ? $params{'timeout'} : undef;
 	$self->{'delay'} = defined $params{'delay'} ? $params{'delay'} : undef;
 	$self->{'expires_in'} = defined $params{'expires_in'} ? $params{'expires_in'} : undef;

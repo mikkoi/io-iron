@@ -8,6 +8,7 @@ use Log::Any::Test;    # should appear before 'use Log::Any'!
 use Log::Any qw($log);
 
 use lib 't';
+use lib 'integ_t';
 use common;
 
 plan tests => 4; # Setup, Do, Verify, Cleanup
@@ -35,12 +36,12 @@ my %msg_body_hash_02;
 subtest 'Setup for testing' => sub {
 	plan tests => 2;
 	# Create an IronMQ client.
-	$iron_mq_client = IO::Iron::IronMQ::Client->new( { 'config' => 'iron_mq.json' } );
+	$iron_mq_client = IO::Iron::IronMQ::Client->new( 'config' => 'iron_mq.json' );
 	$project_id = $iron_mq_client->{'connection'}->{'project_id'};
 	# Create a new queue name.
 	$queue_name = common::create_unique_queue_name();
 	# Create a new queue.
-	$queue = $iron_mq_client->create_queue($queue_name);
+	$queue = $iron_mq_client->create_queue( 'name' => $queue_name );
 	isa_ok($queue, "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
 	is($queue->name(), $queue_name, "Created queue has the given name.");
 	diag("Created message queue " . $queue_name . ".");
@@ -74,14 +75,14 @@ my $log_message;
 subtest 'Pushing' => sub {
 	plan tests => 7;
 	#Queue is empty
-	my @msg_pulls_00 = $queue->pull( { 'n' => 2, timeout => 120 } );
+	my @msg_pulls_00 = $queue->pull( 'n' => 2, 'timeout' => 120 );
 	is(scalar @msg_pulls_00, 0, 'No messages pulled from queue, size 0.');
 	is($queue->size(), 0, 'Queue size is 0.');
 	diag("Empty queue at the start.");
 	
 	# Let's push the messages.
 	$log->clear();
-	my $msg_send_id_01 = $queue->push($send_messages[0]);
+	my $msg_send_id_01 = $queue->push( 'messages' => [ $send_messages[0] ] );
 	#my $log_test = 0;
 	#map { $log_test = 1 if ($_->{level} eq 'info' 
 	#		&& $_->{category} eq 'IO::Iron::IronMQ::Queue' 
@@ -93,7 +94,7 @@ subtest 'Pushing' => sub {
 	push @sent_msg_ids, $msg_send_id_01;
 	
 	$log->clear();
-	my @msg_send_ids_02 = $queue->push(@send_messages[1,2]);
+	my @msg_send_ids_02 = $queue->push( 'messages' => [ @send_messages[1,2] ] );
 	#$log_test = 0;
 	#my $send_ids_text = join ',', @msg_send_ids_02;
 	##diag(Dumper($log->msgs));
@@ -107,7 +108,7 @@ subtest 'Pushing' => sub {
 	is($queue->size(), 3, 'Two messages pushed, queue size is 3.');
 	push @sent_msg_ids, @msg_send_ids_02;
 	
-	my $number_of_msgs_sent = $queue->push(@send_messages[3,4,5]);
+	my $number_of_msgs_sent = $queue->push( 'messages' => [ @send_messages[3,4,5] ] );
 	is($number_of_msgs_sent, 3, 'Three more messages pushed.');
 	is($queue->size(), 6, 'Three more messages pushed, queue size is 6.');
 	diag("Total 6 messages pushed to queue.");
@@ -118,7 +119,7 @@ subtest 'Pushing' => sub {
 my @msg_pulls;
 subtest 'Pulled messages match with the sent messages.' => sub {
 	plan tests => 12;
-	@msg_pulls = $queue->pull( { 'n' => 10, timeout => 120 } );
+	@msg_pulls = $queue->pull( 'n' => 10, 'timeout' => 120 );
 	is( scalar @msg_pulls, 6, "Pulled 6 messages.");
 	my $yaml_de = YAML::Tiny->new(); $yaml_de = $yaml_de->read_string($msg_pulls[1]->body());
 	is_deeply($yaml_de->[0], \%msg_body_hash_02, '#2 message body after serialization matches with the sent message body.');
@@ -144,10 +145,10 @@ subtest 'Clean up after us.' => sub {
 	diag("Cleared the queue, queue size is 0.");
 	
 	# Delete queue. Confirm deletion.
-	my $delete_queue_ret_01 = $iron_mq_client->delete_queue($queue_name);
+	my $delete_queue_ret_01 = $iron_mq_client->delete_queue( 'name' => $queue_name);
 	is($delete_queue_ret_01, 1, "Queue is deleted.");
 	throws_ok {
-		my $dummy = $iron_mq_client->get_queue($queue_name);
+		my $dummy = $iron_mq_client->get_queue( 'name' => $queue_name);
 	} '/IronHTTPCallException: status_code=404/', 
 	# IronHTTPCallException: status_code=404 response_message=Queue not found
 	# status code 404: server could not find what was requested! Response message can change, code remains 404!

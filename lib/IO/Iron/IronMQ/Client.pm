@@ -94,6 +94,8 @@ use File::HomeDir;
 use Hash::Util 0.06 qw{lock_keys lock_keys_plus unlock_keys legal_keys};
 use Carp::Assert::More;
 use English '-no_match_vars';
+use Params::Validate qw(:all);
+
 
 use IO::Iron::IronMQ::Api;
 use IO::Iron::Common;
@@ -353,8 +355,14 @@ Creator function.
 =cut
 
 sub new {
-	my ($class, $params) = @_;
-	$log->tracef('Entering new(%s, %s)', $class, $params);
+	my $class = shift;
+	my %params = validate(
+		@_, {
+			map { $_ => { type => SCALAR, optional => 1 }, } IO::Iron::Common::IRON_CLIENT_PARAMETERS(), ## no critic (ValuesAndExpressions::ProhibitCommaSeparatedStatements)
+		}
+	);
+
+	$log->tracef('Entering new(%s, %s)', $class, %params);
 	my $self = IO::Iron::ClientBase->new();
 	# Add more keys to the self hash.
 	my @self_keys = (
@@ -363,7 +371,7 @@ sub new {
 	);
 	unlock_keys(%{$self});
 	lock_keys_plus(%{$self}, @self_keys);
-	my $config = IO::Iron::Common::get_config(%{$params}); # TODO Temp fix for the named parameters scheme
+	my $config = IO::Iron::Common::get_config(%params);
 	$log->debugf('The config: %s', $config);
 	$self->{'project_id'} = defined $config->{'project_id'} ? $config->{'project_id'} : undef;
 	$self->{'queues'} = [];
@@ -383,7 +391,7 @@ sub new {
 		'api_version' => $config->{'api_version'},
 		'host_path_prefix' => $config->{'host_path_prefix'},
 		'timeout' => $config->{'timeout'},
-		'connector' => $params->{'connector'},
+		'connector' => $params{'connector'},
 		}
 	);
 	$self->{'connection'} = $connection;
@@ -410,14 +418,19 @@ a particular message queue.
 =cut
 
 sub get_queue {
-	my ($self, $queue_name) = @_;
-	$log->tracef('Entering get_queue(%s)', $queue_name);
-	assert_nonblank( $queue_name, 'queue_name is not defined or is blank');
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'name' => { type => SCALAR, }, # queue name.
+		}
+	);
+	$log->tracef('Entering get_queue(%s)', \%params);
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is blank');
 
 	my $connection = $self->{'connection'};
 	my ($http_status_code, $response_message) = $connection->perform_iron_action(
 			IO::Iron::IronMQ::Api::IRONMQ_GET_INFO_ABOUT_A_MESSAGE_QUEUE(),
-			{ '{Queue Name}' => $queue_name, }
+			{ '{Queue Name}' => $params{'name'}, }
 		);
 	$self->{'last_http_status_code'} = $http_status_code;
 	my $get_queue_id = $response_message->{'id'};
@@ -453,16 +466,21 @@ a particular message queue.
 =cut
 
 sub create_queue {
-	my ($self, $queue_name) = @_;
-	$log->tracef('Entering create_queue(%s)', $queue_name);
-	assert_nonblank( $queue_name, 'queue_name is not defined or is blank');
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'name' => { type => SCALAR, }, # queue name.
+		}
+	);
+	$log->tracef('Entering create_queue(%s)', \%params);
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is blank');
 
 	my $connection = $self->{'connection'};
 	my %empty_body;
 	my ($http_status_code, $response_message) = $connection->perform_iron_action(
 			IO::Iron::IronMQ::Api::IRONMQ_UPDATE_A_MESSAGE_QUEUE(),
 			{
-				'{Queue Name}' => $queue_name,
+				'{Queue Name}' => $params{'name'},
 				'body'         => \%empty_body,
 			}
 		);
@@ -497,19 +515,24 @@ Delete an IronMQ queue.
 =cut
 
 sub delete_queue {
-	my ($self, $queue_name) = @_;
-	$log->tracef('Entering delete_queue(%s)', $queue_name);
-	assert_nonblank( $queue_name, 'queue_name is not defined or is blank');
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'name' => { type => SCALAR, }, # queue name.
+		}
+	);
+	$log->tracef('Entering delete_queue(%s)', \%params);
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is blank');
 
 	my $connection = $self->{'connection'};
 	my ($http_status_code, $response_message) = $connection->perform_iron_action(
 			IO::Iron::IronMQ::Api::IRONMQ_DELETE_A_MESSAGE_QUEUE(),
 			{
-				'{Queue Name}' => $queue_name,
+				'{Queue Name}' => $params{'name'},
 			}
 		);
 	$self->{'last_http_status_code'} = $http_status_code;
-	$log->debugf('Deleted queue (queue name=%s.', $queue_name);
+	$log->debugf('Deleted queue (queue name=%s.', $params{'name'});
 	$log->tracef('Exiting delete_queue: %d', 1);
 	return 1;
 }
@@ -529,7 +552,12 @@ Return a IO::Iron::IronMQ::Queue objects representing message queues.
 =cut
 
 sub get_queues {
-	my ($self) = @_;
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			# No parameters
+		}
+	);
 	$log->tracef('Entering get_queues()');
 
 	my @queues;
@@ -586,19 +614,24 @@ sub update_queue {
 =cut
 
 sub get_info_about_queue {
-	my ($self, $queue_name) = @_;
-	$log->tracef('Entering get_info_about_queue(%s)', $queue_name);
-	assert_nonblank( $queue_name, 'queue_name is not defined or is blank');
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'name' => { type => SCALAR, }, # queue name.
+		}
+	);
+	$log->tracef('Entering get_info_about_queue(%s)', \%params);
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is blank');
 
 	my $connection = $self->{'connection'};
 	my ($http_status_code, $response_message) = $connection->perform_iron_action(
 			IO::Iron::IronMQ::Api::IRONMQ_GET_INFO_ABOUT_A_MESSAGE_QUEUE(),
-			{ '{Queue Name}' => $queue_name, }
+			{ '{Queue Name}' => $params{'name'}, }
 		);
 	$self->{'last_http_status_code'} = $http_status_code;
 	my $info = $response_message;
 	# {"id":"51be[...]","name":"Log_Test_Queue","size":0,"total_messages":3,"project_id":"51bd[...]"}
-	$log->debugf('Returned info about queue %s.', $queue_name);
+	$log->debugf('Returned info about queue %s.', $params{'name'});
 	$log->tracef('Exiting get_info_about_queue: %s', $info);
 	return $info;
 }
