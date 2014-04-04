@@ -465,23 +465,35 @@ a particular message queue.
 
 =cut
 
+# TODO WARNING: Do not use the following RFC 3986 Reserved Characters within your in the naming of your queues: ! * ' ( ) ; : @ & = + $ , / ? # [ ]
+
 sub create_queue {
 	my $self = shift;
 	my %params = validate(
 		@_, {
 			'name' => { type => SCALAR, }, # queue name.
+			'subscribers' => { type => ARRAYREF, optional => 1 }, # array of subscriber hashes containing a required "url" field and an optional "headers" map for custom headers.
+			'push_type' => { type => SCALAR, optional => 1 }, # Either multicast to push to all subscribers or unicast to push to one and only one subscriber. Default is multicast.
+			'retries' => { type => SCALAR, optional => 1 }, # retries: How many times to retry on failure. Default is 3. Maximum is 100.
+			'retries_delay' => { type => SCALAR, optional => 1 }, # retries_delay: Delay between each retry in seconds. Default is 60.
+			'error_queue' => { type => SCALAR, optional => 1 }, # error_queue: The name of another queue where information about messages that can't be delivered will be placed.
 		}
 	);
 	$log->tracef('Entering create_queue(%s)', \%params);
 	assert_nonblank( $params{'name'}, 'Parameter \'name\' is blank');
 
 	my $connection = $self->{'connection'};
-	my %empty_body;
+	my %item_body;
+	$item_body{'subscribers'} = $params{'subscribers'} if ($params{'subscribers'});
+	$item_body{'push_type'} = $params{'push_type'} if ($params{'push_type'});
+	$item_body{'retries'} = $params{'retries'} if ($params{'retries'});
+	$item_body{'retries_delay'} = $params{'retries_delay'} if ($params{'retries_delay'});
+	$item_body{'error_queue'} = $params{'error_queue'} if ($params{'error_queue'});
 	my ($http_status_code, $response_message) = $connection->perform_iron_action(
 			IO::Iron::IronMQ::Api::IRONMQ_UPDATE_A_MESSAGE_QUEUE(),
 			{
 				'{Queue Name}' => $params{'name'},
-				'body'         => \%empty_body,
+				'body'         => \%item_body,
 			}
 		);
 	$self->{'last_http_status_code'} = $http_status_code;
