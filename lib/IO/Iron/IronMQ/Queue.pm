@@ -56,8 +56,16 @@ use IO::Iron::IronMQ::Api;
 =cut
 
 sub new {
-	my ( $class, $params ) = @_;
-	$log->tracef( 'Entering new(%s, %s)', $class, $params );
+	my $class = shift;
+	my %params = validate(
+		@_, {
+			'id' => { type => SCALAR, }, # queue id.
+			'name' => { type => SCALAR, }, # queue name.
+			'ironmq_client' => { type => OBJECT, }, # Reference to IronMQ client
+			'connection' => { type => OBJECT, },  # Reference to REST client
+		}
+	);
+	$log->tracef( 'Entering new(%s, %s)', $class, \%params );
 	my $self;
 	my @self_keys = ( ## no critic (CodeLayout::ProhibitQuotedWordLists)
 		'ironmq_client',         # Reference to IronMQ client
@@ -67,10 +75,10 @@ sub new {
 		'last_http_status_code', # After successfull network operation, the return value is here.
 	);
 	lock_keys( %{$self}, @self_keys );
-	$self->{'ironmq_client'} = defined $params->{'ironmq_client'} ? $params->{'ironmq_client'} : undef;
-	$self->{'id'}   = defined $params->{'id'}   ? $params->{'id'}   : undef;
-	$self->{'name'} = defined $params->{'name'} ? $params->{'name'} : undef;
-	$self->{'connection'} = defined $params->{'connection'} ? $params->{'connection'} : undef;
+	$self->{'ironmq_client'} = $params{'ironmq_client'};
+	$self->{'id'}   = $params{'id'};
+	$self->{'name'} = $params{'name'};
+	$self->{'connection'} = $params{'connection'};
 	assert_isa( $self->{'connection'}, 'IO::Iron::Connection', 'self->{\'connection\'} is IO::Iron::Connection.' );
 	assert_isa( $self->{'ironmq_client'}, 'IO::Iron::IronMQ::Client', 'self->{\'ironmq_client\'} is IO::Iron::IronMQ::Client.' );
 	assert_nonblank( $self->{'id'}, 'self->{\'id\'} is defined and is not blank.' );
@@ -97,8 +105,11 @@ When setting, returns the reference to the object.
 
 =cut
 
+sub ironmq_client { return $_[0]->_access_internal('ironmq_client', $_[1]); }
 sub id { return $_[0]->_access_internal('id', $_[1]); }
 sub name { return $_[0]->_access_internal('name', $_[1]); }
+sub connection { return $_[0]->_access_internal('connection', $_[1]); }
+sub last_http_status_code { return $_[0]->_access_internal('last_http_status_code', $_[1]); }
 
 # TODO Move _access_internal() to IO::Iron::Common.
 
@@ -141,7 +152,6 @@ sub push { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 				type => ARRAYREF,
 				callbacks => {
 					'assert_class' => sub {
-						#my $messages = shift;
 						use Data::Dumper;
 						#print Dumper($_[0]);
 						foreach my $message (@{$_[0]}) {
@@ -150,7 +160,7 @@ sub push { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 								'Message is IO::Iron::IronMQ::Message.' );
 								# FIXME Do this better!
 						}
-						1;
+						return 1;
 					}
 				}
 			}, # one or more objects of class IO::Iron::IronMQ::Message.
@@ -227,6 +237,12 @@ empty list if no messages available.
 
 =cut
 
+# TODO Bug in documentation:
+# Returned HTTP response:{"messages":[{"id":"5999128538599854538","body":"{\"code\":0,\"msg\":\"Push request failed:Post https://non_e
+# xisting_host:443/1/projects/non_existing_project_id/queues/non_existing_queue_name/messages: dial tcp: lookup non_existing_host: no
+# such host\",\"source_msg_id\":\"5999128499945083127\",\"subscribers\":[{\"url\":\"ironmq://non_existing_project_id:non_existing_toke
+# n@non_existing_host/non_existing_queue_name\"}]}","timeout":60,"reserved_count":1,"push_status":{}}]}
+
 sub pull {
 	my $self = shift;
 	my %params = validate(
@@ -235,6 +251,7 @@ sub pull {
 			'timeout' => { type => SCALAR, optional => 1, }, # When reading from queue, after timeout (in seconds), item will be placed back onto queue.
 		}
 	);
+	assert_positive(wantarray, 'Method pull() only works in LIST context!');
 	$log->tracef( 'Entering pull(%s)', \%params );
 
 	my $queue_name = $self->name();
@@ -294,6 +311,7 @@ sub peek {
 			'n' => { type => SCALAR, optional => 1, }, # Number of messages to read.
 		}
 	);
+	assert_positive(wantarray, 'Method peek() only works in LIST context!');
 	$log->tracef( 'Entering peek(%s)', \%params );
 
 	my $queue_name = $self->name();
@@ -456,7 +474,7 @@ sub touch {
 			'id' => { type => SCALAR }, # Message id.
 		}
 	);
-	assert_nonblank( $params{'id'}, 'Paramater id is a non null string.' );
+	assert_nonblank( $params{'id'}, 'Parameter id is a non null string.' );
 	$log->tracef( 'Entering touch(%s)', \%params );
 
 
@@ -486,7 +504,7 @@ sub touch {
 
 =item Params: [None].
 
-=item Return: 1.
+=item Return: 1 if successful.
 
 =back
 
@@ -554,6 +572,93 @@ sub size {
 	$log->tracef( 'Exiting size(): %s', $size );
 	return $size;
 }
+
+=head2 get_push_status
+
+=over 8
+
+=item Params: id (message id).
+
+=item Return: a hash containing info, subitem 'subscribers' is an array.
+
+=back
+
+=cut
+
+sub get_push_status {
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'id' => { type => SCALAR, }, # message id.
+		}
+	);
+	assert_positive(wantarray == 0, 'Method get_push_status() only works in SCALAR context!');
+	assert_nonblank( $params{'id'}, 'Parameter id is a non null string.');
+	$log->tracef('Entering get_push_status(%s)', \%params);
+
+	my $queue_name = $self->name();
+	my $connection = $self->{'connection'};
+	my ($http_status_code, $response_message) = $connection->perform_iron_action(
+			IO::Iron::IronMQ::Api::IRONMQ_GET_PUSH_STATUS_FOR_A_MESSAGE(),
+			{
+				'{Queue Name}' => $queue_name,
+				'{Message ID}'  => $params{'id'},
+			}
+		);
+	$self->{'last_http_status_code'} = $http_status_code;
+	my $info = $response_message;
+	$log->debugf('Returned push status for message %s.', $params{'id'});
+
+	$log->tracef('Exiting get_push_status: %s', $info);
+	return $info;
+}
+
+=head2 delete_push_message
+
+=over 8
+
+=item Params: id (message id), subscriber (subscriber id).
+
+=item Return: 1 if successful.
+
+=back
+
+=cut
+
+# TODO To test this method in integration unit tests,
+# we need to set up an HTTP server.
+
+sub delete_push_message {
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'id' => { type => SCALAR, }, # message id.
+			'subscriber' => { type => SCALAR, }, # subscriber id.
+		}
+	);
+	assert_positive(wantarray == 0, 'Method delete_push_message() only works in SCALAR context!');
+	assert_nonblank( $params{'id'}, 'Parameter id is a non null string.');
+	assert_nonblank( $params{'subscriber'}, 'Parameter subscriber is a non null string.');
+	$log->tracef('Entering delete_push_message(%s)', \%params);
+
+	my $queue_name = $self->name();
+	my $connection = $self->{'connection'};
+	my ($http_status_code, $response_message) = $connection->perform_iron_action(
+			IO::Iron::IronMQ::Api::IRONMQ_ACKNOWLEDGE_AND_DELETE_PUSH_MESSAGE_FOR_A_SUBSCRIBER(),
+			{
+				'{Queue Name}' => $queue_name,
+				'{Message ID}'  => $params{'id'},
+				'{Subscriber ID}' => $params{'subscriber'},
+			}
+		);
+	$self->{'last_http_status_code'} = $http_status_code;
+	my $msg = $response_message->{'msg'};    # Should be 'Cleared'
+	$log->debugf('Deleted push message %s.', $params{'id'});
+
+	$log->tracef('Exiting delete_push_message: %d', 1);
+	return 1;
+}
+
 
 =head1 AUTHOR
 

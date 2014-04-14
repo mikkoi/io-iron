@@ -9,7 +9,7 @@ use lib 't';
 use lib 'integ_t';
 use common;
 
-plan tests => 13;
+plan tests => 14;
 
 require IO::Iron::IronMQ::Client;
 
@@ -28,6 +28,14 @@ my $iron_mq_client = IO::Iron::IronMQ::Client->new( 'config' => 'iron_mq.json' )
 
 # Create a new queue names.
 my $unique_queue_name_01 = common::create_unique_queue_name();
+my $faulty_queue_name = $unique_queue_name_01 . q{!&[};
+
+throws_ok {
+	my $queried_iron_mq_queue_01 = $iron_mq_client->create_queue( 'name' => $faulty_queue_name );
+} '/RFC 3986 reserved character check/', 
+		'Params::Validate throws exception when creating a message queue with faulty characters (RFC 3986 reserved character check) in its name.';
+diag("Creating a queue with forbidden characters (RFC 3986 reserved characters) in name \'" . $unique_queue_name_01 . "\' fails.");
+
 
 throws_ok {
 	my $queried_iron_mq_queue_01 = $iron_mq_client->get_queue( 'name' => $unique_queue_name_01 );

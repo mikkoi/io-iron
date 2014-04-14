@@ -92,6 +92,7 @@ use Log::Any  qw{$log};
 use File::Spec qw{read_file};
 use File::HomeDir;
 use Hash::Util 0.06 qw{lock_keys lock_keys_plus unlock_keys legal_keys};
+use Carp::Assert;
 use Carp::Assert::More;
 use English '-no_match_vars';
 use Params::Validate qw(:all);
@@ -112,7 +113,7 @@ require IO::Iron::IronMQ::Queue;
 IO::Iron::IronMQ is a client for the IronMQ message queue at L<http://www.iron.io/|http://www.iron.io/>.
 IronMQ is a cloud based message queue with a REST API.
 IO::Iron::IronMQ creates a Perl object for interacting with IronMQ.
-All IronMQ functions are available. (Push queue functions are not yet implemented.)
+All IronMQ functions are available.
 
 The class IO::Iron::IronMQ::Client instantiates the 'project', IronMQ access configuration.
 
@@ -172,20 +173,28 @@ queues; the queue (object of IO::Iron::IronMQ::Queue) has methods which involve
 messages.
 
 If failed, the methods cause exception. After successfull REST API call, 
-the HTTP return code can be retrieved from 
-variable $client->{'last_http_status_code'}.
+the HTTP return code can be retrieved with method
+last_http_status_code().
 
     # Create a new queue. (Parameter queue name;
     # return an IO::Iron::IronMQ::Queue object)
-    my $iron_mq_queue = $iron_mq_client->create_queue('My_Message_Queue');
+    my $iron_mq_queue = $iron_mq_client->create_queue(name => 'My_Message_Queue',
+			'subscribers' => [
+				{ "url" => "ironmq:///Other_queue_name" },
+			],
+			'push_type' => 'unicast',
+			'retries' => 0,
+			'retries_delay' => 3,
+			'error_queue' => "Error_queue_name",
+    );
 
     # Get an existing queue. (Parameter queue name;
     # return an IO::Iron::IronMQ::Queue object)
-    my $iron_mq_queue = $iron_mq_client->get_queue('My_Message_Queue');
+    my $iron_mq_queue = $iron_mq_client->get_queue( 'name' => 'My_Message_Queue');
 
     # Delete an existing queue. (Parameter queue name;
     # return 1)
-    my $success = $iron_mq_client->delete_queue('My_Message_Queue');
+    my $success = $iron_mq_client->delete_queue( 'name' => 'My_Message_Queue');
 
     # Get all the queues. 
     # Return a list of IO::Iron::IronMQ::Queue objects.
@@ -193,12 +202,20 @@ variable $client->{'last_http_status_code'}.
 
     # Update a queue. Return a IO::Iron::IronMQ::Queue object. 
     # Queue properties: set queue type (pull, multicast, unicast), set subscribers.
-    # Push queue feature; not yet implemented.
-    my $iron_mq_queue = $iron_mq_client->update_queue('My_Message_Queue', {} ); # Not yet implemented.
+	my $push_from_queue = $iron_mq_client->update_queue(
+			'name' => 'My_Message_Queue',
+			'subscribers' => [
+				{ "url" => "ironmq:///Other_queue_name" },
+			],
+			'push_type' => 'unicast',
+			'retries' => 0,
+			'retries_delay' => 3,
+			'error_queue' => "Error_queue_name",
+		);
 
     # Get info about the queue
     # (Return a hash containing items name, id, size, project, etc.).
-    my $queue_info = $iron_mq_client->get_info_about_queue('My_Message_Queue');
+    my $queue_info = $iron_mq_client->get_info_about_queue( 'name' => 'My_Message_Queue');
 
 A IO::Iron::IronMQ::Queue object gives access to a single message queue.
 With it you can do all the normal things one would with a message queue.
@@ -257,9 +274,9 @@ Get queue name.
 Add one or more messages to the queue. Returns the ids of the messages sent
 or the number of sent messages.
 
-	my $msg_send_id = $iron_mq_queue->push($iron_mq_msg_send_01);
-	my @msg_send_ids = $iron_mq_queue->push($iron_mq_msg_send_01, $iron_mq_msg_send_02, [...]);
-	my $number_of_msgs_sent = $iron_mq_queue->push($iron_mq_msg_send_01, $iron_mq_msg_send_02, [...]);
+	my $msg_send_id = $iron_mq_queue->push( 'messages' => [ $iron_mq_msg_send_01 ] );
+	my @msg_send_ids = $iron_mq_queue->push( 'messages' => [ $iron_mq_msg_send_01, $iron_mq_msg_send_02 ] );
+	my $number_of_msgs_sent = $iron_mq_queue->push( 'messages' => [ $iron_mq_msg_send_01, $iron_mq_msg_send_02 ] );
 
 Read one or more messages from the queue and reserve them so another process
 cannot access them. Parameters: n (number of messages you want, default 1, 
@@ -268,22 +285,22 @@ if no messages, an empty list will be returned,
 timeout (After timeout (in seconds), item will be placed back onto queue, 
 default is 60 seconds, minimum is 30 seconds, and maximum is 86,400 seconds (24 hours)).
 
-	my @iron_mq_msg_pulls = $iron_mq_queue->pull( { n => 10, timeout => 120 } );
+	my @iron_mq_msg_pulls = $iron_mq_queue->pull( n => 10, timeout => 120 );
 
 Read one or more messages from the queue but don't reserve them.
 Parameters: n (number of messages you want, default 1, maximum 100; if there 
 is less, all available messages will be returned),
 if no messages, an empty list will be returned.
 
-	my @iron_mq_msg_peeks = $iron_mq_queue->peek( { n => 10 } );
+	my @iron_mq_msg_peeks = $iron_mq_queue->peek( n => 10 );
 
 Delete one or more messages from the queue. Call this when you have 
 processed the messages. Returns the ids of the messages deleted
 or the number of deleted messages.
 
-	my $deleted_msg_id = $iron_mq_queue->delete($msg_id_01);
-	my @deleted_msg_ids = $iron_mq_queue->delete($msg_id_01, $msg_id_02, [...]);
-	my $number_of_msgs_deleted = $iron_mq_queue->delete($msg_id_01, $msg_id_02, [...]);
+	my $deleted_msg_id = $iron_mq_queue->delete( 'ids' => [ $msg_id_01 ] );
+	my @deleted_msg_ids = $iron_mq_queue->delete( 'ids' => [ $msg_id_01, $msg_id_02 ] );
+	my $number_of_msgs_deleted = $iron_mq_queue->delete( 'ids' => [ $msg_id_01, $msg_id_02 ] );
 
 Release one or more messages back to the queue.
 Releasing a reserved message unreserves the message and puts 
@@ -294,32 +311,61 @@ Maximum is 604,800 seconds (7 days).
 
 Returns 1.
 
-	my $released_msg = $iron_mq_queue->release($msg_id_01, $delay);
+	my $released_msg = $iron_mq_queue->release( 'id' => $msg_id_01, 'delay' => $delay );
 
 Touch one or more messages in the queue. Touching a reserved message extends 
 its timeout to the duration specified when the message was created. 
 Default is 60 seconds.
 Returns 1.
 
-	my $touched_msg = $iron_mq_queue->touch($msg_id_01);
+	my $touched_msg = $iron_mq_queue->touch( 'id' => $msg_id_01 );
 
 Clear all messages from the queue: delete all messages, 
 whether they are reserved or not.
 
-	my $cleared = $iron_mq_queue->clear;
+	my $cleared = $iron_mq_queue->clear();
 
 Get queue size.
 
-	my $size = $iron_mq_queue->size;
+	my $size = $iron_mq_queue->size();
 
-Get push status for a message.
-Push queue feature; not yet implemented.
+Get push status for a message. Retrieve the push status for a 
+particular message which will let you know which subscribers 
+have received the message, which have failed, how many times 
+it's tried to be delivered and the status code returned from 
+the endpoint.
+
+	my $info = $iron_mq_queue->get_push_status( 'id' => $msg_id );
+	my @subscribers = (@{info->{'subscribers'}});
+
+Acknowledge / Delete Push Message for a Subscriber. 
+This is only for use with long running processes that have 
+previously returned a 202.
+
+	my $info = $iron_mq_queue->get_push_status( 'id' => $msg_id );
+	my @subscribers = (@{info->{'subscribers'}});
+	my $push_acknowledged = $iron_mq_queue->delete_push_message(
+		'id' => $msg_id, 'subscriber' => $subscribers[0]->{'id'}
+		);
 
 Add Subscribers to a Queue.
-Push queue feature; not yet implemented.
+
+	my $add_ret_val = $iron_mq_queue->add_subscribers(
+			'name' => $queue_name,
+			'subscribers' => [
+				{ 'url' => "ironmq://project_id:token\@host/queue_name" },
+				{ 'url' => "ironmq:///$queue_name_02" },
+			],
+		);
 
 Remove Subscribers from a Queue
-Push queue feature; not yet implemented.
+
+	my $del_ret_val = $iron_mq_client->delete_subscribers(
+			'name' => $queue_name,
+			'subscribers' => [
+				{ 'url' => "ironmq:///$queue_name" },
+			],
+		);
 
 =head3 Exceptions
 
@@ -425,7 +471,7 @@ sub get_queue {
 		}
 	);
 	$log->tracef('Entering get_queue(%s)', \%params);
-	assert_nonblank( $params{'name'}, 'Parameter \'name\' is blank');
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is a non blank string');
 
 	my $connection = $self->{'connection'};
 	my ($http_status_code, $response_message) = $connection->perform_iron_action(
@@ -453,13 +499,11 @@ a particular message queue.
 
 =over 8
 
-=item Params: queue name.
+=item Params: name, subscribers, push_type, retries, retries_delay, error_queue.
 
 =item Return: IO::Iron::IronMQ::Queue object.
 
 =item Exception: IronHTTPCallException if fails. (IronHTTPCallException: status_code=<HTTP status code> response_message=<response_message>)
-
-=item Other parameters (push queue) not yet implemented!
 
 =back
 
@@ -467,11 +511,16 @@ a particular message queue.
 
 # TODO WARNING: Do not use the following RFC 3986 Reserved Characters within your in the naming of your queues: ! * ' ( ) ; : @ & = + $ , / ? # [ ]
 
+# Format for subscribers to Iron.io systems:
+# [ironmq_or_ironworker]://[project_id:token]@[host]/queue_or_worker_name
+
 sub create_queue {
 	my $self = shift;
 	my %params = validate(
 		@_, {
-			'name' => { type => SCALAR, }, # queue name.
+			'name' => { type => SCALAR, callbacks => {
+                    'RFC 3986 reserved character check' => sub { return ! IO::Iron::Common::contains_rfc_3986_res_chars(shift) },
+                }}, # queue name.
 			'subscribers' => { type => ARRAYREF, optional => 1 }, # array of subscriber hashes containing a required "url" field and an optional "headers" map for custom headers.
 			'push_type' => { type => SCALAR, optional => 1 }, # Either multicast to push to all subscribers or unicast to push to one and only one subscriber. Default is multicast.
 			'retries' => { type => SCALAR, optional => 1 }, # retries: How many times to retry on failure. Default is 3. Maximum is 100.
@@ -480,7 +529,7 @@ sub create_queue {
 		}
 	);
 	$log->tracef('Entering create_queue(%s)', \%params);
-	assert_nonblank( $params{'name'}, 'Parameter \'name\' is blank');
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is a non blank string');
 
 	my $connection = $self->{'connection'};
 	my %item_body;
@@ -501,13 +550,354 @@ sub create_queue {
 	my $get_queue_name = $response_message->{'name'};
 	my $queue = IO::Iron::IronMQ::Queue->new({
 		'ironmq_client' => $self, # Pass a reference to the parent object.
+		'connection' => $connection,
 		'id' => $get_queue_id,
 		'name' => $get_queue_name,
-		'connection' => $connection,
 	});
 	$log->debugf('Created a new IO::Iron::IronMQ::Queue object (queue id=%s; queue name=%s).', $get_queue_id, $get_queue_name);
-	$log->tracef('Exiting get_queue: %s', $queue);
+	$log->tracef('Exiting create_queue: %s', $queue);
 	return $queue;
+}
+
+=head2 update_queue
+
+Return a IO::Iron::IronMQ::Queue object representing
+a particular message queue.
+
+=over 8
+
+=item Params: name, subscribers, push_type, retries, retries_delay, error_queue.
+
+=item Return: IO::Iron::IronMQ::Queue object.
+
+=item Exception: IronHTTPCallException if fails. (IronHTTPCallException: status_code=<HTTP status code> response_message=<response_message>)
+
+=back
+
+=cut
+
+# TODO WARNING: Do not use the following RFC 3986 Reserved Characters within your in the naming of your queues: ! * ' ( ) ; : @ & = + $ , / ? # [ ]
+
+sub update_queue {
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'name' => { type => SCALAR, callbacks => {
+                    'RFC 3986 reserved character check' => sub { return ! IO::Iron::Common::contains_rfc_3986_res_chars(shift) },
+                }}, # queue name.
+			'subscribers' => { type => ARRAYREF, optional => 1 }, # array of subscriber hashes containing a required "url" field and an optional "headers" map for custom headers.
+			'push_type' => { type => SCALAR, optional => 1 }, # Either multicast to push to all subscribers or unicast to push to one and only one subscriber. Default is multicast.
+			'retries' => { type => SCALAR, optional => 1 }, # retries: How many times to retry on failure. Default is 3. Maximum is 100.
+			'retries_delay' => { type => SCALAR, optional => 1 }, # retries_delay: Delay between each retry in seconds. Default is 60.
+			'error_queue' => { type => SCALAR, optional => 1 }, # error_queue: The name of another queue where information about messages that can't be delivered will be placed.
+		}
+	);
+	$log->tracef('Entering update_queue(%s)', \%params);
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is a non blank string');
+
+	my $connection = $self->{'connection'};
+	my %item_body;
+	$item_body{'subscribers'} = $params{'subscribers'} if ($params{'subscribers'});
+	$item_body{'push_type'} = $params{'push_type'} if ($params{'push_type'});
+	$item_body{'retries'} = $params{'retries'} if ($params{'retries'});
+	$item_body{'retries_delay'} = $params{'retries_delay'} if ($params{'retries_delay'});
+	$item_body{'error_queue'} = $params{'error_queue'} if ($params{'error_queue'});
+	my ($http_status_code, $response_message) = $connection->perform_iron_action(
+			IO::Iron::IronMQ::Api::IRONMQ_UPDATE_A_MESSAGE_QUEUE(),
+			{
+				'{Queue Name}' => $params{'name'},
+				'body'         => \%item_body,
+			}
+		);
+	$self->{'last_http_status_code'} = $http_status_code;
+	my $get_queue_id = $response_message->{'id'};
+	my $get_queue_name = $response_message->{'name'};
+	my $queue = IO::Iron::IronMQ::Queue->new({
+		'ironmq_client' => $self, # Pass a reference to the parent object.
+		'connection' => $connection,
+		'id' => $get_queue_id,
+		'name' => $get_queue_name,
+	});
+	$log->debugf('Created a new IO::Iron::IronMQ::Queue object (queue id=%s; queue name=%s).', $get_queue_id, $get_queue_name);
+	$log->tracef('Exiting update_queue: %s', $queue);
+	return $queue;
+}
+
+=head2 add_subscribers
+
+Add subscribers to a push queue.
+
+=over 8
+
+=item Params: name, subscribers.
+
+=item Returns 1 if succcessful
+
+=item Exception: IronHTTPCallException if fails. (IronHTTPCallException: status_code=<HTTP status code> response_message=<response_message>)
+
+=back
+
+=cut
+
+sub add_subscribers {
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'name' => { type => SCALAR, }, # queue name.
+			'subscribers' => { type => ARRAYREF, optional => 1 }, # array of subscriber hashes containing a required "url" field and an optional "headers" map for custom headers.
+		}
+	);
+	$log->tracef('Entering add_subscribers(%s)', \%params);
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is a non blank string');
+
+	my $connection = $self->{'connection'};
+	my %item_body;
+	$item_body{'subscribers'} = $params{'subscribers'} if ($params{'subscribers'});
+	my ($http_status_code, $response_message) = $connection->perform_iron_action(
+			IO::Iron::IronMQ::Api::IRONMQ_ADD_SUBSCRIBERS_TO_A_MESSAGE_QUEUE(),
+			{
+				'{Queue Name}' => $params{'name'},
+				'body'         => \%item_body,
+			}
+		);
+	$self->{'last_http_status_code'} = $http_status_code;
+
+	$log->tracef('Exiting add_subscribers: %d', 1);
+	return 1;
+}
+
+=head2 delete_subscribers
+
+Delete the given subscribers from the queue.
+
+=over 8
+
+=item Params: name, subscribers.
+
+=item 1
+
+=item Exception: IronHTTPCallException if fails. (IronHTTPCallException: status_code=<HTTP status code> response_message=<response_message>)
+
+=back
+
+=cut
+
+# TODO Inform bug in documentation: does not return the queue info, returns: "{msg => 'Updated'}".
+
+sub delete_subscribers {
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'name' => { type => SCALAR, }, # queue name.
+			'subscribers' => { type => ARRAYREF, optional => 1 }, # array of subscriber hashes containing a required "url" field and an optional "headers" map for custom headers.
+		}
+	);
+	$log->tracef('Entering delete_subscribers(%s)', \%params);
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is a non blank string');
+
+	my $connection = $self->{'connection'};
+	my %item_body;
+	$item_body{'subscribers'} = $params{'subscribers'} if ($params{'subscribers'});
+	my ($http_status_code, $response_message) = $connection->perform_iron_action(
+			IO::Iron::IronMQ::Api::IRONMQ_DELETE_SUBSCRIBERS_FROM_A_MESSAGE_QUEUE(),
+			{
+				'{Queue Name}' => $params{'name'},
+				'body'         => \%item_body,
+			}
+		);
+	$self->{'last_http_status_code'} = $http_status_code;
+
+	$log->debugf('Deleted subscribers (queue name=%s).', $params{'name'});
+	$log->tracef('Exiting delete_subscribers: %d', 1);
+	return 1;
+}
+
+=head2 add_alerts
+
+Add alerts to a queue.
+
+=over 8
+
+=item Params: name, alerts.
+
+=item Returns 1 if succcessful
+
+=item Exception: IronHTTPCallException if fails. (IronHTTPCallException: status_code=<HTTP status code> response_message=<response_message>)
+
+=back
+
+=cut
+
+sub add_alerts {
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'name' => { type => SCALAR, }, # queue name.
+			'alerts' => { type => ARRAYREF,
+				callbacks => {
+					'Assert item content' => sub {
+						use Data::Dumper;
+						#print Dumper(\@{$_[0]});
+						foreach my $alert (@{$_[0]}) {
+							#print Dumper($alert);
+							# TODO New function: Carp::Assert::More::assert_allowed(). Allowed keys in hash.
+							assert_exists($alert, [ 'type', 'queue', 'trigger' ], 'Hash alert contains keys \'type\', \'queue\' and \'trigger\'.');
+						}
+						return 1;
+					}
+				}
+			}, # An array of alert hashes containing required "type", "queue", "trigger", and optional "direction", "snooze" fields. Maximum number of alerts is 5.
+		}
+	);
+	$log->tracef('Entering add_alerts(%s)', \%params);
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is a non blank string');
+
+	my $connection = $self->{'connection'};
+	my %item_body;
+	$item_body{'alerts'} = $params{'alerts'};
+	my ($http_status_code, $response_message) = $connection->perform_iron_action(
+			IO::Iron::IronMQ::Api::IRONMQ_ADD_ALERTS_TO_A_QUEUE(),
+			{
+				'{Queue Name}' => $params{'name'},
+				'body'         => \%item_body,
+			}
+		);
+	$self->{'last_http_status_code'} = $http_status_code;
+
+	$log->tracef('Exiting add_alerts: %d', 1);
+	return 1;
+}
+
+=head2 replace_alerts
+
+Replace alerts to a queue. Replace the old alerts (if any) with these new ones.
+
+=over 8
+
+=item Params: name, alerts.
+
+=item Returns 1 if succcessful
+
+=item Exception: IronHTTPCallException if fails. (IronHTTPCallException: status_code=<HTTP status code> response_message=<response_message>)
+
+=back
+
+=cut
+
+sub replace_alerts {
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'name' => { type => SCALAR, }, # queue name.
+			'alerts' => { type => ARRAYREF,
+				callbacks => {
+					'Assert item content' => sub {
+						use Data::Dumper;
+						foreach my $alert (@{$_[0]}) {
+							assert_exists($alert, [ 'type', 'queue', 'trigger' ], 'Hash alert contains keys \'type\', \'queue\' and \'trigger\'.');
+						}
+						return 1;
+					}
+				}
+			}, # An array of alert hashes containing required "type", "queue", "trigger", and optional "direction", "snooze" fields. Maximum number of alerts is 5.
+		}
+	);
+	$log->tracef('Entering replace_alerts(%s)', \%params);
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is a non blank string');
+
+	my $connection = $self->{'connection'};
+	my %item_body;
+	$item_body{'alerts'} = $params{'alerts'};
+	my ($http_status_code, $response_message) = $connection->perform_iron_action(
+			IO::Iron::IronMQ::Api::IRONMQ_REPLACE_ALERTS_ON_A_QUEUE(),
+			{
+				'{Queue Name}' => $params{'name'},
+				'body'         => \%item_body,
+			}
+		);
+	$self->{'last_http_status_code'} = $http_status_code;
+
+	$log->tracef('Exiting replace_alerts: %d', 1);
+	return 1;
+}
+
+=head2 delete_alerts
+
+Delete the given alerts from the queue.
+
+=over 8
+
+=item Params: name, alerts.
+
+=item 1
+
+=item Exception: IronHTTPCallException if fails. (IronHTTPCallException: status_code=<HTTP status code> response_message=<response_message>)
+
+=back
+
+=cut
+
+sub delete_alerts {
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'name' => { type => SCALAR, }, # queue name.
+			'alerts' => { type => ARRAYREF, optional => 1,
+				callbacks => {
+					'Either parameter \'alerts\' or \'id\'' => sub {
+						return exists$_[1]->{'id'} ? 0 : 1;
+					},
+					'Assert item content' => sub {
+						#use Data::Dumper;
+						foreach my $alert (@{$_[0]}) {
+							#print Dumper($alert);
+							assert_exists($alert, [ 'id' ], 'Hash alert contains key \'id\'.');
+						}
+						return 1;
+					}
+				},
+			}, # An array of alerts hashes containing "id" field.
+			'id' => { type => SCALAR, optional => 1,
+				callbacks => {
+					'Either parameter \'alerts\' or \'id\'' => sub {
+						return exists$_[1]->{'alerts'} ? 0 : 1;
+					},
+				},
+			}, # alert id.
+			# TODO New function: Params::Validate::validate(), mutually exclusive parameters.
+		}
+	);
+	$log->tracef('Entering delete_alerts(%s)', \%params);
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is a non blank string');
+	assert($params{'alerts'} || $params{'id'}, 'Have either parameter \'alerts\' or \'id\'.');
+
+	my $connection = $self->{'connection'};
+	if($params{'alerts'}) {
+		my %item_body;
+		$item_body{'alerts'} = $params{'alerts'};
+		my ($http_status_code, $response_message) = $connection->perform_iron_action(
+				IO::Iron::IronMQ::Api::IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE(),
+				{
+					'{Queue Name}' => $params{'name'},
+					'body'         => \%item_body,
+				}
+			);
+		$self->{'last_http_status_code'} = $http_status_code;
+	}
+	else {
+		my ($http_status_code, $response_message) = $connection->perform_iron_action(
+				IO::Iron::IronMQ::Api::IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE_BY_ID(),
+				{
+					'{Queue Name}' => $params{'name'},
+					'{Alert ID}'   => $params{'id'},
+				}
+			);
+		$self->{'last_http_status_code'} = $http_status_code;
+	}
+
+	$log->debugf('Deleted alerts (queue name=%s).', $params{'name'});
+	$log->tracef('Exiting delete_alerts: %d', 1);
+	return 1;
 }
 
 =head2 delete_queue
@@ -534,7 +924,7 @@ sub delete_queue {
 		}
 	);
 	$log->tracef('Entering delete_queue(%s)', \%params);
-	assert_nonblank( $params{'name'}, 'Parameter \'name\' is blank');
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is a non blank string');
 
 	my $connection = $self->{'connection'};
 	my ($http_status_code, $response_message) = $connection->perform_iron_action(
@@ -544,7 +934,7 @@ sub delete_queue {
 			}
 		);
 	$self->{'last_http_status_code'} = $http_status_code;
-	$log->debugf('Deleted queue (queue name=%s.', $params{'name'});
+	$log->debugf('Deleted queue (queue name=%s).', $params{'name'});
 	$log->tracef('Exiting delete_queue: %d', 1);
 	return 1;
 }
@@ -595,24 +985,6 @@ sub get_queues {
 	return @queues;
 }
 
-=head2 update_queue
-
-Update an IronMQ queue represented by IO::Iron::IronMQ::Queue object.
-
-=over 8
-
-=item Params: [push queue parameters not yet implemented].
-
-=item Return: 1 == success, undef == failure.
-
-=back
-
-=cut
-
-sub update_queue {
-	return 'Not yet implemented.';
-}
-
 =head2 get_info_about_queue
 
 =over 8
@@ -633,7 +1005,7 @@ sub get_info_about_queue {
 		}
 	);
 	$log->tracef('Entering get_info_about_queue(%s)', \%params);
-	assert_nonblank( $params{'name'}, 'Parameter \'name\' is blank');
+	assert_nonblank( $params{'name'}, 'Parameter \'name\' is a non blank string');
 
 	my $connection = $self->{'connection'};
 	my ($http_status_code, $response_message) = $connection->perform_iron_action(

@@ -98,6 +98,46 @@ sub IRONMQ_UPDATE_A_MESSAGE_QUEUE {
 		};
 }
 
+=head3 IRONMQ_ADD_SUBSCRIBERS_TO_A_MESSAGE_QUEUE
+
+/projects/{Project ID}/queues/{Queue Name}/subscribers
+
+=cut
+
+sub IRONMQ_ADD_SUBSCRIBERS_TO_A_MESSAGE_QUEUE {
+	return {
+			'action_name'  => 'IRONMQ_ADD_SUBSCRIBERS_TO_A_MESSAGE_QUEUE',
+			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/subscribers',
+			'action'       => 'POST',
+			'return'       => 'MESSAGE',
+			'retry'        => 1,
+			'require_body' => 1,
+			'request_fields' => { 'subscribers' => 1 },
+			'url_escape'   => { '{Project ID}' => 1, '{Queue Name}' => 1 },
+			'log_message'  => '(project={Project ID}, queue={Queue Name}). Updated a message queue by adding subscribers.',
+		};
+}
+
+=head3 IRONMQ_DELETE_SUBSCRIBERS_FROM_A_MESSAGE_QUEUE
+
+/projects/{Project ID}/queues/{Queue Name}/subscribers
+
+=cut
+
+sub IRONMQ_DELETE_SUBSCRIBERS_FROM_A_MESSAGE_QUEUE {
+	return {
+			'action_name'  => 'IRONMQ_DELETE_SUBSCRIBERS_FROM_A_MESSAGE_QUEUE',
+			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/subscribers',
+			'action'       => 'DELETE',
+			'return'       => 'MESSAGE',
+			'retry'        => 1,
+			'require_body' => 1,
+			'request_fields' => { 'subscribers' => 1 },
+			'url_escape'   => { '{Project ID}' => 1, '{Queue Name}' => 1 },
+			'log_message'  => '(project={Project ID}, queue={Queue Name}). Updated a message queue by deleting subscribers.',
+		};
+}
+
 =head3 IRONMQ_DELETE_A_MESSAGE_QUEUE
 
 /projects/{Project ID}/queues/{Queue Name}
@@ -137,15 +177,19 @@ sub IRONMQ_CLEAR_ALL_MESSAGES_FROM_A_QUEUE {
 		};
 }
 
-=head3 IRONMQ_SET_ALERTS_TO_A_QUEUE
+=head2 Define queue alerts
 
-/projects/{Project ID}/queues/{Queue Name}/alerts/
+=head3 IRONMQ_ADD_ALERTS_TO_A_QUEUE
+
+/projects/{Project ID}/queues/{Queue Name}/alerts
 
 =cut
 
-sub IRONMQ_SET_ALERTS_TO_A_QUEUE {
+# TODO Bug in documentation: href last '/' not needed.
+
+sub IRONMQ_ADD_ALERTS_TO_A_QUEUE {
 	return {
-			'action_name'  => 'IRONMQ_SET_ALERTS_TO_A_QUEUE',
+			'action_name'  => 'IRONMQ_ADD_ALERTS_TO_A_QUEUE',
 			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/alerts',
 			'action'       => 'POST',
 			'return'       => 'MESSAGE',
@@ -154,6 +198,70 @@ sub IRONMQ_SET_ALERTS_TO_A_QUEUE {
 			'request_fields' => { 'alerts' => 1 },
 			'url_escape'   => { '{Project ID}' => 1, '{Queue Name}' => 1 },
 			'log_message'  => '(project={Project ID}, queue={Queue Name}). Set alerts to the queue.',
+		};
+}
+
+=head3 IRONMQ_REPLACE_ALERTS_ON_A_QUEUE
+
+/projects/{Project ID}/queues/{Queue Name}/alerts
+
+=cut
+
+# TODO Bug in documentation: href last '/' not needed.
+
+sub IRONMQ_REPLACE_ALERTS_ON_A_QUEUE {
+	return {
+			'action_name'  => 'IRONMQ_REPLACE_ALERTS_ON_A_QUEUE',
+			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/alerts',
+			'action'       => 'PUT',
+			'return'       => 'MESSAGE',
+			'retry'        => 1,
+			'require_body' => 1,
+			'request_fields' => { 'alerts' => 1 },
+			'url_escape'   => { '{Project ID}' => 1, '{Queue Name}' => 1 },
+			'log_message'  => '(project={Project ID}, queue={Queue Name}). Replaced alerts on the queue.',
+		};
+}
+
+=head3 IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE
+
+/projects/{Project ID}/queues/{Queue Name}/alerts
+
+=cut
+
+# TODO Bug in documentation: href last '/' not needed.
+
+sub IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE {
+	return {
+			'action_name'  => 'IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE',
+			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/alerts',
+			'action'       => 'DELETE',
+			'return'       => 'MESSAGE',
+			'retry'        => 1,
+			'require_body' => 1,
+			'request_fields' => { 'alerts' => 1 },
+			'url_escape'   => { '{Project ID}' => 1, '{Queue Name}' => 1 },
+			'log_message'  => '(project={Project ID}, queue={Queue Name}). Removed alerts from the queue.',
+		};
+}
+
+=head3 IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE_BY_ID
+
+/projects/{Project ID}/queues/{Queue Name}/alerts/{Alert ID}
+
+=cut
+
+sub IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE_BY_ID {
+	return {
+			'action_name'  => 'IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE_BY_ID',
+			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/alerts/{Alert ID}',
+			'action'       => 'DELETE',
+			'return'       => 'MESSAGE',
+			'retry'        => 1,
+			'require_body' => 0,
+			'request_fields' => { 'alerts' => 1 },
+			'url_escape'   => { '{Project ID}' => 1, '{Queue Name}' => 1, '{Alert ID}' => 1, },
+			'log_message'  => '(project={Project ID}, queue={Queue Name}, alert_id={Alert ID}). Removed one alert from the queue.',
 		};
 }
 
@@ -298,7 +406,44 @@ sub IRONMQ_RELEASE_A_MESSAGE_ON_A_QUEUE {
 		};
 }
 
-# TODO Push queue stuff missing.
+=head3 IRONMQ_GET_PUSH_STATUS_FOR_A_MESSAGE
+
+/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/subscribers
+
+=cut
+
+sub IRONMQ_GET_PUSH_STATUS_FOR_A_MESSAGE {
+	return {
+			'action_name'  => 'IRONMQ_GET_PUSH_STATUS_FOR_A_MESSAGE',
+			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/subscribers',
+			'action'       => 'GET',
+			'return'       => 'HASH',
+			'retry'        => 1,
+			'require_body' => 0,
+			'url_escape'   => { '{Project ID}' => 1, '{Queue Name}' => 1 },
+			'log_message'  => '(project={Project ID}, queue={Queue Name}, message_id={Message ID}). Got push status about a message.',
+		};
+}
+
+=head3 IRONMQ_ACKNOWLEDGE_AND_DELETE_PUSH_MESSAGE_FOR_A_SUBSCRIBER
+
+/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/subscribers/{Subscriber ID}
+
+=cut
+
+sub IRONMQ_ACKNOWLEDGE_AND_DELETE_PUSH_MESSAGE_FOR_A_SUBSCRIBER {
+	return {
+			'action_name'  => 'IRONMQ_ACKNOWLEDGE_AND_DELETE_PUSH_MESSAGE_FOR_A_SUBSCRIBER',
+			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/subscribers/{Subscriber ID}',
+			'action'       => 'DELETE',
+			'return'       => 'MESSAGE',
+			'retry'        => 1,
+			'require_body' => 0,
+			'url_escape'   => { '{Project ID}' => 1, '{Queue Name}' => 1, '{Message ID}' => 1, '{Subscriber ID}' => 1, },
+			'log_message'  => '(project={Project ID}, queue={Queue Name}, message_id={Message ID}, subscriber_id={Subscriber ID}). Deleted push message to a subscriber.',
+		};
+}
+
 
 =head1 AUTHOR
 
