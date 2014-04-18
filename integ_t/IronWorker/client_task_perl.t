@@ -90,7 +90,7 @@ subtest 'Upload worker and confirm the upload' => sub {
 };
 
 subtest 'confirm worker upload' => sub {
-	plan tests => 1;
+	plan tests => 3;
 
 	# And confirm the upload...
 	my @code_packages = $iron_worker_client->list_code_packages();
@@ -102,6 +102,30 @@ subtest 'confirm worker upload' => sub {
 	}
 	isnt( $code_package_id, undef, 'Code package ID retrieved.' );
 	diag("Code package rev 1 upload confirmed.");
+
+
+
+	diag('Download and check...');
+	my ($downloaded, $file_name) = $iron_worker_client->download_code_package( 
+		'id' => $code_package_id,
+		'revision' => 1,
+		);
+	my $zipped_contents = $downloaded;
+	is($zipped_contents, $worker_as_zip_rev_01, 'Code package matches the original when zipped.');
+	is($file_name, ($unique_code_package_name_01 . '_1.zip'), 'Code package file name matches the original with "_1.zip" suffix.');
+
+	my $io = IO::String->new($zipped_contents);
+	tie *IO, 'IO::String';
+	my $zip = Archive::Zip->new();
+	$zip->readFromFileHandle($io);
+	my $downloaded_unzipped = $zip->contents($unique_code_executable_name_01);
+	#is($downloaded_unzipped, $worker_as_string_rev_01, 'Code package matches the original unpacked.');
+
+	diag("First release downloaded.");
+	diag("First release($unique_code_executable_name_01):\n" . $downloaded_unzipped);
+	$downloaded_unzipped = $zip->contents('iron-pl.pl');
+	diag("First release($downloaded_unzipped):\n" . $downloaded_unzipped);
+	
 };
 
 subtest 'Queue a task, confirm the creation, wait until finished, confirm log' => sub {
@@ -119,7 +143,7 @@ subtest 'Queue a task, confirm the creation, wait until finished, confirm log' =
 	my $task_id = $task->id();
 	is( $ret_task_id, $task_id, 'task object was updated with task id.' );
 	my $task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
-	is( $task_info->{'id'}, $task_id );
+	is( $task_info->{'id'}, $task_id, 'Task id matches with task id from get_info_about_task().' );
 	diag("Wait for task completion.");
 
 	until ( $task_info->{'status'} =~ /(complete|error|killed|timeout)/ ) {
