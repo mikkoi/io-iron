@@ -92,44 +92,6 @@ sub new {
 	return $blessed_ref;
 }
 
-=head2 Getters/setters
-
-Set or get a property.
-When setting, returns the reference to the object.
-
-=over 8
-
-=item name         Cache name.
-
-=back
-
-=cut
-
-sub ironmq_client { return $_[0]->_access_internal('ironmq_client', $_[1]); }
-sub id { return $_[0]->_access_internal('id', $_[1]); }
-sub name { return $_[0]->_access_internal('name', $_[1]); }
-sub connection { return $_[0]->_access_internal('connection', $_[1]); }
-sub last_http_status_code { return $_[0]->_access_internal('last_http_status_code', $_[1]); }
-
-# TODO Move _access_internal() to IO::Iron::Common.
-
-sub _access_internal {
-	my ($self, $var_name, $var_value) = @_;
-	$log->tracef('_access_internal(%s, %s)', $var_name, $var_value);
-	if( defined $var_value ) {
-		$self->{$var_name} = $var_value;
-		return $self;
-	}
-	else {
-		return $self->{$var_name};
-	}
-}
-
-
-
-
-
-
 =head2 push
 
 =over
@@ -657,6 +619,47 @@ sub delete_push_message {
 
 	$log->tracef('Exiting delete_push_message: %d', 1);
 	return 1;
+}
+
+=head2 Getters/setters
+
+Set or get a property.
+When setting, returns the reference to the object.
+
+=over 8
+
+=item name         Message queue name.
+
+=item id           Message queue id.
+
+=item ironmq_client Reference to the IO::Iron::IronMQ::Client object which instantiated this object.
+
+=item connection   Reference to the Connection object.
+
+=item last_http_status_code HTTP status code returned by the last call to Iron.io services.
+
+=back
+
+=cut
+
+sub ironmq_client { return $_[0]->_access_internal('ironmq_client', $_[1]); }
+sub id { return $_[0]->_access_internal('id', $_[1]); }
+sub name { return $_[0]->_access_internal('name', $_[1]); }
+sub connection { return $_[0]->_access_internal('connection', $_[1]); }
+sub last_http_status_code { return $_[0]->_access_internal('last_http_status_code', $_[1]); }
+
+# TODO Move _access_internal() to IO::Iron::Common.
+
+sub _access_internal {
+	my ($self, $var_name, $var_value) = @_;
+	$log->tracef('_access_internal(%s, %s)', $var_name, $var_value);
+	if( defined $var_value ) {
+		$self->{$var_name} = $var_value;
+		return $self;
+	}
+	else {
+		return $self->{$var_name};
+	}
 }
 
 
