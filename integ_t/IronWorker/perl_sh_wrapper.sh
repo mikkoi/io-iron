@@ -1,5 +1,6 @@
 #!/bin/sh
 # iron_worker_ruby_ng-1.2.0 (iron_core_ruby-1.0.3)
+# Modified by mikkoi@github.com
 
 root() {
   while [ $# -gt 1 ]; do
