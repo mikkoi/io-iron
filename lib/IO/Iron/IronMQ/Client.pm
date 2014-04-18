@@ -497,6 +497,9 @@ sub get_queue {
 Return a IO::Iron::IronMQ::Queue object representing
 a particular message queue.
 
+URL format for subscribers to Iron.io systems:
+[ironmq_or_ironworker]://[project_id:token]@[host]/queue_or_worker_name
+
 =over 8
 
 =item Params: name, subscribers, push_type, retries, retries_delay, error_queue.
@@ -508,11 +511,6 @@ a particular message queue.
 =back
 
 =cut
-
-# TODO WARNING: Do not use the following RFC 3986 Reserved Characters within your in the naming of your queues: ! * ' ( ) ; : @ & = + $ , / ? # [ ]
-
-# Format for subscribers to Iron.io systems:
-# [ironmq_or_ironworker]://[project_id:token]@[host]/queue_or_worker_name
 
 sub create_queue {
 	my $self = shift;
@@ -575,8 +573,6 @@ a particular message queue.
 =back
 
 =cut
-
-# TODO WARNING: Do not use the following RFC 3986 Reserved Characters within your in the naming of your queues: ! * ' ( ) ; : @ & = + $ , / ? # [ ]
 
 sub update_queue {
 	my $self = shift;

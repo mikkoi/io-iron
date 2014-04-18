@@ -39,7 +39,7 @@ BEGIN {
 
 #use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
 
-diag("Testing IO::Iron $IO::Iron::VERSION, Perl $], $^X");
+diag("Testing IO::Iron::IronWorker $IO::Iron::IronWorker::Client::VERSION, Perl $], $^X");
 
 #if(! -e File::Spec->catfile(File::HomeDir->my_home, '.iron.json') 
 #		&& ! defined $ENV{'IRON_PROJECT_ID'}
