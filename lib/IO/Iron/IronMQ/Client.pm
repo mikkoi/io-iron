@@ -1073,8 +1073,6 @@ Cool idea, "message queue in the cloud": http://www.iron.io/.
 
 =item * A buffer mechanism to keep the messages while the IronMQ REST service is unavailable. IO::Iron::IronMQ::ASyncPush?
 
-=item * Push queues.
-
 =item * Mock IronMQ for testing.
 
 =item * Rethink the using of REST:Client. Since message queues often involve a lot of traffic 
@@ -1094,8 +1092,6 @@ Messages per Get	1	100	One or more messages can be handled at a time.
 =item * Better logging, consistent log and error messages.
 
 =item * Option to delete queue when IO::Iron::IronMQ::Queue object goes to garbage collection.
-
-
 
 =item * Verify the client is connected when created by calling queues!
 
