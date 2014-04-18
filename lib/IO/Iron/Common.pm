@@ -187,7 +187,14 @@ sub _read_iron_config_file {
 	return $rval;
 }
 
-# Check that the string does not contain any RFC 3986 Reserved Characters.
+=head2 contains_rfc_3986_res_chars
+
+Check that the string does not contain any RFC 3986 Reserved Characters:
+
+!$&'()*+,;=:/?#[]@
+
+=cut
+
 #my $GEN_DELIMS = q{!} . q{$} . q{&} . q{'} . q{(} . q{)}
 #                  . q{*} . q{+} . q{,} . q{;} . q{=};
 #my $SUB_DELIMS = q{:} . q{/} . q{?} . q{#} . q{[} . q{]} . q{@};
@@ -195,9 +202,6 @@ sub _read_iron_config_file {
 #my $RFC_3986_RESERVED_CHARACTERS =~ s/(.{1})/\\$1/sg; # Escape every character.
 sub contains_rfc_3986_res_chars {
 	my @params = validate_pos( @_, { type => SCALAR } );
-	#use Data::Dumper;
-	#print Dumper( \@params);
-	#my %params = validate_pos( @_, 1, { type => SCALAR, });
 	my $rfc_3986_reserved_characters = q{\!\$\&\'\(\)\*\+\,\;\=\:\/\?\#\[\]\@};
 	return ($params[0] =~ /[$rfc_3986_reserved_characters]+/) ? 1 : 0;
 }
