@@ -29,21 +29,21 @@ IO::Iron::IronMQ::Client - IronMQ (Message Queue) Client.
 
     require IO::Iron::IronMQ::Client;
 
-    my $iron_mq_client = IO::Iron::IronMQ::Client->new( {} );
-    my $iron_mq_queue = $iron_mq_client->create_queue('My_Message_Queue');
+    my $iron_mq_client = IO::Iron::IronMQ::Client->new();
+    my $iron_mq_queue = $iron_mq_client->create_queue('name' => 'My_Message_Queue');
     # Or get an existing queue.
-    my $iron_mq_queue = $iron_mq_client->get_queue('My_Message_Queue');
-    my $queue_info = $iron_mq_client->get_info_about_queue('My_Message_Queue');
-    my $iron_mq_msg_send = IO::Iron::IronMQ::Message->new( {
+    my $iron_mq_queue = $iron_mq_client->get_queue('name' => 'My_Message_Queue');
+    my $queue_info = $iron_mq_client->get_info_about_queue('name' => 'My_Message_Queue');
+    my $iron_mq_msg_send = IO::Iron::IronMQ::Message->new(
         'body' => "My message",
-        } );
-    my $msg_send_id = $iron_mq_queue->push($iron_mq_msg_send);
+        );
+    my $msg_send_id = $iron_mq_queue->push('messages' => [ $iron_mq_msg_send ]);
     my $iron_mq_msg_peek = $iron_mq_queue->peek();
-    my @iron_mq_msgs_pull = $iron_mq_queue->pull( { n => 1 } );
+    my @iron_mq_msgs_pull = $iron_mq_queue->pull( n => 1 );
     my $pulled_msg_body = $iron_mq_msgs_pull[0]->body();
-    my $delete_ret = $iron_mq_queue->delete( $iron_mq_msgs_pull[0]->id() );
-    my $cleared = $iron_mq_queue->clear;
-    my $queue_deleted = $iron_mq_client->delete_queue('My_Message_Queue');
+    my $delete_ret = $iron_mq_queue->delete( 'ids' => [ $iron_mq_msgs_pull[0]->id() ]);
+    my $cleared = $iron_mq_queue->clear();
+    my $queue_deleted = $iron_mq_client->delete_queue('name' => 'My_Message_Queue');
 
 =head1 REQUIREMENTS
 
@@ -80,8 +80,12 @@ These can be set in a json file, as environmental variables or as parameters whe
 
 =item token, an OAuth authentication token string, from IronMQ.
 
-=item host, the cloud in which you want to operate: 'mq-aws-us-east-1.iron.io/1' for AWS (Amazon)
- or 'mq-rackspace-ord.iron.io/1' for Rackspace.
+=item host, the cloud in which you want to operate: e.g.
+'mq-aws-us-east-1.iron.io/1' or 'mq-aws-eu-west-1.iron.io' for AWS (Amazon)
+or 'mq-rackspace-ord.iron.io/1' or 'mq-rackspace-lon.iron.io' for Rackspace.
+ 
+Please see L<http://dev.iron.io/mq/reference/api/#base_url|IronMQ REST/HTTP API Reference>
+for available hosts.
 
 =back
 
@@ -329,6 +333,9 @@ Get queue size.
 
 	my $size = $iron_mq_queue->size();
 
+
+=head3 Push Queue Commands
+
 Get push status for a message. Retrieve the push status for a 
 particular message which will let you know which subscribers 
 have received the message, which have failed, how many times 
@@ -366,6 +373,64 @@ Remove Subscribers from a Queue
 				{ 'url' => "ironmq:///$queue_name" },
 			],
 		);
+
+
+=head3 Queue Alerts
+
+Add Alerts to a Queue. This is for Pull Queue only.
+
+	my $alert_added = $iron_mq_client->add_alerts(
+		'name' => $normal_queue->name(),
+		'alerts' => [
+				{
+					'type' => 'fixed',
+					'queue' => $alert_queue->name(),
+					'trigger' => 1,
+					'direction' => 'asc',
+					'snooze' => 0,
+				}
+			],
+		);
+
+Replace alerts. Change the existing alerts to the given ones.
+
+	my $alert_replaced = $iron_mq_client->replace_alerts(
+		'name' => $normal_queue->name(),
+		'alerts' => [
+				{
+					'type' => 'fixed',
+					'queue' => $alert_queue->name(),
+					'trigger' => 2,
+					'direction' => 'desc',
+					'snooze' => 0,
+				},
+				{
+					'type' => 'fixed',
+					'queue' => $alert_queue->name(),
+					'trigger' => 5,
+					'direction' => 'desc',
+					'snooze' => 5,
+				},
+			],
+		);
+
+Delete alerts. You can either give an array containing items (hashes)
+which contain key 'id', or delete only one alert with the parameter 'id'.
+
+	my $alert_deleted = $iron_mq_client->delete_alerts(
+		'name' => $normal_queue->name(),
+		'alerts' => [
+				{ 'id' => $alert_id, },
+			],
+		);
+
+Or:
+
+	$alert_deleted = $iron_mq_client->delete_alerts(
+		'name' => $normal_queue->name(),
+		'id' => $alert_id,
+		);
+
 
 =head3 Exceptions
 
