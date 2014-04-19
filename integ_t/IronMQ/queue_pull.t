@@ -9,7 +9,7 @@ use Log::Any qw($log);
 
 use lib 't';
 use lib 'integ_t';
-use common;
+require 'iron_io_integ_tests_common.pl';
 
 plan tests => 4; # Setup, Do, Verify, Cleanup
 
@@ -37,7 +37,7 @@ subtest 'Setup for testing' => sub {
 	# Create an IronMQ client.
 	$iron_mq_client = IO::Iron::IronMQ::Client->new( 'config' => 'iron_mq.json' );
 	# Create a new queue name.
-	$queue_name = common::create_unique_queue_name();
+	$queue_name = create_unique_queue_name();
 	# Create a new queue.
 	$queue = $iron_mq_client->create_queue( 'name' => $queue_name);
 	isa_ok($queue, "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");

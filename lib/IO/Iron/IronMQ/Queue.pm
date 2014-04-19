@@ -19,7 +19,7 @@ END {
 
 =head1 NAME
 
-IO::Iron::IronMQ::Queue - IronMQ (Message Queue) Client (Queue).
+IO::Iron::IronMQ::Queue - IronMQ (Online Message Queue) Client (Queue).
 
 =cut
 

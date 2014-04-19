@@ -9,7 +9,7 @@ use Log::Any qw($log);
 
 use lib 't';
 use lib 'integ_t';
-use common;
+require 'iron_io_integ_tests_common.pl';
 
 plan tests => 3;
 
@@ -40,7 +40,7 @@ subtest 'Setup for testing' => sub {
 	# Use $project_id for log message comparisons.
 	
 	# Create a new cache name.
-	$unique_cache_name_01 = common::create_unique_cache_name();
+	$unique_cache_name_01 = create_unique_cache_name();
 	
 	# Create a new cache.
 	$created_iron_cache_01 = $iron_cache_client->create_cache(

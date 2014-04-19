@@ -19,7 +19,7 @@ END {
 
 =head1 NAME
 
-IO::Iron::IronWorker::Task - IronWorker (worker platform) Client (Task).
+IO::Iron::IronWorker::Task - IronWorker (Online Worker Platform) Client (Task).
 
 =cut
 

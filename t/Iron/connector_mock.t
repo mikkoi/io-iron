@@ -6,7 +6,7 @@ use Test::More;
 use Test::Exception;
 
 use lib 't';
-#use common;
+#require 'iron_io_integ_tests_common.pl';
 
 plan tests => 19;
 
@@ -34,7 +34,7 @@ my $iron_cache_client = IO::Iron::IronCache::Client->new( {
 	} );
 
 # Create a new cache name.
-my $unique_cache_name_01 = "Any_Name"; #common::create_unique_cache_name();
+my $unique_cache_name_01 = "Any_Name"; #create_unique_cache_name();
 
 # Create a new queue.
 my $created_iron_cache_01 = $iron_cache_client->create_cache($unique_cache_name_01);

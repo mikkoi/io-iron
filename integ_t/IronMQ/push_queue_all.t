@@ -8,7 +8,7 @@ use JSON ();
 
 use lib 't';
 use lib 'integ_t';
-use common;
+require 'iron_io_integ_tests_common.pl';
 
 plan tests => 4;
 
@@ -38,9 +38,9 @@ subtest 'Setup for testing' => sub {
 	$iron_mq_client = IO::Iron::IronMQ::Client->new( 'config' => 'iron_mq.json' );
 	
 	# Create new queue names.
-	$unique_queue_name_01 = common::create_unique_queue_name() . '_push_from';
-	$unique_queue_name_02 = common::create_unique_queue_name() . '_push_to';
-	$unique_queue_name_03 = common::create_unique_queue_name() . '_error';
+	$unique_queue_name_01 = create_unique_queue_name() . '_push_from';
+	$unique_queue_name_02 = create_unique_queue_name() . '_push_to';
+	$unique_queue_name_03 = create_unique_queue_name() . '_error';
 
 	# Create new queues.
 	$push_from_queue = $iron_mq_client->create_queue(

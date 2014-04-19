@@ -8,7 +8,7 @@ use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use File::Slurp;
 use lib 't';
 use lib 'integ_t';
-use common;
+require 'iron_io_integ_tests_common.pl';
 plan tests => 6;
 require IO::Iron::IronWorker::Client;
 
@@ -42,7 +42,7 @@ subtest 'Setup for testing' => sub {
 	$iron_worker_client = IO::Iron::IronWorker::Client->new( 'config' => 'iron_worker.json' );
 
 	# Create a new code package name.
-	$unique_code_package_name_01    = common::create_unique_code_package_name();
+	$unique_code_package_name_01    = create_unique_code_package_name();
 	$unique_code_executable_name_01 = $unique_code_package_name_01 . '.sh';
 
 	# Create archive

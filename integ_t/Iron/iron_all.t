@@ -6,7 +6,7 @@ use Test::More;
 
 use lib 't';
 use lib 'integ_t';
-use common;
+require 'iron_io_integ_tests_common.pl';
 
 plan tests => 3;
 

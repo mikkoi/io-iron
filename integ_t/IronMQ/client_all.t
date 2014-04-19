@@ -8,7 +8,7 @@ use Encode;
 
 use lib 't';
 use lib 'integ_t';
-use common;
+require 'iron_io_integ_tests_common.pl';
 
 plan tests => 4; # Setup, Do, Verify, Cleanup
 
@@ -33,9 +33,9 @@ subtest 'Setup for testing' => sub {
 	
 	# Create a new queue names.
 	{ use utf8;
-		$unique_queue_name_01 = common::create_unique_queue_name() . '_latin1';
-		$unique_queue_name_02 = common::create_unique_queue_name() . '_räksmörgås';
-		$unique_queue_name_03 = common::create_unique_queue_name() . '_三明治';
+		$unique_queue_name_01 = create_unique_queue_name() . '_latin1';
+		$unique_queue_name_02 = create_unique_queue_name() . '_räksmörgås';
+		$unique_queue_name_03 = create_unique_queue_name() . '_三明治';
 	}
 	is(1,1, 'ok');
 };

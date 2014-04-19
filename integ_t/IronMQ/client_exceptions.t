@@ -7,7 +7,7 @@ use Test::Exception;
 
 use lib 't';
 use lib 'integ_t';
-use common;
+require 'iron_io_integ_tests_common.pl';
 
 plan tests => 14;
 
@@ -27,7 +27,7 @@ diag('Testing IO::Iron::IronMQ::Client');
 my $iron_mq_client = IO::Iron::IronMQ::Client->new( 'config' => 'iron_mq.json' );
 
 # Create a new queue names.
-my $unique_queue_name_01 = common::create_unique_queue_name();
+my $unique_queue_name_01 = create_unique_queue_name();
 my $faulty_queue_name = $unique_queue_name_01 . q{!&[};
 
 throws_ok {
