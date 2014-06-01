@@ -229,7 +229,7 @@ the following attributes:
 
 =over 8
 
-=item - body, Free text. Will be JSONized. If you need an object serialized, don't use JSON. Use e.g. YAML. Then give the resulting string here.
+=item - body, Free text. If you want to put an object or a hash here, it needs to be serialized first; use e.g. JSON, Storable or YAML to stringify it. Then give the resulting string here.
 
 =item - timeout, When reading from queue, after timeout (in seconds), item will be placed back onto queue.
 

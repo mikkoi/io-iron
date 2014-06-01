@@ -51,6 +51,7 @@ subtest 'Setup for testing' => sub {
 	my $iron_mq_msg_send_01 = IO::Iron::IronMQ::Message->new(
 			'body' => 'My message #01',
 			);
+    diag("Test with YAML in JSON.");
 	use YAML::Tiny; # For serializing/deserializing a hash.
 	%msg_body_hash_02 = (msg_body_text => 'My message #02', msg_body_item => {sub_item => 'Sub text'});
 	my $yaml = YAML::Tiny->new(); $yaml->[0] = \%msg_body_hash_02;
@@ -65,9 +66,18 @@ subtest 'Setup for testing' => sub {
 	my $iron_mq_msg_send_04 = IO::Iron::IronMQ::Message->new( 'body' => 'My message #04 in Russian: бутерброд' );
 	my $iron_mq_msg_send_05 = IO::Iron::IronMQ::Message->new( 'body' => 'My message #05 in Chinese: 三明治' );
 	my $iron_mq_msg_send_06 = IO::Iron::IronMQ::Message->new( 'body' => 'My message #06 in Yiddish: סענדוויטש' );
+    diag("Test with JSON in JSON.");
+    require JSON::MaybeXS;
+    my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
+    $msg_body = $json->encode(\%msg_body_hash_02);
+    my $iron_mq_msg_send_07 = IO::Iron::IronMQ::Message->new( 'body' => $msg_body );
+    diag("Test with perl Storable serializer module.");
+    require Storable;
+    $msg_body = Storable::freeze(\%msg_body_hash_02);
+    my $iron_mq_msg_send_08 = IO::Iron::IronMQ::Message->new( 'body' => $msg_body );
 	no utf8;
-	diag("Created 6 messages for sending.");
-	push @send_messages, $iron_mq_msg_send_01, $iron_mq_msg_send_02, $iron_mq_msg_send_03, $iron_mq_msg_send_04, $iron_mq_msg_send_05, $iron_mq_msg_send_06;
+	diag("Created 8 messages for sending.");
+	push @send_messages, $iron_mq_msg_send_01, $iron_mq_msg_send_02, $iron_mq_msg_send_03, $iron_mq_msg_send_04, $iron_mq_msg_send_05, $iron_mq_msg_send_06, $iron_mq_msg_send_07, $iron_mq_msg_send_08;
 };
 
 my @sent_msg_ids;
@@ -108,28 +118,36 @@ subtest 'Pushing' => sub {
 	is($queue->size(), 3, 'Two messages pushed, queue size is 3.');
 	push @sent_msg_ids, @msg_send_ids_02;
 	
-	my $number_of_msgs_sent = $queue->push( 'messages' => [ @send_messages[3,4,5] ] );
-	is($number_of_msgs_sent, 3, 'Three more messages pushed.');
-	is($queue->size(), 6, 'Three more messages pushed, queue size is 6.');
-	diag("Total 6 messages pushed to queue.");
+	my $number_of_msgs_sent = $queue->push( 'messages' => [ @send_messages[3,4,5,6,7] ] );
+	is($number_of_msgs_sent, 5, '5 more messages pushed.');
+	is($queue->size(), 8, '5 more messages pushed, queue size is 8.');
+	diag("Total 8 messages pushed to queue.");
 
 };
 
 # Let's pull some messages.
 my @msg_pulls;
 subtest 'Pulled messages match with the sent messages.' => sub {
-	plan tests => 12;
+	plan tests => 16;
 	@msg_pulls = $queue->pull( 'n' => 10, 'timeout' => 120 );
-	is( scalar @msg_pulls, 6, "Pulled 6 messages.");
+	is( scalar @msg_pulls, 8, "Pulled 8 messages.");
 	my $yaml_de = YAML::Tiny->new(); $yaml_de = $yaml_de->read_string($msg_pulls[1]->body());
 	is_deeply($yaml_de->[0], \%msg_body_hash_02, '#2 message body after serialization matches with the sent message body.');
 	is( $msg_pulls[0]->id(), $sent_msg_ids[0], 'Pulled two, ids match with the sent ids.');
 	is( $msg_pulls[1]->id(), $sent_msg_ids[1], 'Pulled two, ids match with the sent ids.');
 	is( $msg_pulls[2]->id(), $sent_msg_ids[2], 'Pulled two, ids match with the sent ids.');
 	#is_deeply( [$msg_pulls[0..2]], \@sent_msg_ids, "Ids match with sent messages.")
-	is($queue->size(), 6, 'Three messages pulled in total; put queue size is still 6. (pull does not delete messages.)');
-	diag("Pulled 3 messages from queue.");
-	foreach (0..5) {
+    # msg #7 has JSON encoded body
+    require JSON::MaybeXS;
+    my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
+    is_deeply($json->decode($msg_pulls[6]->body()), \%msg_body_hash_02, '#7 message body after serialization matches with the sent message body.');
+    # msg #8 has Storable encoded body
+    require Storable;
+    is_deeply(Storable::thaw($msg_pulls[7]->body()), \%msg_body_hash_02, '#8 message body after serialization matches with the sent message body.');
+
+	is($queue->size(), 8, 'Three messages pulled in total; put queue size is still 8. (pull does not delete messages.)');
+	diag("Pulled 8 messages from queue.");
+	foreach (0..7) {
 		my $pushed_body = $msg_pulls[$_]->body();
 		my $pulled_body = $send_messages[$_]->body();
 		#diag("Message number $_:\nPushed body: $pushed_body, dumped:\n" . Dumper($pushed_body) . " is utf8:" . utf8::is_utf8($pushed_body) . ";\n Pulled body: $pulled_body, dumped:\n" . Dumper($pulled_body) . " is utf8:" . utf8::is_utf8($pulled_body) . ".");

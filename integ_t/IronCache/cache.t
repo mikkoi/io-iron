@@ -54,7 +54,7 @@ subtest 'Setup for testing' => sub {
 };
 
 subtest 'Put and query items' => sub {
-	plan tests => 18;
+	plan tests => 20;
 
 	# The cache does not exist yet on the server!
 	# It will be created once we put one item in it.
@@ -182,12 +182,73 @@ subtest 'Put and query items' => sub {
 			'Throws IronHTTPCallException when cache not found with given name.';
 	like($@, '/IronHTTPCallException: status_code=404 response_message=Key not found/');
 	diag("Tried to get item with key " . $iron_cache_o1_item_02_key . " which does not exist. Threw ok.");
+
+    # Let's test with different serializers, just for fun (and for certainty).
+    # Shouldn't matter, though, since cache values are just plain strings 
+    # from IronCache's point of view.
+    diag("Test with JSON in JSON.");
+    require JSON::MaybeXS;
+    $Data::Dumper::Maxdepth = 6;
+    my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
+    my $iron_cache_o1_item_03_key = "item_01_key";
+    my %iron_cache_o1_item_03_value_hash = 
+        ( 'main' => { 'level_1_item_1' => 'S', 
+                'level_1_sub_1' => {'level_2_item_1' => 'T'}, 
+                'level_1_item_2' => 'SS'
+            },
+        );
+    my $iron_cache_o1_item_03_value = $json->encode(\%iron_cache_o1_item_03_value_hash);
+    my $iron_cache_o1_item_03 = IO::Iron::IronCache::Item->new(
+        'value' => $iron_cache_o1_item_03_value
+    );
+    my $iron_cache_o1_item_03_put = $created_iron_cache_01->put(
+        'key' => $iron_cache_o1_item_03_key,
+        'item' => $iron_cache_o1_item_03,
+    );
+    my $got_item_03 = $created_iron_cache_01->get(
+        'key' => $iron_cache_o1_item_03_key
+    );
+    diag("returned item_03:" . Dumper($got_item_03));
+    my $got_item_03_value_hash = $json->decode($got_item_03->value());
+    is(Dumper($got_item_03_value_hash), Dumper(\%iron_cache_o1_item_03_value_hash), "Returned dumped hash equals to original dumper hash.");
+    $Data::Dumper::Maxdepth = 2;
+
+    diag("Test with perl Storable serializer module.");
+    require Storable;
+    $Data::Dumper::Maxdepth = 6;
+    my $iron_cache_o1_item_04_key = "item_01_key";
+    my %iron_cache_o1_item_04_value_hash = 
+        ( 'main' => { 'level_1_item_1' => 'S', 
+                'level_1_sub_1' => {'level_2_item_1' => 'T'}, 
+                'level_1_item_2' => 'SS'
+            },
+        );
+    my $iron_cache_o1_item_04_value = Storable::freeze(\%iron_cache_o1_item_04_value_hash);
+    my $iron_cache_o1_item_04 = IO::Iron::IronCache::Item->new(
+        'value' => $iron_cache_o1_item_04_value
+    );
+    my $iron_cache_o1_item_04_put = $created_iron_cache_01->put(
+        'key' => $iron_cache_o1_item_04_key,
+        'item' => $iron_cache_o1_item_04,
+    );
+    my $got_item_04 = $created_iron_cache_01->get(
+        'key' => $iron_cache_o1_item_04_key
+    );
+    diag("returned item_04:" . Dumper($got_item_04));
+    my $got_item_04_value_hash = Storable::thaw($got_item_04->value());
+    is(Dumper($got_item_04_value_hash), Dumper(\%iron_cache_o1_item_04_value_hash), "Returned dumped hash equals to original dumper hash.");
+    $Data::Dumper::Maxdepth = 2;
+
 };
 
 subtest 'Clean up.' => sub {
-	plan tests => 8;
+	plan tests => 9;
 
 	# Clear the cache. Confirm it is empty
+    my $queried_iron_cache_info_02 = $iron_cache_client->get_info_about_cache(
+        'name' => $unique_cache_name_01
+    );
+    is($queried_iron_cache_info_02->{'size'}, 1, "Queried cache size is still 1. Item 1 is there.");
 	$log->clear();
 	my $iron_cache_o1_cleared = $created_iron_cache_01->clear();
 	my $log_message = "(project=$project_id, cache=$unique_cache_name_01). Cleared cache.";
@@ -198,7 +259,7 @@ subtest 'Clean up.' => sub {
 		) } @{$log->msgs};
 	is($log_test, 1, 'clear() logged correctly.');
 	is($iron_cache_o1_cleared, 1, "Cache is cleared.");
-	my $queried_iron_cache_info_02 = $iron_cache_client->get_info_about_cache(
+	$queried_iron_cache_info_02 = $iron_cache_client->get_info_about_cache(
 		'name' => $unique_cache_name_01
 	);
 	is($queried_iron_cache_info_02->{'size'}, 0, "Queried cache size is 0.");

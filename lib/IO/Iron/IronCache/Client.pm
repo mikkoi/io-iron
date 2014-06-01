@@ -171,7 +171,7 @@ the following attributes:
 
 =over 8
 
-=item - value, Free text. Will be JSONized. If you need an object serialized, don't use JSON. Use e.g. YAML. Then give the resulting string here.
+=item - value, Free text. If you want to put an object or a hash here, it needs to be serialized first; use e.g. JSON, Storable or YAML to stringify it. Then give the resulting string here.
 
 =item - expires_in, How long in seconds to keep the item in the cache before it is deleted. By default, items do not expire. Maximum is 2,592,000 seconds (30 days).
 
