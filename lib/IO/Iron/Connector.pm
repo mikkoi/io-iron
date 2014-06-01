@@ -35,9 +35,8 @@ This package is for internal use of IO::Iron packages.
 =cut
 
 use Log::Any  qw{$log};
-use JSON ();
+require JSON::MaybeXS;
 use Data::UUID ();
-#use MIME::Base64 ();
 use Hash::Util 0.06 qw{lock_keys lock_keys_plus unlock_keys legal_keys};
 use Carp::Assert;
 use Carp::Assert::More;
@@ -243,9 +242,10 @@ This routine is only accessed internally.
 sub perform_http_action {
 	my ($self, $action_verb, $href, $params) = @_;
 	my $client = $self->{'client'};
+	my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
 	# TODO assert href is URL
 	assert_in($action_verb, ['GET','PATCH','PUT','POST','DELETE','OPTIONS','HEAD'], 'action_verb is a valid HTTP verb.');
-	assert_exists($params, ['http_client_timeout', 'authorization_token'], 'params contains items body, http_client_timeout and authorization_token.');
+	assert_exists($params, ['http_client_timeout', 'authorization_token'], 'params contains items http_client_timeout and authorization_token.');
 	assert_integer($params->{'http_client_timeout'}, 'params->{\'http_client_timeout\'} is integer.');
 	assert_nonblank($params->{'authorization_token'}, 'params->{\'authorization_token\'} is a non-blank string.');
 	$log->tracef('Entering Connector:perform_http_action(%s, %s, %s)', $action_verb, $href, $params);
@@ -261,10 +261,7 @@ sub perform_http_action {
 		my $body_content = $params->{'body'} ? $params->{'body'} : { }; # Else use an empty hash for body.
 		my $file_as_zip = $params->{'body'}->{'file'};
 		delete $params->{'body'}->{'file'};
-		my $encoded_body_content = JSON::encode_json($body_content);
-		# Assert $params->{'file'}
-		# Assert $params->{'file_name'}
-		# Assert $params->{'file_name'} ends with ".zip"
+		my $encoded_body_content = $json->encode($body_content);
 		my $boundary = $self->{'mime_boundary'};
 		$content_type = "multipart/form-data; boundary=$boundary";
 		my $file_name = $params->{'body'}->{'file_name'} . '.zip';
@@ -274,7 +271,6 @@ sub perform_http_action {
 		$request_body = q{--} . $boundary . "\n";
 		$request_body .= 'Content-Disposition: ' . 'form-data; name="data"' . "\n";
 		$request_body .= 'Content-Type: ' . 'text/plain; charset=utf-8' . "\n";
-		#$request_body .= 'Content-Type: ' . 'application/json; charset=utf-8' . "\n";
 		$request_body .= "\n";
 		$request_body .= $encoded_body_content . "\n";
 		$request_body .= "\n";
@@ -283,7 +279,6 @@ sub perform_http_action {
 		$request_body .= 'Content-Type: ' . 'application/zip' . "\n";
 		$request_body .= 'Content-Transfer-Encoding: base64' . "\n";
 		$request_body .= "\n";
-		#$request_body .= MIME::Base64::encode($file_as_zip) . "\n";
 		$request_body .= $file_as_zip . "\n";
 		$request_body .= q{--} . $boundary . q{--} . "\n";
 	}
@@ -295,7 +290,7 @@ sub perform_http_action {
 			# Otherwise numbers might end up as strings.
 			$body_content->{$_} += 0 if looks_like_number $body_content->{$_}; ## no critic (ControlStructures::ProhibitPostfixControls)
 		}
-		my $encoded_body_content = JSON::encode_json($body_content);
+		my $encoded_body_content = $json->encode($body_content);
 		$log->debugf('Jsonized body:\'%s\'', $encoded_body_content);
 		$request_body = $encoded_body_content;
 	}
@@ -326,7 +321,7 @@ sub perform_http_action {
 			$decoded_body_content = $client->responseContent();
 		}
 		else {
-			$decoded_body_content = JSON::decode_json( $client->responseContent() );
+			$decoded_body_content = $json->decode( $client->responseContent() );
 		}
 		$log->tracef('Exiting Connector:perform_http_action(): %s, %s', $client->responseCode(), $decoded_body_content );
 		return $client->responseCode(), $decoded_body_content;
@@ -335,7 +330,7 @@ sub perform_http_action {
 		$log->tracef('HTTP Response code: %d, %s', $client->responseCode(), 'Failure!');
 		my $decoded_body_content;
 		try {
-			$decoded_body_content = JSON::decode_json( $client->responseContent() );
+			$decoded_body_content = $json->decode( $client->responseContent() );
 		};
 		my $response_message = $decoded_body_content ? $decoded_body_content->{'msg'} : $client->responseContent();
 		$log->tracef('Throwing exception in perform_http_action(): status_code=%s, response_message=%s', $client->responseCode(), $response_message );
