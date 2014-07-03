@@ -11,7 +11,7 @@ use warnings FATAL => 'all';
 
 # Global creator
 BEGIN {
-	use parent qw( IO::Iron::ConnectorBase ); # Inheritance
+    use parent qw( IO::Iron::ConnectorBase ); # Inheritance
 }
 
 # Global destructor
@@ -46,16 +46,16 @@ use Scalar::Util qw{blessed};
 use URI::Escape qw{uri_escape_utf8};
 use Exception::Class (
       'IronHTTPCallException' => {
-      	fields => ['status_code', 'response_message'],
+        fields => ['status_code', 'response_message'],
       }
   );
 
 # CONSTANTS
 
 use constant { ## no critic (ValuesAndExpressions::ProhibitConstantPragma)
-	HTTP_CODE_OK_MIN => 200,
-	HTTP_CODE_OK_MAX => 299,
-	HTTP_CODE_SERVICE_UNAVAILABLE => 503,
+    HTTP_CODE_OK_MIN => 200,
+    HTTP_CODE_OK_MAX => 299,
+    HTTP_CODE_SERVICE_UNAVAILABLE => 503,
 };
 
 =head1 DESCRIPTION
@@ -75,24 +75,24 @@ Creator function.
 =cut
 
 sub new {
-	my ($class) = @_;
-	$log->tracef('Entering new(%s)', $class);
-	my $self = IO::Iron::ConnectorBase->new();
-	# Add more keys to the self hash.
-	my @self_keys = (
-			'caches',
-			'queues',
-			legal_keys(%{$self}),
-	);
-	unlock_keys(%{$self});
-	bless $self, $class;
-	$self->{'caches'} = [];
-	$self->{'queues'} = [];
-	lock_keys(%{$self}, @self_keys);
+    my ($class) = @_;
+    $log->tracef('Entering new(%s)', $class);
+    my $self = IO::Iron::ConnectorBase->new();
+    # Add more keys to the self hash.
+    my @self_keys = (
+            'caches',
+            'queues',
+            legal_keys(%{$self}),
+    );
+    unlock_keys(%{$self});
+    bless $self, $class;
+    $self->{'caches'} = [];
+    $self->{'queues'} = [];
+    lock_keys(%{$self}, @self_keys);
 
-	$log->infof('Iron Connector (Mock) created.');
-	$log->tracef('Exiting new: %s', $self);
-	return $self;
+    $log->infof('Iron Connector (Mock) created.');
+    $log->tracef('Exiting new: %s', $self);
+    return $self;
 }
 
 =head2 perform_iron_action
@@ -109,98 +109,97 @@ HTTP return code, hash if success/failed request.
 =cut
 
 sub perform_iron_action { ## no critic (Subroutines::ProhibitExcessComplexity)
-	my ($self, $iron_action, $params) = @_;
-	if(!defined $params) {
-		$params = {};
-	}
-	$log->tracef('Entering Connector:perform_iron_action(%s, %s)', $iron_action, $params);
+    my ($self, $iron_action, $params) = @_;
+    if(!defined $params) {
+        $params = {};
+    }
+    $log->tracef('Entering Connector:perform_iron_action(%s, %s)', $iron_action, $params);
 
-	my $href = $iron_action->{'href'};
-	my $action_verb = $iron_action->{'action'};
-	my $retry = $iron_action->{'retry'};
-	my $require_body = $iron_action->{'require_body'};
-	my $paged = $iron_action->{'paged'} ? $iron_action->{'paged'} : 0;
-	my $per_page = $iron_action->{'per_page'} ? $iron_action->{'per_page'} : 0;
-	my $url_params = q{};
-	if(exists $iron_action->{'url_params'} && ref $iron_action->{'url_params'} eq 'HASH') {
-		foreach (keys $iron_action->{'url_params'}) {
-			$log->tracef('perform_iron_action(): url_param:%s', $_);
-			if ($params->{'{'.$_.'}'}) {
-				$url_params .= "$_={$_}&";
-			}
-		}
-		$url_params = substr $url_params, 0, (length $url_params) - 1;
-	}
-	if ($url_params) {
-		$href .= (q{?} . $url_params);
-	}
-	$log->tracef('href before value substitution:\'%s\'.', $href);
-	foreach my $value_key (sort keys %{$params}) {
-		my $value = $params->{$value_key};
-		$log->tracef('Param key:%s; value=%s;', $value_key, $value);
-		$href =~ s/$value_key/$value/gs;
-	};
-	$log->tracef('href after value substitution:\'%s\'.', $href);
+    my $href = $iron_action->{'href'};
+    my $action_verb = $iron_action->{'action'};
+    my $retry = $iron_action->{'retry'};
+    my $require_body = $iron_action->{'require_body'};
+    my $paged = $iron_action->{'paged'} ? $iron_action->{'paged'} : 0;
+    my $per_page = $iron_action->{'per_page'} ? $iron_action->{'per_page'} : 0;
+    my $url_params = q{};
+    if(exists $iron_action->{'url_params'} && ref $iron_action->{'url_params'} eq 'HASH') {
+        foreach (keys $iron_action->{'url_params'}) {
+            $log->tracef('perform_iron_action(): url_param:%s', $_);
+            if ($params->{'{'.$_.'}'}) {
+                $url_params .= "$_={$_}&";
+            }
+        }
+        $url_params = substr $url_params, 0, (length $url_params) - 1;
+    }
+    if ($url_params) {
+        $href .= (q{?} . $url_params);
+    }
+    $log->tracef('href before value substitution:\'%s\'.', $href);
+    foreach my $value_key (sort keys %{$params}) {
+        my $value = $params->{$value_key};
+        $log->tracef('Param key:%s; value=%s;', $value_key, $value);
+        $href =~ s/$value_key/$value/gs;
+    };
+    $log->tracef('href after value substitution:\'%s\'.', $href);
 
-	my ($http_status_code, $returned_msg);
-	my $keep_on_trying = 1;
-	while($keep_on_trying) {
-		$keep_on_trying = 0;
-		try {
-			assert(
-					($require_body == 1 && defined $params->{'body'} && ref $params->{'body'} eq 'HASH')
-					|| ($require_body == 0 && !defined $params->{'body'})
-					);
-			assert_in($action_verb, ['GET','PATCH','PUT','POST','DELETE','OPTIONS','HEAD'], 'action_verb is a valid HTTP verb.');
-			assert_nonblank( $params->{'{Protocol}'}, 'params->{Protocol} is defined and not blank.' );
-			assert_nonblank( $params->{'{Port}'}, 'params->{Port} is defined and not blank.' );
-			assert_nonblank( $params->{'{Host}'}, 'params->{Host} is defined and not blank.' );
-			assert_nonblank( $params->{'{Project ID}'}, 'params->{Project ID} is defined and not blank.' );
-			assert_nonblank( $params->{'{Host Path Prefix}'}, 'params->{Host Path Prefix} is defined and not blank.' );
-			assert_nonblank( $params->{'authorization_token'}, 'params->{authorization_token} is defined and not blank.' );
-			assert_nonblank( $params->{'http_client_timeout'}, 'params->{http_client_timeout} is defined and not blank.' );
-			my $url_escape_these_fields = defined $iron_action->{'url_escape'} ? $iron_action->{'url_escape'} : {};
-			foreach my $field_name (keys %{$url_escape_these_fields}) {
-				if (defined $params->{$field_name}) {
-					$params->{$field_name} = uri_escape_utf8($params->{$field_name});
-				}
-			}
-			#
-			# Mocking here.
-			$log->debugf('Requested action: %s', $iron_action->{'action_name'});
-			$log->debugf('Request body: %s', $params->{'body'}) if defined $params->{'body'}; ## no critic (ControlStructures::ProhibitPostfixControls)
-			$log->debugf('Request body: %s', $params->{'body'});
+    my ($http_status_code, $returned_msg);
+    my $keep_on_trying = 1;
+    while($keep_on_trying) {
+        $keep_on_trying = 0;
+        try {
+            assert(
+                    ($require_body == 1 && defined $params->{'body'} && ref $params->{'body'} eq 'HASH')
+                    || ($require_body == 0 && !defined $params->{'body'})
+                    );
+            assert_in($action_verb, ['GET','PATCH','PUT','POST','DELETE','OPTIONS','HEAD'], 'action_verb is a valid HTTP verb.');
+            assert_nonblank( $params->{'{Protocol}'}, 'params->{Protocol} is defined and not blank.' );
+            assert_nonblank( $params->{'{Port}'}, 'params->{Port} is defined and not blank.' );
+            assert_nonblank( $params->{'{Host}'}, 'params->{Host} is defined and not blank.' );
+            assert_nonblank( $params->{'{Project ID}'}, 'params->{Project ID} is defined and not blank.' );
+            assert_nonblank( $params->{'{Host Path Prefix}'}, 'params->{Host Path Prefix} is defined and not blank.' );
+            assert_nonblank( $params->{'authorization_token'}, 'params->{authorization_token} is defined and not blank.' );
+            assert_nonblank( $params->{'http_client_timeout'}, 'params->{http_client_timeout} is defined and not blank.' );
+            my $url_escape_these_fields = defined $iron_action->{'url_escape'} ? $iron_action->{'url_escape'} : {};
+            foreach my $field_name (keys %{$url_escape_these_fields}) {
+                if (defined $params->{$field_name}) {
+                    $params->{$field_name} = uri_escape_utf8($params->{$field_name});
+                }
+            }
+            #
+            # Mocking here.
+            $log->debugf('Requested action: %s', $iron_action->{'action_name'});
+            $log->debugf('Request body: %s', $params->{'body'}) if defined $params->{'body'}; ## no critic (ControlStructures::ProhibitPostfixControls)
+            $log->debugf('Request body: %s', $params->{'body'});
 
 
-			#if($params->{'action_name'} eq 'IRONCACHE_PUT_AN_ITEM_INTO_A_CACHE') {
-			#	my $cache_name = $params->{'{Cache Name}'};
-			#	my $cache_key = $params->{'{Key}'};
-			#	my $cache = $self->{'caches'}->{$cache_name} ? $self->{'caches'}->{$cache_name} : {};
-			#}
-		}
-		catch {
-			$log->debugf('Caught exception');
-			croak $_ unless blessed $_ && $_->can('rethrow'); ## no critic (ControlStructures::ProhibitPostfixControls)
-			if ( $_->isa('IronHTTPCallException') ) {
-				if($_->status_code == HTTP_CODE_SERVICE_UNAVAILABLE) {
-					# 503 Service Unavailable. Clients should implement exponential backoff to retry the request.
-					$keep_on_trying = 1 if ($retry == 1);  ## no critic (ControlStructures::ProhibitPostfixControls)
-					# TODO Fix this temporary solution for backoff to retry the request.
-				}
-				else {
-					$_->rethrow;
-				}
-			}
-			else {
-				$_->rethrow;
-			}
-		};
-		# Module::Pluggable here?
-	}
-	$log->tracef('Exiting Connector:perform_iron_action(): %s', $returned_msg );
-	return $http_status_code, $returned_msg;
+            #if($params->{'action_name'} eq 'IRONCACHE_PUT_AN_ITEM_INTO_A_CACHE') {
+            #   my $cache_name = $params->{'{Cache Name}'};
+            #   my $cache_key = $params->{'{Key}'};
+            #   my $cache = $self->{'caches'}->{$cache_name} ? $self->{'caches'}->{$cache_name} : {};
+            #}
+        }
+        catch {
+            $log->debugf('Caught exception');
+            croak $_ unless blessed $_ && $_->can('rethrow'); ## no critic (ControlStructures::ProhibitPostfixControls)
+            if ( $_->isa('IronHTTPCallException') ) {
+                if($_->status_code == HTTP_CODE_SERVICE_UNAVAILABLE) {
+                    # 503 Service Unavailable. Clients should implement exponential backoff to retry the request.
+                    $keep_on_trying = 1 if ($retry == 1);  ## no critic (ControlStructures::ProhibitPostfixControls)
+                    # TODO Fix this temporary solution for backoff to retry the request.
+                }
+                else {
+                    $_->rethrow;
+                }
+            }
+            else {
+                $_->rethrow;
+            }
+        };
+        # Module::Pluggable here?
+    }
+    $log->tracef('Exiting Connector:perform_iron_action(): %s', $returned_msg );
+    return $http_status_code, $returned_msg;
 }
-
 
 =head2 perform_http_action
 
@@ -210,58 +209,58 @@ This routine is only accessed internally.
 =cut
 
 sub perform_http_action {
-	my ($self, $action_verb, $href, $params) = @_;
-	my $client = $self->{'client'};
-	# TODO assert href is URL
-	assert_in($action_verb, ['GET','PATCH','PUT','POST','DELETE','OPTIONS','HEAD'], 'action_verb is a valid HTTP verb.');
-	assert_exists($params, ['http_client_timeout', 'authorization_token'], 'params contains items body, http_client_timeout and authorization_token.');
-	assert_integer($params->{'http_client_timeout'}, 'params->{\'http_client_timeout\'} is integer.');
-	assert_nonblank($params->{'authorization_token'}, 'params->{\'authorization_token\'} is a non-blank string.');
-	$log->tracef('Entering Connector:perform_http_action(%s, %s, %s)', $action_verb, $href, $params);
-	#
-	# HTTP request attributes
-	my $body_content = $params->{'body'} ? $params->{'body'} : { }; # Else use an empty hash for body.
-	my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
-	my $encoded_body_content = $json->encode($body_content);
-	my $timeout = $params->{'http_client_timeout'};
-	# Headers
-	my $content_type = 'application/json';
-	my $authorization = 'OAuth ' . $params->{'authorization_token'};
-	#
-	$client->setTimeout($timeout);
-	$log->tracef('client: %s; action=%s; href=%s;', $client, $action_verb, $href);
-	$log->debugf('REST Request: [verb=%s; href=%s; body=%s; Headers: Content-Type=%s; Authorization=%s]', $action_verb, $href, $encoded_body_content, $content_type, $authorization);
-	$client->request($action_verb, $href, $encoded_body_content,
-			{
-				'Content-Type' => $content_type,
-				'Authorization' => $authorization,
-			});
-	#
-	$log->debugf('Returned HTTP response code:%s', $client->responseCode());
-	$log->tracef('Returned HTTP response:%s', $client->responseContent());
-	if( $client->responseCode() >= HTTP_CODE_OK_MIN && $client->responseCode() <= HTTP_CODE_OK_MAX ) {
-		# 200 OK: Successful GET; 201 Created: Successful POST
-		$log->tracef('HTTP Response code: %d, %s', $client->responseCode(), 'Successful!');
-		my $decoded_body_content = $json->decode( $client->responseContent() );
-		$log->tracef('Exiting Connector:perform_http_action(): %s, %s', $client->responseCode(), $decoded_body_content );
-		return $client->responseCode(), $decoded_body_content;
-	}
-	else {
-		$log->tracef('HTTP Response code: %d, %s', $client->responseCode(), 'Failure!');
-		my $decoded_body_content;
-		try {
-			$decoded_body_content = $json->decode( $client->responseContent() );
-		};
-		my $response_message = $decoded_body_content ? $decoded_body_content->{'msg'} : $client->responseContent();
-		$log->tracef('Throwing exception in perform_http_action(): status_code=%s, response_message=%s', $client->responseCode(), $response_message );
-		IronHTTPCallException->throw(
-				status_code => $client->responseCode(),
-				response_message => $response_message,
-				error => 'IronHTTPCallException: status_code=' . $client->responseCode()
-					. ' response_message=' . $response_message,
-				);
-	}
-	return; # Control does not reach this point.
+    my ($self, $action_verb, $href, $params) = @_;
+    my $client = $self->{'client'};
+    # TODO assert href is URL
+    assert_in($action_verb, ['GET','PATCH','PUT','POST','DELETE','OPTIONS','HEAD'], 'action_verb is a valid HTTP verb.');
+    assert_exists($params, ['http_client_timeout', 'authorization_token'], 'params contains items body, http_client_timeout and authorization_token.');
+    assert_integer($params->{'http_client_timeout'}, 'params->{\'http_client_timeout\'} is integer.');
+    assert_nonblank($params->{'authorization_token'}, 'params->{\'authorization_token\'} is a non-blank string.');
+    $log->tracef('Entering Connector:perform_http_action(%s, %s, %s)', $action_verb, $href, $params);
+    #
+    # HTTP request attributes
+    my $body_content = $params->{'body'} ? $params->{'body'} : { }; # Else use an empty hash for body.
+    my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
+    my $encoded_body_content = $json->encode($body_content);
+    my $timeout = $params->{'http_client_timeout'};
+    # Headers
+    my $content_type = 'application/json';
+    my $authorization = 'OAuth ' . $params->{'authorization_token'};
+    #
+    $client->setTimeout($timeout);
+    $log->tracef('client: %s; action=%s; href=%s;', $client, $action_verb, $href);
+    $log->debugf('REST Request: [verb=%s; href=%s; body=%s; Headers: Content-Type=%s; Authorization=%s]', $action_verb, $href, $encoded_body_content, $content_type, $authorization);
+    $client->request($action_verb, $href, $encoded_body_content,
+            {
+                'Content-Type' => $content_type,
+                'Authorization' => $authorization,
+            });
+    #
+    $log->debugf('Returned HTTP response code:%s', $client->responseCode());
+    $log->tracef('Returned HTTP response:%s', $client->responseContent());
+    if( $client->responseCode() >= HTTP_CODE_OK_MIN && $client->responseCode() <= HTTP_CODE_OK_MAX ) {
+        # 200 OK: Successful GET; 201 Created: Successful POST
+        $log->tracef('HTTP Response code: %d, %s', $client->responseCode(), 'Successful!');
+        my $decoded_body_content = $json->decode( $client->responseContent() );
+        $log->tracef('Exiting Connector:perform_http_action(): %s, %s', $client->responseCode(), $decoded_body_content );
+        return $client->responseCode(), $decoded_body_content;
+    }
+    else {
+        $log->tracef('HTTP Response code: %d, %s', $client->responseCode(), 'Failure!');
+        my $decoded_body_content;
+        try {
+            $decoded_body_content = $json->decode( $client->responseContent() );
+        };
+        my $response_message = $decoded_body_content ? $decoded_body_content->{'msg'} : $client->responseContent();
+        $log->tracef('Throwing exception in perform_http_action(): status_code=%s, response_message=%s', $client->responseCode(), $response_message );
+        IronHTTPCallException->throw(
+                status_code => $client->responseCode(),
+                response_message => $response_message,
+                error => 'IronHTTPCallException: status_code=' . $client->responseCode()
+                    . ' response_message=' . $response_message,
+                );
+    }
+    return; # Control does not reach this point.
 }
 
 =head1 AUTHOR
