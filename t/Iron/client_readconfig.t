@@ -3,7 +3,8 @@ use 5.006;
 use strict;
 use warnings FATAL => 'all';
 use Test::More;
-require JSON::MaybeXS;
+
+use JSON; # imports encode_json, decode_json, to_json and from_json.
 use File::HomeDir;
 use File::Remove 'remove';
 use File::Copy 'move';
@@ -17,7 +18,6 @@ diag("Testing IO::Iron::IronMQ $IO::Iron::IronWorker::Client::VERSION, Perl $], 
 
 
 #use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
-my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
 
 diag('test ReadIronMQConfig');
 
@@ -59,7 +59,7 @@ if(-e $currentdir_filename) {
 	move $currentdir_filename, $currentdir_filename . '.tmp';
 }
 open CURRENTDIR_HANDLE, '>', $currentdir_filename;
-print CURRENTDIR_HANDLE $json->encode($iron_local_file_hash);
+print CURRENTDIR_HANDLE encode_json($iron_local_file_hash);
 close CURRENTDIR_HANDLE;
 
 # File with a different (any) name and location.
@@ -71,7 +71,7 @@ my $iron_extra_file_hash = {
 my $iron_extra_file_name = File::Spec->catfile(File::Spec->curdir(), 't', '.IronMQTestConfig.json');
 diag("Extra config filename: $iron_extra_file_name");
 open DIFFDIR_HANDLE, '>', $iron_extra_file_name;
-print DIFFDIR_HANDLE $json->encode($iron_extra_file_hash);
+print DIFFDIR_HANDLE encode_json($iron_extra_file_hash);
 close DIFFDIR_HANDLE;
 
 my $ironworker = IO::Iron::IronWorker::Client->new(
