@@ -12,6 +12,7 @@ use warnings FATAL => 'all';
 # Global creator
 BEGIN {
 	# Export Nothing
+    use parent qw(IO::Iron::IronCache::Policy); # Inheritance
 }
 
 # Global destructor
@@ -69,15 +70,18 @@ sub new {
 			'ironcache_client',      # Reference to IronCache client
 			'name',                  # Cache name
 			'connection',            # Reference to REST client
+			'policy',                # The policies. (copied from the client.)
 			'last_http_status_code', # After successfull network operation, the return value is here.
 	);
 	lock_keys(%{$self}, @self_keys);
 	$self->{'ironcache_client'} = defined $params->{'ironcache_client'} ? $params->{'ironcache_client'} : undef;
 	$self->{'name'} = defined $params->{'name'} ? $params->{'name'} : undef;
 	$self->{'connection'} = defined $params->{'connection'} ? $params->{'connection'} : undef;
+    $self->{'policy'} = defined $params->{'policy'} ? $params->{'policy'} : undef;
 	assert_isa( $self->{'ironcache_client'}, 'IO::Iron::IronCache::Client' , 'self->{ironcache_client} is IO::Iron::IronCache::Client.');
 	assert_nonblank( $self->{'name'}, 'self->{name} is defined and is not blank.' );
 	assert_isa( $self->{'connection'}, 'IO::Iron::Connection' , 'self->{connection} is IO::Iron::Connection.');
+    assert_hashref( $self->{'policy'}, '\$self->{policy} is a reference to a hash.');
 
 	unlock_keys(%{$self});
 	my $blessed_ref = bless $self, $class;
@@ -179,6 +183,7 @@ sub put {
 	);
 	$log->tracef('Entering put(%s)', \%params);
 
+    $self->validate_item_key('key' => $params{'key'});
 	my $cache_name = $self->name();
 	my $connection = $self->{'connection'};
 	my %item_body;

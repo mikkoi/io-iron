@@ -273,6 +273,20 @@ And well implemented, too, with webhooks for several functions!
 
 =over 4
 
+=item * Policies
+
+=item * Fix the $self->{'caches'} to a hash instead of list.
+
+=item * Implement new features in http://blog.iron.io/2014/05/ironmq-long-polling.html
+
+=over 4
+
+=item - Long Polling
+
+=item - Get-Delete as One Operation
+
+=back
+
 =item * Implement IO::Iron::IronWorker (partly done).
 
 =item * The IronMQ client needs to control the queues, perhaps using semafores.
@@ -309,6 +323,8 @@ And well implemented, too, with webhooks for several functions!
 but always to the same address, we need to optimize REST:Client usage.
 
 =item * Change from JSON to JSON::Any.
+
+=item * Carp::Assert, Carp::Assert::More, other checking deactivation in production?
 
 =back
 

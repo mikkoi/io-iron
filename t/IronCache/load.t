@@ -7,8 +7,9 @@ use Test::More;
 require IO::Iron::IronCache::Client;
 require IO::Iron::IronCache::Cache;
 require IO::Iron::IronCache::Item;
+require IO::Iron::IronCache::Policy;
 
-plan tests => 21;
+plan tests => 23;
 
 BEGIN {
 	use_ok('IO::Iron::IronCache::Client') || print "Bail out!\n";
@@ -36,11 +37,15 @@ BEGIN {
 	can_ok('IO::Iron::IronCache::Item', 'replace');
 	can_ok('IO::Iron::IronCache::Item', 'add');
 	can_ok('IO::Iron::IronCache::Item', 'cas');
+
+    can_ok('IO::Iron::IronCache::Policy', 'is_valid_cache_name');
+    can_ok('IO::Iron::IronCache::Policy', 'is_valid_item_key');
+
 }
 
 #use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
 
-diag("Testing IO::Iron::IronCache $IO::Iron::IronCache::Client::VERSION, Perl $], $^X");
+diag("Testing IO::Iron::IronCache, Perl $], $^X");
 
 #if(! -e File::Spec->catfile(File::HomeDir->my_home, '.iron.json') 
 #		&& ! defined $ENV{'IRON_PROJECT_ID'}

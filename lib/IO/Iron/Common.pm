@@ -52,14 +52,17 @@ Internal functions for use in the Client objects.
 
 sub IRON_CONFIG_KEYS {
 	return (
+        # Iron.io standard:
 		'project_id',       # The ID of the project to use for requests.
 		'token',            # The OAuth token that should be used to authenticate requests. Can be found in the HUD.
 		'host',             # The domain name the API can be located at. Defaults to a product-specific value, but always using Amazon's cloud.
 		'protocol',         # The protocol that will be used to communicate with the API. Defaults to "https", which should be sufficient for 99% of users.
 		'port',             # The port to connect to the API through. Defaults to 443, which should be sufficient for 99% of users.
 		'api_version',      # The version of the API to connect through. Defaults to the version supported by the client. End-users should probably never change this.
+        # IO::Iron additions:
 		'host_path_prefix', # Path prefix to the RESTful url. Defaults to '/1'. Used with non-standard clouds/emergency service back up addresses.
 		'timeout',          # REST client timeout (for REST calls accessing IronMQ). N.B. This is not a IronMQ config option! It only configures client this client.
+		'policies_file',    # Filename of JSON file containing policies.
 	);
 }
 
@@ -71,7 +74,8 @@ sub IRON_CLIENT_PARAMETERS {
 	return (
 			IRON_CONFIG_KEYS(),
 			'config',            # The config file name.
-			'connector',         # Pointer to a preinitiated connector object.
+			'connector',         # Reference to a preinitiated connector object.
+#			'policy',            # Reference to a preinitiated policy hash.
 	);
 }
 

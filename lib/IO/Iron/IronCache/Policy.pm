@@ -1,4 +1,4 @@
-package IO::Iron::ClientBase;
+package IO::Iron::IronCache::Policy;
 
 ## no critic (Documentation::RequirePodAtEnd)
 ## no critic (Documentation::RequirePodSections)
@@ -9,7 +9,7 @@ use warnings FATAL => 'all';
 
 # Global creator
 BEGIN {
-	# No exports
+    use parent qw( IO::Iron::PolicyBase ); # Inheritance
 }
 
 # Global destructor
@@ -18,8 +18,7 @@ END {
 
 =head1 NAME
 
-IO::Iron::ClientBase - Base package for Client Libraries 
-to Iron services IronCache, IronMQ and IronWorker.
+IO::Iron::IronCache::Policy - Base package (inherited) for IronCache::Client package.
 
 =cut
 
@@ -31,7 +30,7 @@ to Iron services IronCache, IronMQ and IronWorker.
 
 	sub new {
 		my ($class, $params) = @_;
-		my $self = IO::Iron::ClientBase->new();
+		my $self = IO::Iron::IronCache::Policy->new();
 		# Add more keys to the self hash.
 		my @self_keys = (
 				'caches',        # References to all objects created of class IO::Iron::IronCache::Cache.
@@ -56,68 +55,156 @@ use Log::Any  qw{$log};
 use Hash::Util 0.06 qw{lock_keys unlock_keys};
 use Carp::Assert::More;
 use English '-no_match_vars';
+use Params::Validate qw(:all);
+use Carp;
+use Try::Tiny;
+
 
 =head1 METHODS
 
-=head2 new
+=head2 is_valid_cache_name
 
-Creator function.
-
-Declares the mandatory items of self hash.
-
-=cut
-
-sub new {
-	my ($class) = @_;
-	$log->tracef('Entering new(%s)', $class);
-	my $self = {};
-	# These config items are used every time when a connection to REST is made.
-	my @self_keys = ( ## no critic (CodeLayout::ProhibitQuotedWordLists)
-		'project_id',            # The ID of the project to use for requests.
-		'connection',            # Reference to a IO::Iron::Connection object.
-		'last_http_status_code', # Contains the HTTP return code after a successful call to the remote host.
-	);
-	bless $self, $class;
-	lock_keys(%{$self}, @self_keys);
-
-	$log->tracef('Exiting new: %s', $self);
-	return $self;
-}
-
-=head2 Getters/setters
-
-Set or get a property.
-When setting, returns the reference to the object.
+Check if the cache name is valid according to the policy. Return 1/0.
 
 =over 8
 
-=item project_id   project_id from config.
-
-=item connection   The Connection module.
-
-=item last_http_status_code
+=item name string to verify.
 
 =back
 
 =cut
 
-sub project_id { return $_[0]->_access_internal('project_id', $_[1]); }
-sub connection { return $_[0]->_access_internal('connection', $_[1]); }
-sub last_http_status_code { return $_[0]->_access_internal('last_http_status_code', $_[1]); }
+sub is_valid_cache_name {
+    my $self = shift;
+    my %params = validate(
+        @_, {
+            'name' => { type => SCALAR, }, # cache name.
+        }
+    );
+    $log->tracef('Entering is_valid_cache_name(%s)', \%params);
+    my $validity = 1;
+    try {
+        $log->tracef('is_valid_cache_name:Enter try/catch.');
+        $self->validate_cache_name('name' => $params{'name'});
+    }
+    catch {
+        $log->tracef('is_valid_cache_name:Caught exception.');
+        croak $_ unless blessed $_ && $_->can('rethrow'); ## no critic (ControlStructures::ProhibitPostfixControls)
+        if ( $_->isa('IronPolicyException') ) {
+            $log->tracef('Caught IronPolicyException.');
+            $validity = 0;
+        }
+    };
+    $log->tracef('Exiting is_valid_cache_name():%d', $validity);
+    return $validity;
+}
+
+=head2 validate_cache_name
+
+Same as above but if validation fails, throws IronPolicyException.
+If valid, returns undef.
+
+=over 8
+
+=item name string to verify.
+
+=back
+
+=cut
+
+sub validate_cache_name {
+    my $self = shift;
+    my %params = validate(
+        @_, {
+            'name' => { type => SCALAR, }, # cache name.
+        }
+    );
+    $log->tracef('Entering validate_cache_name(%s)', \%params);
+    $self->validate_with_policy(
+            'policy' => 'name',
+            'candidate' => $params{'name'});
+    $log->tracef('Exiting validate_cache_name():[NONE]');
+    return;
+}
+
+=head2 is_valid_item_key
+
+Check if the item key is valid according to the policy. Return 1/0.
+
+=over 8
+
+=item key string to verify.
+
+=back
+
+=cut
+
+sub is_valid_item_key {
+    my $self = shift;
+    my %params = validate(
+        @_, {
+            'key' => { type => SCALAR, }, # cache name.
+        }
+    );
+    $log->tracef('Entering is_valid_item_key(%s)', \%params);
+    my $validity = 1;
+    try {
+        $log->tracef('is_valid_item_key:Enter try/catch.');
+        $self->validate_item_key('key' => $params{'key'});
+    }
+    catch {
+        $log->tracef('is_valid_item_key:Caught exception.');
+        croak $_ unless blessed $_ && $_->can('rethrow'); ## no critic (ControlStructures::ProhibitPostfixControls)
+        if ( $_->isa('IronPolicyException') ) {
+            $log->tracef('Caught IronPolicyException.');
+            $validity = 0;
+        }
+    };
+    $log->tracef('Exiting is_valid_item_key():%d', $validity);
+    return $validity;
+}
+
+=head2 validate_item_key
+
+Same as above but if validation fails, throws IronPolicyException.
+If valid, returns undef.
+
+=over 8
+
+=item key string to verify.
+
+=back
+
+=cut
+
+sub validate_item_key {
+    my $self = shift;
+    my %params = validate(
+        @_, {
+            'key' => { type => SCALAR, }, # cache name.
+        }
+    );
+    $log->tracef('Entering validate_item_key(%s)', \%params);
+    $self->validate_with_policy(
+            'policy' => 'item_key',
+            'candidate' => $params{'key'});
+    $log->tracef('Exiting validate_item_key():[NONE]');
+    return;
+}
+
 
 # INTERNAL METHODS
 # For use in the inheriting subclass
 
-sub _access_internal {
-    my ($self, $var_name, $var_value) = @_;
-    $log->tracef('Entering _access_internal(%s, %s)', $var_name, $var_value);
-    if( defined $var_value ) {
-        $self->{$var_name} = $var_value;
-        return $self;
-    }
-    else {
-        return $self->{$var_name};
-    }
+# This is a late binding to inherited method get_policies:
+sub THIS_POLICY {
+    my $self = shift;
+    my %params = validate(
+        @_, {
+            # No parameters.
+        }
+    );
+    return 'cache';
 }
 
 
@@ -137,7 +224,7 @@ automatically be notified of progress on your bug as I make changes.
 
 You can find documentation for this module with the perldoc command.
 
-    perldoc IO::Iron::ClientBase
+    perldoc IO::Iron::IronCache::Policy
 
 
 You can also look for information at:
@@ -212,4 +299,4 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =cut
 
-1; # End of IO::Iron::ClientBase
+1; # End of IO::Iron::IronCache::Policy

@@ -10,7 +10,8 @@ use warnings FATAL => 'all';
 
 # Global creator
 BEGIN {
-	use parent qw( IO::Iron::ClientBase ); # Inheritance
+	use parent qw(IO::Iron::ClientBase); # Inheritance
+	use parent qw(IO::Iron::IronCache::Policy );
 }
 
 # Global destructor
@@ -294,6 +295,7 @@ sub new {
 	# Add more keys to the self hash.
 	my @self_keys = (
 			'caches',        # References to all objects created of class IO::Iron::IronCache::Cache. Not in use!
+			'policy',        # The policies of this client.
 			legal_keys(%{$self}),
 	);
 	unlock_keys(%{$self});
@@ -308,6 +310,11 @@ sub new {
 	unlock_keys(%{$self});
 	bless $self, $class;
 	lock_keys(%{$self}, @self_keys);
+
+    # Set up the policies
+    # We have to do this after blessing the object
+    # because get_policies has late bindings.
+    $self->{'policy'} = $self->get_policies('policies_file' => $config->{'policies_file'});
 
 	# Set up the connection client
 	my $connection = IO::Iron::Connection->new( {
@@ -461,8 +468,8 @@ a particular message cache. This call doesn't actually
 access IronCache API because, if an item is put to a 
 cache which doesn't exist yet, IronCache creates a new cache 
 automatically. create_cache only creates 
-a new IO::Iron::IronCache::Cache object which is linked to the
-creating IO::Iron::IronCache::Client object.
+a new IO::Iron::IronCache::Cache object which is linked to its
+creator IO::Iron::IronCache::Client object.
 
 =over 8
 
@@ -483,10 +490,12 @@ sub create_cache {
 	);
 	$log->tracef('Entering create_cache(%s)', \%params);
 
+    $self->validate_cache_name('name' => $params{'name'});
 	my $cache = IO::Iron::IronCache::Cache->new({
 		'ironcache_client' => $self, # Pass a reference to the parent object.
 		'name' => $params{'name'},
 		'connection' => $self->{'connection'},
+		'policy' => $self->{'policy'},
 	});
 	push @{$self->{'caches'}}, $cache;
 
