@@ -47,7 +47,8 @@ subtest 'Check for valid cache and key names' => sub {
     my $item_key = '';
     # Create an IronCache client.
     $cache_client = IO::Iron::IronCache::Client->new(
-        'config' => 'iron_cache.json'
+        #'config' => 'iron_cache.json'
+        'project_id' => 'dummy_project_id',
     );
     $cache_client->{'policy'} = $test_policy;
     $project_id = $cache_client->{'connection'}->{'project_id'};
