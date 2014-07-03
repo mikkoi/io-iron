@@ -3,7 +3,6 @@ use 5.006;
 use strict;
 use warnings FATAL => 'all';
 use Test::More;
-
 require JSON::MaybeXS;
 use File::HomeDir;
 use File::Remove 'remove';
