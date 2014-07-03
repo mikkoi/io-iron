@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use Test::More;
 use Test::Exception;
-use JSON ();
+require JSON::MaybeXS;
 
 use lib 't';
 use lib 'integ_t';
@@ -135,7 +135,8 @@ subtest 'Push and pull' => sub {
 	push @send_message_ids, $msg_send_id_01;
 	@msg_pulls_01 = $error_queue->pull();
 	#diag("IO::Iron::IronMQ::Message: " . Dumper($msg_pulls_01[0]));
-	my $error_msg_content = JSON::decode_json($msg_pulls_01[0]->body());
+    my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
+	my $error_msg_content = $json->decode($msg_pulls_01[0]->body());
 	#diag(Dumper($error_msg_content));
 	diag("Iron.io returned error: " . $error_msg_content->{'msg'});
 	isnt($msg_pulls_01[0]->id(), $send_message_ids[0], 'Message ids are not same because the queue is not the same.');

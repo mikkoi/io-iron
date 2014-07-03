@@ -40,6 +40,7 @@ use Log::Any  qw{$log};
 use Hash::Util 0.06 qw{lock_keys unlock_keys};
 use Carp::Assert::More;
 use English '-no_match_vars';
+use File::Spec ();
 use Params::Validate qw(:all);
 use Exception::Class (
       'IronPolicyException' => {

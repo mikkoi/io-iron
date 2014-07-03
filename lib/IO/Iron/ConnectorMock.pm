@@ -34,7 +34,7 @@ This package is for internal use of IO::Iron packages.
 =cut
 
 use Log::Any  qw{$log};
-use JSON;
+require JSON::MaybeXS;
 use Hash::Util 0.06 qw{lock_keys lock_keys_plus unlock_keys legal_keys};
 use Carp::Assert;
 use Carp::Assert::More;
@@ -221,7 +221,8 @@ sub perform_http_action {
 	#
 	# HTTP request attributes
 	my $body_content = $params->{'body'} ? $params->{'body'} : { }; # Else use an empty hash for body.
-	my $encoded_body_content = encode_json($body_content);
+	my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
+	my $encoded_body_content = $json->encode($body_content);
 	my $timeout = $params->{'http_client_timeout'};
 	# Headers
 	my $content_type = 'application/json';
@@ -241,7 +242,7 @@ sub perform_http_action {
 	if( $client->responseCode() >= HTTP_CODE_OK_MIN && $client->responseCode() <= HTTP_CODE_OK_MAX ) {
 		# 200 OK: Successful GET; 201 Created: Successful POST
 		$log->tracef('HTTP Response code: %d, %s', $client->responseCode(), 'Successful!');
-		my $decoded_body_content = decode_json( $client->responseContent() );
+		my $decoded_body_content = $json->decode( $client->responseContent() );
 		$log->tracef('Exiting Connector:perform_http_action(): %s, %s', $client->responseCode(), $decoded_body_content );
 		return $client->responseCode(), $decoded_body_content;
 	}
@@ -249,7 +250,7 @@ sub perform_http_action {
 		$log->tracef('HTTP Response code: %d, %s', $client->responseCode(), 'Failure!');
 		my $decoded_body_content;
 		try {
-			$decoded_body_content = decode_json( $client->responseContent() );
+			$decoded_body_content = $json->decode( $client->responseContent() );
 		};
 		my $response_message = $decoded_body_content ? $decoded_body_content->{'msg'} : $client->responseContent();
 		$log->tracef('Throwing exception in perform_http_action(): status_code=%s, response_message=%s', $client->responseCode(), $response_message );
