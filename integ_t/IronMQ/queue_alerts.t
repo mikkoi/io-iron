@@ -4,7 +4,7 @@ use strict;
 use warnings FATAL => 'all';
 use Test::More;
 use Test::Exception;
-use JSON ();
+require JSON::MaybeXS;
 
 use lib 't';
 use lib 'integ_t';
@@ -114,7 +114,8 @@ subtest 'Push and pull' => sub {
 	# Let's pull some messages.
 	@msg_pulls_01 = $alert_queue->pull();
 	#diag("IO::Iron::IronMQ::Message: " . Dumper($msg_pulls_01[0]));
-	my $alert_msg_content = JSON::decode_json($msg_pulls_01[0]->body());
+    my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
+	my $alert_msg_content = $json->decode($msg_pulls_01[0]->body());
 	#diag(Dumper($alert_msg_content));
 	is($alert_msg_content->{'queue_size'}, 1, 'Alert message says queue size was 1.');
 	is($alert_msg_content->{'source_queue'}, $normal_queue->name(), 'Error came from normal queue.');
