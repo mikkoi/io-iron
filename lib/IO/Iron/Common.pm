@@ -31,8 +31,10 @@ IO::Iron::Common - Common routines for Client Libraries to Iron services IronCac
 
 use File::Slurp ();
 use Log::Any  qw{$log};
-use JSON ();
+#use JSON ();
+require JSON::MaybeXS;
 #use File::Spec qw{read_file};
+use File::Spec ();
 use File::HomeDir ();
 use Hash::Util 0.06 qw{lock_keys unlock_keys};
 use Carp::Assert::More;
@@ -170,7 +172,8 @@ sub _read_iron_config_file {
 		$log->tracef('File %s exists', $full_path_name);
 		if(my $file_contents = File::Slurp::read_file($full_path_name)) {
 			$log->tracef('Read file %s', $full_path_name);
-			$read_config = JSON::decode_json($file_contents);
+			 my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
+			$read_config = $json->decode($file_contents);
 			foreach my $config_key (keys %{$config}) {
 				if (defined $read_config->{$config_key}) {
 					$config->{$config_key} = $read_config->{$config_key};
