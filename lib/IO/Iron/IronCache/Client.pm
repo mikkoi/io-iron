@@ -314,7 +314,7 @@ sub new {
     # Set up the policies
     # We have to do this after blessing the object
     # because get_policies has late bindings.
-    $self->{'policy'} = $self->get_policies('policies_file' => $config->{'policies_file'});
+    $self->{'policy'} = $self->get_policies('policies' => $config->{'policies'});
 
 	# Set up the connection client
 	my $connection = IO::Iron::Connection->new( {
@@ -370,6 +370,7 @@ sub get_caches {
 			'ironcache_client' => $self, # Pass a reference to the parent object.
 			'name' => $get_cache_name,
 			'connection' => $self->{'connection'},
+            'policy' => $self->{'policy'},
 		});
 		push @caches, $cache;
 	}
@@ -386,7 +387,8 @@ sub get_caches {
 
 =item Params: cache name.
 
-=item Return: a hash containing info about cache.
+=item Return: Ref to a hash containing info about cache.
+Contains at least items I<id>, I<project_id>, I<name> and I<size>.
 
 =back
 
@@ -412,6 +414,8 @@ sub get_info_about_cache {
 	# info:
 	# {'id':'523566104a734c39bf00041e','project_id':'51bdf5fb2267d84ced002c99',
 	# 'name':'TEST_CACHE_01','size':0,'data_size':0}
+    # Fetched info about cache:{created_at => '0001-01-01T00:00:00Z',data_size => 0,id => '53083eb79ef7915a7f005bc0'
+    # ,name => 'name',project_id => '51bdf5fb2267d84ced002c99',size => 1,updated_at => '0001-01-01T00:00:00Z'}
 	$log->tracef('Exiting get_info_about_cache: %s', $info);
 	return $info;
 }
@@ -454,6 +458,7 @@ sub get_cache {
 		'ironcache_client' => $self, # Pass a reference to the parent object.
 		'name' => $get_cache_name,
 		'connection' => $self->{'connection'},
+        'policy' => $self->{'policy'},
 	});
 	push @{$self->{'caches'}}, $cache;
 	$log->debugf('Created a new IO::Iron::IronCache::Cache object (name=%s).', $get_cache_name);
@@ -485,7 +490,9 @@ sub create_cache {
 	my $self = shift;
 	my %params = validate(
 		@_, {
-			'name' => { type => SCALAR, }, # cache name.
+			'name' => { type => SCALAR, callbacks => {
+                    'RFC 3986 reserved character check' => sub { return ! IO::Iron::Common::contains_rfc_3986_res_chars(shift) },
+                }}, # cache name.
 		}
 	);
 	$log->tracef('Entering create_cache(%s)', \%params);

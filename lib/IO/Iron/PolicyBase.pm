@@ -64,12 +64,18 @@ These policies allow everything.
 
 =cut
 
+# TODO policy charset, list possible alternatives: 
 sub IRON_CLIENT_DEFAULT_POLICIES {
     my %default_policies = 
             (
-            'queue' => { 'name' => [ '[[:alnum:]]{1,}' ], },
-            'cache' => { 'name' => [ '[[:alnum:]]{1,}' ], 'item_key' => [ '[[:alnum:]]{1,}' ]},
-            'worker' => { 'name' => [ '[[:alnum:]]{1,}' ], },
+            'character_set' => 'ascii',
+            'character_groups' => {
+                '[:mychars:]' => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                '[:mydigits:]' => '0123456789',
+            },
+            'queue' => { 'name' => [ '[[:graph:]]{1,}' ], },
+            'cache' => { 'name' => [ '[[:graph:]]{1,}' ], 'item_key' => [ '[[:graph:]]{1,}' ]},
+            'worker' => { 'name' => [ '[[:graph:]]{1,}' ], },
             );
     return %default_policies;
 }
@@ -156,16 +162,16 @@ sub get_policies { ## no critic (Subroutines::RequireArgUnpacking)
     my $self = shift;
     my %params = validate(
         @_, {
-            'policies_file' => { type => SCALAR|UNDEF, optional => 0, },
+            'policies' => { type => SCALAR|UNDEF, optional => 0, },
         }
     );
     $log->tracef('Entering get_policies(%s)', \%params);
     my %all_policies = IRON_CLIENT_DEFAULT_POLICIES(); ## Preset default policies.
     $log->tracef('Default policies: %s', \%all_policies);
-    if(defined $params{'policies_file'}) { # policies file specified when creating the object, if given.
+    if(defined $params{'policies'}) { # policies file specified when creating the object, if given.
         IO::Iron::Common::_read_iron_config_file(\%all_policies,
-                File::Spec->file_name_is_absolute($params{'policies_file'})
-                ? $params{'policies_file'} : File::Spec->catfile(File::Spec->curdir(), $params{'policies_file'})
+                File::Spec->file_name_is_absolute($params{'policies'})
+                ? $params{'policies'} : File::Spec->catfile(File::Spec->curdir(), $params{'policies'})
                 );
     }
     my %policies = %{$all_policies{$self->THIS_POLICY()}};

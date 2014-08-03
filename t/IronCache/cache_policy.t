@@ -49,6 +49,7 @@ subtest 'Check for valid cache and key names' => sub {
     $cache_client = IO::Iron::IronCache::Client->new(
         'config' => 'iron_cache.json'
     );
+    # Below: internal assignment, suitable only when testing!
     $cache_client->{'policy'} = $test_policy;
     $project_id = $cache_client->{'connection'}->{'project_id'};
     # Use $project_id for log message comparisons.

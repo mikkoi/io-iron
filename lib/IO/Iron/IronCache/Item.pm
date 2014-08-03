@@ -58,6 +58,8 @@ sub new {
 		@_, {
 			'value' => { type => SCALAR, },        # Item value (free text), mandatory, can be empty.
 			'expires_in' => { type => SCALAR, optional => 1, },   # How long in seconds to keep the item in the cache before it is deleted.
+            'expires' => { type => SCALAR, optional => 1, },      # When will the item be deleted. This is a date string.
+            # TODO Add expires into docs!
 			'replace' => { type => SCALAR, optional => 1, },      # Only set the item if the item is already in the cache.
 			'add' => { type => SCALAR, optional => 1, },          # Only set the item if the item is not already in the cache.
 			'cas' => { type => SCALAR, optional => 1, },          # Cas value can only be set when the item is read from the cache.
@@ -68,6 +70,7 @@ sub new {
 	my @self_keys = ( ## no critic (CodeLayout::ProhibitQuotedWordLists)
 			'value',        # Item value (free text), can be empty.
 			'expires_in',   # How long in seconds to keep the item in the cache before it is deleted.
+            'expires',      # When will the item be deleted. This is a date string.
 			'replace',      # Only set the item if the item is already in the cache.
 			'add',          # Only set the item if the item is not already in the cache.
 			'cas',          # Cas value can only be set when the item is read from the cache.
@@ -75,6 +78,7 @@ sub new {
 	lock_keys(%{$self}, @self_keys);
 	$self->{'value'} = defined $params{'value'} ? $params{'value'} : undef;
 	$self->{'expires_in'} = defined $params{'expires_in'} ? $params{'expires_in'} : undef;
+    $self->{'expires'} = defined $params{'expires'} ? $params{'expires'} : undef;
 	$self->{'replace'} = defined $params{'replace'} ? $params{'replace'} : undef;
 	$self->{'add'} = defined $params{'add'} ? $params{'add'} : undef;
 	$self->{'cas'} = defined $params{'cas'} ? $params{'cas'} : undef;
@@ -113,6 +117,7 @@ When setting, returns the reference to the object.
 
 sub value { return $_[0]->_access_internal('value', $_[1]); }
 sub expires_in { return $_[0]->_access_internal('expires_in', $_[1]); }
+sub expires { return $_[0]->_access_internal('expires', $_[1]); }
 sub replace { return $_[0]->_access_internal('replace', $_[1]); }
 sub add { return $_[0]->_access_internal('add', $_[1]); }
 sub cas { return $_[0]->_access_internal('cas', $_[1]); }

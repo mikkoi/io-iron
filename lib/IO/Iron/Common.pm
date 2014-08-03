@@ -63,7 +63,7 @@ sub IRON_CONFIG_KEYS {
         # IO::Iron additions:
 		'host_path_prefix', # Path prefix to the RESTful url. Defaults to '/1'. Used with non-standard clouds/emergency service back up addresses.
 		'timeout',          # REST client timeout (for REST calls accessing IronMQ). N.B. This is not a IronMQ config option! It only configures client this client.
-		'policies_file',    # Filename of JSON file containing policies.
+		'policies',         # Filename of JSON file containing policies.
 	);
 }
 

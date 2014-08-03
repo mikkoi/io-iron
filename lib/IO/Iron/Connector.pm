@@ -209,7 +209,7 @@ sub perform_iron_action { ## no critic (Subroutines::ProhibitExcessComplexity)
 			}
 		}
 		catch {
-			$log->debugf('Caught exception');
+            $log->debugf('perform_iron_action(): Caught exception:\'%s\'.', $_);
 			croak $_ unless blessed $_ && $_->can('rethrow'); ## no critic (ControlStructures::ProhibitPostfixControls)
 			if ( $_->isa('IronHTTPCallException') ) {
 				if( $_->status_code == HTTP_CODE_SERVICE_UNAVAILABLE() ) {
@@ -218,6 +218,7 @@ sub perform_iron_action { ## no critic (Subroutines::ProhibitExcessComplexity)
 					# TODO Fix this temporary solution for backoff to retry the request.
 				}
 				else {
+                    $log->debugf('perform_iron_action(): rethrow the exception.', $_);
 					$_->rethrow;
 				}
 			}

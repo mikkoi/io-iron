@@ -177,7 +177,9 @@ sub put {
 	my $self = shift;
 	my %params = validate(
 		@_, {
-			'key' => { type => SCALAR, }, # cache item key.
+			'key' => { type => SCALAR, callbacks => {
+                    'RFC 3986 reserved character check' => sub { return ! IO::Iron::Common::contains_rfc_3986_res_chars(shift) },
+                }}, # cache item key.
 			'item' => { isa => 'IO::Iron::IronCache::Item', }, # cache item.
 		}
 	);
@@ -220,18 +222,23 @@ sub put {
 
 =cut
 
+# TODO Correct documentation: if item does not exist, it is created.
+
 sub increment {
 	my $self = shift;
 	my %params = validate(
 		@_, {
-			'key' => { type => SCALAR, }, # cache item key.
+			'key' => { type => SCALAR, callbacks => {
+                    'RFC 3986 reserved character check' => sub { return ! IO::Iron::Common::contains_rfc_3986_res_chars(shift) },
+                }}, # cache item key.
 			'increment' => { type => SCALAR, }, # cache item increment.
 		}
 	);
 	assert_nonblank( $params{'key'}, 'key is defined and is not blank.' );
 	assert_integer( $params{'increment'}, 'increment amount is integer.');
-	$log->tracef('Entering put(%s)', \%params);
+	$log->tracef('Entering increment(%s)', \%params);
 
+    $self->validate_item_key('key' => $params{'key'});
 	my $cache_name = $self->name();
 	my $connection = $self->{'connection'};
 	my %item_body;
@@ -289,7 +296,7 @@ sub get {
 		'value' => $response_message->{'value'},
 		'cas' => $response_message->{'cas'},
 	);
-	$new_item->expires_in($response_message->{'expires_in'}) if defined $response_message->{'expires_in'};
+	$new_item->expires($response_message->{'expires'}) if defined $response_message->{'expires'};
 	$new_item->replace($response_message->{'replace'}) if defined $response_message->{'replace'};
 	$new_item->add($response_message->{'add'}) if defined $response_message->{'add'};
 
