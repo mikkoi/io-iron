@@ -38,6 +38,8 @@ This class is for internal use only.
 
 use Log::Any  qw{$log};
 use Hash::Util 0.06 qw{lock_keys unlock_keys};
+use Carp;
+use Carp::Assert;
 use Carp::Assert::More;
 use English '-no_match_vars';
 use File::Spec ();
@@ -49,6 +51,7 @@ use Exception::Class (
   );
 
 require IO::Iron::Common;
+require IO::Iron::PolicyBase::CharacterClass;
 
 =head1 METHODS
 
@@ -66,18 +69,173 @@ These policies allow everything.
 
 # TODO policy charset, list possible alternatives: 
 sub IRON_CLIENT_DEFAULT_POLICIES {
-    my %default_policies = 
+    my %default_policies =
             (
-            'character_set' => 'ascii',
-            'character_groups' => {
-                '[:mychars:]' => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-                '[:mydigits:]' => '0123456789',
+            'definition' => {
+                'character_set' => 'ascii', # The only supported character set!
+                'character_groups' => {
+                    '[:mychars:]' => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+                    '[:mydigits:]' => '0123456789',
+                },
             },
             'queue' => { 'name' => [ '[[:graph:]]{1,}' ], },
             'cache' => { 'name' => [ '[[:graph:]]{1,}' ], 'item_key' => [ '[[:graph:]]{1,}' ]},
             'worker' => { 'name' => [ '[[:graph:]]{1,}' ], },
             );
     return %default_policies;
+}
+
+sub do_alt {
+    my $self = shift;
+    my %params = validate(
+        @_, {
+            'str' => { type => SCALAR, }, # name/key name.
+        }
+    );
+    my $str = $params{'str'};
+    $log->tracef('Entering do_alt(%s)', $str);
+    assert(length $str > 0, 'String length > 0.');
+    my @processed_alts;
+    if( $str =~ /^([[:graph:]]*)(\[:[[:graph:]]+:\]\{[[:digit:]]+\,[[:digit:]]+\})([[:graph:]]*)$/sx
+            || ($str =~ /^([[:graph:]]*)(\[:[[:graph:]]+:\]\{([[:digit:]]+)\})([[:graph:]]*)$/sx && $3 > 1)
+            ) {
+        $log->tracef('We need to do recursion.', $str);
+        my $preceeding_part = $1;
+        my $group_part = $2;
+        my $succeeding_part = defined $4 ? $4 : $3;
+        $log->tracef('$preceeding_part=%s;$group_part=%s;$succeeding_part=%s;',
+            $preceeding_part, $group_part, $succeeding_part);
+        my @alternatives = make_ones($preceeding_part, $group_part, $succeeding_part);
+        foreach (@alternatives) {
+            push @processed_alts, $self->do_alt('str' => $_);
+        }
+    }
+    else {
+        $log->tracef('We need to create the alternatives.', $str);
+        if( $str =~ /^([[:graph:]]*)(\[:[[:graph:]]+:\]\{1\})([[:graph:]]*)$/sx ) {
+            my @alts;
+            my $preceeding_part = $1;
+            my $group_part = $2;
+            my $succeeding_part = $3;
+            $log->tracef('$preceeding_part=%s;$group_part=%s;$succeeding_part=%s;',
+                $preceeding_part, $group_part, $succeeding_part);
+            if($group_part =~ /^(\[:[[:graph:]]+:\])\{([[:digit:]]+)\}$/sx) {
+                my $group = $1;
+                my $lowest_amount = $2;
+                my $highest_amount = $3;
+                $log->tracef('$group=%s;$lowest_amount=%s;$highest_amount=%s;',
+                    $group, $lowest_amount, $highest_amount);
+                foreach ($self->get_character_group_alternatives('character_group' => $group)) {
+                    push @alts, $preceeding_part . $_ . $succeeding_part;
+                }
+            }
+            $log->tracef('@alts=%s;', \@alts);
+            foreach (@alts) {
+                push @processed_alts, $self->do_alt('str' => $_);
+            }
+        }
+        else {
+            push @processed_alts, $str;
+        }
+    }
+    $log->tracef('Exiting do_alt():%s', \@processed_alts);
+    return @processed_alts;
+}
+
+sub make_ones {
+    my $preceeding_part = $_[0];
+    my $group_part = $_[1];
+    my $succeeding_part = $_[2];
+    $log->tracef('make_ones():$preceeding_part=%s;$group_part=%s;$succeeding_part=%s;',
+        $preceeding_part, $group_part, $succeeding_part);
+    $log->tracef('$group_part=%s;', $group_part);
+    my @alternatives;
+    if($group_part =~ /^(\[:[[:graph:]]+:\])\{([[:digit:]]+)\,([[:digit:]]+)\}$/msx) {
+        my $group = $1;
+        my $lowest_amount = $2;
+        my $highest_amount = $3;
+        $log->tracef('$group=%s;$lowest_amount=%s;$highest_amount=%s;',
+            $group, $lowest_amount, $highest_amount);
+        for($lowest_amount..$highest_amount) {
+            my $group_str = $group . '{1}';
+            push @alternatives, $preceeding_part . $group_str x $_ . $succeeding_part;
+        }
+    }
+    elsif($group_part =~ /^(\[:[[:graph:]]+:\])\{([[:digit:]]+)\}$/msx) {
+        my $group = $1;
+        my $lowest_amount = $2;
+        my $highest_amount = $2;
+        $log->tracef('$group=%s;$lowest_amount=%s;$highest_amount=%s;',
+            $group, $lowest_amount, $highest_amount);
+        for(my $i = $lowest_amount; $i < $highest_amount + 1; $i++) {
+            my $group_str = $group . '{1}';
+            push @alternatives, $preceeding_part . $group_str x $i . $succeeding_part;
+        }
+    }
+    else {
+        $log->fatalf('Illegal string \'%s\'.', $group_part);
+    }
+    $log->tracef('@alternatives=%s;', \@alternatives);
+    return @alternatives;
+}
+
+sub get_character_group_alternatives {
+    my $self = shift;
+    my %params = validate(
+        @_, {
+            'character_group' => { type => SCALAR, regex => qr/^[[:graph:]]+$/msx, }, # name/key name.
+        },
+    );
+    #assert_nonempty($params{'character_group'}, 'Parameter character_group has value.');
+    my $chars;
+
+    # Predefined groups (subset of POSIX) first!
+    $chars = IO::Iron::PolicyBase::CharacterClass::class(
+            'character_group' => $params{'character_group'});
+    if(!$chars) {
+        $chars =
+            $self->{'policy'}->{'definition'}->{'character_groups'}
+            ->{$params{'character_group'}};
+    }
+    if($chars) {
+        $log->tracef('$chars=%s;', $chars);
+    }
+    else {
+        $log->fatalf('Character group \'%s\' not defined.', $params{'character_group'});
+        croak("Character group \'$params{'character_group'}\' not defined.");
+    }
+    return split //msx, $chars;
+}
+
+# Return all possible alternatives
+sub alternatives {
+    my $self = shift;
+    my %params = validate(
+        @_, {
+            'required_policy' => { type => SCALAR, }, # name/key name.
+        }
+    );
+    assert_hashref( $self->{'policy'}, '\$self->{required_policy} is a reference to a list.');
+    $log->tracef('Entering alternatives(%s)', \%params);
+
+    my @alternatives;
+    my $templates = $self->{'policy'}->{$params{'required_policy'}};
+    assert_listref($templates, '$templates is a reference to a list');
+    my @template_alternatives;
+    foreach (@{$templates}) {
+        $log->tracef('alternatives(): Template:\"%s\".)', $_);
+        @template_alternatives = $self->do_alt('str' => $_);
+    }
+#    assert_listref($templates, "\$templates is a reference to a list");
+#    foreach (@{$templates}) {
+#        $log->tracef('alternatives(): Comparing with template:\"%s\".)', $_);
+#        if($params{'candidate'} =~ /^$_$/xgs) {
+#            $validity = 1;
+#            last;
+#        }
+#    }
+    $log->tracef('Exiting alternatives():%s', \@template_alternatives);
+    return @template_alternatives;
 }
 
 sub is_valid_policy {
@@ -117,10 +275,10 @@ sub validate_with_policy {
     $log->tracef('Entering validate_with_policy(%s)', \%params);
     my $validity = 0;
     my $templates = $self->{'policy'}->{$params{'policy'}};
-    assert_listref($templates, "\$templates is a reference to a list");
+    assert_listref($templates, '\$templates is a reference to a list');
     foreach (@{$templates}) {
         $log->tracef('validate_with_policy(): Comparing with template:\"%s\".)', $_);
-        if($params{'candidate'} =~ /^$_$/xgs) {
+        if($params{'candidate'} =~ /^$_$/xgsm) {
             $validity = 1;
             last;
         }

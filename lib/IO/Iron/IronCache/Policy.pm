@@ -62,6 +62,32 @@ use Try::Tiny;
 
 =head1 METHODS
 
+=head2 cache_name_alternatives
+
+Return all possible cache name alternatives according to the current policy.
+
+=over 8
+
+[No parameters.]
+
+=back
+
+=cut
+
+sub cache_name_alternatives {
+    my $self = shift;
+    my %params = validate(
+        @_, {
+        }
+    );
+    $log->tracef('Entering cache_name_alternatives(%s)', \%params);
+    my @alternatives = $self->alternatives(
+            'required_policy' => 'name',
+            );
+    $log->tracef('Exiting cache_name_alternatives():%s', \@alternatives);
+    return @alternatives;
+}
+
 =head2 is_valid_cache_name
 
 Check if the cache name is valid according to the policy. Return 1/0.

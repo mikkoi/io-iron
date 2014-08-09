@@ -28,6 +28,13 @@ my $unique_cache_name_01;
 my $created_iron_cache_01;
 
 my $test_policy = {
+    'definition' => {
+        'character_set' => 'ascii', # The only supported character set!
+        'character_groups' => {
+            '[:mychars:]' => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+            '[:mydigits:]' => '0123456789',
+        },
+    },
   'name' => [
               'cache_01_main',
               'cache_01_[[:digit:]]{3}'
