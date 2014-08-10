@@ -936,7 +936,7 @@ sub queue {
 		push @ids, $task_info->{'id'};
 		$task->id( $task_info->{'id'} );
 	}
-	assert_is($response_message->{'msg'}, 'Queued up'); # Could be dangerous!
+	#assert_is($response_message->{'msg'}, 'Queued up'); # Could be dangerous!
 	$log->debugf( 'Queued IronWorker Task(s) (task id(s)=%s).', ( join q{,}, @ids ) );
 	if (wantarray) {
 		$log->tracef( 'Exiting queue: %s', ( join q{:}, @ids ) );
