@@ -50,8 +50,8 @@ use Exception::Class (
       }
   );
 
-require IO::Iron::Common;
-require IO::Iron::PolicyBase::CharacterGroup;
+use IO::Iron::Common ();
+use IO::Iron::PolicyBase::CharacterGroup ();
 
 =head1 METHODS
 

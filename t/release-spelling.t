@@ -14,7 +14,7 @@ if ( $EVAL_ERROR ) {
 	plan( skip_all => $msg );
 }
 
-set_spell_cmd('aspell -l');
+#set_spell_cmd('aspell -l');
 add_stopwords(<DATA>);
 all_pod_files_spelling_ok();
 
@@ -69,3 +69,22 @@ io
 msg
 Timestamp
 timestamp
+
+Github
+MERCHANTABILITY
+Subdirectory
+filename
+licensable
+lv
+startup
+IronPolicyException
+multi
+runtime
+scalability
+Storable
+filename
+succcessful
+subitem
+ABCDEFGHIJKLMNOPQRSTUVWXYZ
+abcdefghijklmnopqrstuvwxyz
+alnum
