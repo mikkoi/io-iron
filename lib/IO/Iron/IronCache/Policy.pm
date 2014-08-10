@@ -223,7 +223,7 @@ sub validate_item_key {
 # For use in the inheriting subclass
 
 # This is a late binding to inherited method get_policies:
-sub THIS_POLICY {
+sub _THIS_POLICY {
     my $self = shift;
     my %params = validate(
         @_, {

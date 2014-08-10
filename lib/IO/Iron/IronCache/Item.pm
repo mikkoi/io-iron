@@ -105,6 +105,8 @@ When setting, returns the reference to the object.
 
 =item expires_in   How long in seconds to keep the item in the cache before it is deleted.
 
+=item expires      Time of expiration as a timestamp.
+
 =item replace      Only set the item if the item is already in the cache.
 
 =item add          Only set the item if the item is not already in the cache.

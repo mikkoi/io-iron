@@ -51,7 +51,7 @@ use Exception::Class (
   );
 
 require IO::Iron::Common;
-require IO::Iron::PolicyBase::CharacterClass;
+require IO::Iron::PolicyBase::CharacterGroup;
 
 =head1 METHODS
 
@@ -85,7 +85,7 @@ sub IRON_CLIENT_DEFAULT_POLICIES {
     return %default_policies;
 }
 
-sub do_alt {
+sub _do_alt {
     my $self = shift;
     my %params = validate(
         @_, {
@@ -93,7 +93,7 @@ sub do_alt {
         }
     );
     my $str = $params{'str'};
-    $log->tracef('Entering do_alt(%s)', $str);
+    $log->tracef('Entering _do_alt(%s)', $str);
     assert(length $str > 0, 'String length > 0.');
     my @processed_alts;
     if( $str =~ /^([[:graph:]]*)(\[:[[:graph:]]+:\]\{[[:digit:]]+\,[[:digit:]]+\})([[:graph:]]*)$/sx
@@ -105,9 +105,9 @@ sub do_alt {
         my $succeeding_part = defined $4 ? $4 : $3;
         $log->tracef('$preceeding_part=%s;$group_part=%s;$succeeding_part=%s;',
             $preceeding_part, $group_part, $succeeding_part);
-        my @alternatives = make_ones($preceeding_part, $group_part, $succeeding_part);
+        my @alternatives = _make_ones($preceeding_part, $group_part, $succeeding_part);
         foreach (@alternatives) {
-            push @processed_alts, $self->do_alt('str' => $_);
+            push @processed_alts, $self->_do_alt('str' => $_);
         }
     }
     else {
@@ -125,28 +125,28 @@ sub do_alt {
                 my $highest_amount = $3;
                 $log->tracef('$group=%s;$lowest_amount=%s;$highest_amount=%s;',
                     $group, $lowest_amount, $highest_amount);
-                foreach ($self->get_character_group_alternatives('character_group' => $group)) {
+                foreach ($self->_get_character_group_alternatives('character_group' => $group)) {
                     push @alts, $preceeding_part . $_ . $succeeding_part;
                 }
             }
             $log->tracef('@alts=%s;', \@alts);
             foreach (@alts) {
-                push @processed_alts, $self->do_alt('str' => $_);
+                push @processed_alts, $self->_do_alt('str' => $_);
             }
         }
         else {
             push @processed_alts, $str;
         }
     }
-    $log->tracef('Exiting do_alt():%s', \@processed_alts);
+    $log->tracef('Exiting _do_alt():%s', \@processed_alts);
     return @processed_alts;
 }
 
-sub make_ones {
+sub _make_ones {
     my $preceeding_part = $_[0];
     my $group_part = $_[1];
     my $succeeding_part = $_[2];
-    $log->tracef('make_ones():$preceeding_part=%s;$group_part=%s;$succeeding_part=%s;',
+    $log->tracef('_make_ones():$preceeding_part=%s;$group_part=%s;$succeeding_part=%s;',
         $preceeding_part, $group_part, $succeeding_part);
     $log->tracef('$group_part=%s;', $group_part);
     my @alternatives;
@@ -179,7 +179,7 @@ sub make_ones {
     return @alternatives;
 }
 
-sub get_character_group_alternatives {
+sub _get_character_group_alternatives {
     my $self = shift;
     my %params = validate(
         @_, {
@@ -190,7 +190,7 @@ sub get_character_group_alternatives {
     my $chars;
 
     # Predefined groups (subset of POSIX) first!
-    $chars = IO::Iron::PolicyBase::CharacterClass::class(
+    $chars = IO::Iron::PolicyBase::CharacterGroup::group(
             'character_group' => $params{'character_group'});
     if(!$chars) {
         $chars =
@@ -208,6 +208,21 @@ sub get_character_group_alternatives {
 }
 
 # Return all possible alternatives
+
+=head2 alternatives
+
+Return all possible alternatives.
+
+Parameters:
+
+=over 8
+
+=item required_policy, name/key name
+
+=back
+
+=cut
+
 sub alternatives {
     my $self = shift;
     my %params = validate(
@@ -224,7 +239,7 @@ sub alternatives {
     my @template_alternatives;
     foreach (@{$templates}) {
         $log->tracef('alternatives(): Template:\"%s\".)', $_);
-        @template_alternatives = $self->do_alt('str' => $_);
+        @template_alternatives = $self->_do_alt('str' => $_);
     }
 #    assert_listref($templates, "\$templates is a reference to a list");
 #    foreach (@{$templates}) {
@@ -237,6 +252,24 @@ sub alternatives {
     $log->tracef('Exiting alternatives():%s', \@template_alternatives);
     return @template_alternatives;
 }
+
+=head2 is_valid_policy
+
+Is this policy valid?
+
+Parameters:
+
+=over 8
+
+=item policy, name/key name.
+
+=item candidate, proposed string.
+
+=back
+
+Return: Boolean.
+
+=cut
 
 sub is_valid_policy {
     my $self = shift;
@@ -263,6 +296,25 @@ sub is_valid_policy {
 }
 
 # This method throws an exception of type IronPolicyException.
+
+=head2 validate_with_policy
+
+Validate a candidate string. Same as method is_valid_policy() but this method throws an exception of type IronPolicyException if the validation fails.
+
+Parameters:
+
+=over 8
+
+=item policy, name/key name.
+
+=item candidate, proposed string.
+
+=back
+
+Return: Boolean True if validation is successfull, otherwise throws an exception.
+
+=cut
+
 sub validate_with_policy {
     my $self = shift;
     my %params = validate(
@@ -308,7 +360,7 @@ The configuration is constructed as follows:
 
 =item 5. The policies file specified when instantiating the client library overwrites everything before it according to the file hierarchy.
 
-=item 6. Return only the policies connected to this client (specify in derived class with method THIS_POLICY).
+=item 6. Return only the policies connected to this client (specify in derived class with method _THIS_POLICY).
 
 =back
 
@@ -332,7 +384,7 @@ sub get_policies { ## no critic (Subroutines::RequireArgUnpacking)
                 ? $params{'policies'} : File::Spec->catfile(File::Spec->curdir(), $params{'policies'})
                 );
     }
-    my %policies = %{$all_policies{$self->THIS_POLICY()}};
+    my %policies = %{$all_policies{$self->_THIS_POLICY()}};
     $log->tracef('Exiting get_policies: %s', \%policies);
     return \%policies;
 }
