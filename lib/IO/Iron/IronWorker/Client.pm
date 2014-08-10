@@ -1116,8 +1116,8 @@ sub schedule {
 		push @ids, $task_info->{'id'};
 		$task->id( $task_info->{'id'} );
 	}
-	assert_is($response_message->{'msg'}, 'Scheduled'); # Could be dangerous!
-	$msg = $response_message->{'msg'};    # Should be "Scheduled"
+        #assert_is($response_message->{'msg'}, 'Scheduled'); # Could be dangerous!
+        ## It was dangerous! Failing discovered 2014-08-10, response message has dropped the field "msg"!
 	$log->debugf( 'Scheduled IronWorker Task(s) (task id(s)=%s).', ( join q{,}, @ids ) );
 	if (wantarray) {
 		$log->tracef( 'Exiting schedule: %s', ( join q{:}, @ids ) );
