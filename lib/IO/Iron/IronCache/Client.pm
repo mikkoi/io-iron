@@ -290,7 +290,7 @@ sub new {
 		}
 	);
 
-	$log->tracef('Entering new(%s, %s)', $class, %params);
+	$log->tracef('Entering new(%s, %s)', $class, \%params);
 	my $self = IO::Iron::ClientBase->new();
 	# Add more keys to the self hash.
 	my @self_keys = (
