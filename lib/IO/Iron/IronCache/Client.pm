@@ -251,27 +251,15 @@ Clear the cache (delete all items inside). Return 1 for success.
 
 =head3 Exceptions
 
-A REST call to Iron service may fail for several reason.
-All failures generate an exception using the L<Exception::Class|Exception::Class> package.
-Class IronHTTPCallException contains the field status_code, response_message and error.
-Error is formatted as such: IronHTTPCallException: status_code=<HTTP status code> response_message=<response_message>.
+Please see L<IO::Iron|IO::Iron> for documentation on
+exceptions.
 
-	use Try::Tiny;
-	use Scalar::Util qw{blessed};
-	try {
-		my $queried_iron_cache_01 = $iron_cache_client->get_cache('name' => 'unique_cache_name_01');
-	}
-	catch {
-		die $_ unless blessed $_ && $_->can('rethrow');
-		if ( $_->isa('IronHTTPCallException') ) {
-			if ($_->status_code == 404) {
-				print "Bad things! Can not just find the catch in this!\n";
-			}
-		}
-		else {
-			$_->rethrow; # Push the error upwards.
-		}
-	};
+=head3 Policies
+
+Please see L<IO::Iron|IO::Iron> for documentation on
+policies (limitations to names).
+
+=cut
 
 
 =head1 SUBROUTINES/METHODS

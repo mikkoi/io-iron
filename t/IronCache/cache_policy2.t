@@ -30,7 +30,7 @@ my $created_iron_cache_01;
 my $test_policy = {
   'definition' => {
       'character_set' => 'ascii', # The only supported character set!
-      'character_groups' => {
+      'character_group' => {
           #'[:mychars:]' => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
           #'[:mydigits:]' => '0123456789',
           '[:mychars:]' => 'abc',
@@ -42,10 +42,10 @@ my $test_policy = {
               #'cache_01_[[:digit:]]{3}'
             ],
   'item_key' => [
-                  'item_01_[[:digit:]]{2}',
-                  'item_01_[[:digit:]]{3}',
-                  'item_01_[[:digit:]]{4}',
-                  'item_01_[[:alpha:]]{1,4}'
+                  'item_01_[:digit:]{2}',
+                  'item_01_[:digit:]{3}',
+                  'item_01_[:digit:]{4}',
+                  'item_01_[:alpha:]{1,4}'
                 ]
 };
 
@@ -77,10 +77,10 @@ subtest 'Check for valid cache and key names' => sub {
     is_deeply($gots, $expecteds, 'Got what expected.');
 
     # Test
-    $cache_client->{'policy'}->{'definition'}->{'character_groups'}->
+    $cache_client->{'policy'}->{'definition'}->{'character_group'}->
             {'[:daydigit:]'} = '0123';
             # Possible dates 1.,2.,3.,10.,11.,12.,13.,20.,21, ...
-    $cache_client->{'policy'}->{'definition'}->{'character_groups'}->
+    $cache_client->{'policy'}->{'definition'}->{'character_group'}->
             {'[:two_years:]'} = '45';
     $cache_client->{'policy'}->{'name'} = [
               '201[:two_years:]{1}-Jan-[:daydigit:]{2}.[:digit:]{1}',

@@ -171,6 +171,159 @@ L<Configuring the Official Client Libraries|http://dev.iron.io/mq/reference/conf
 
 Please read individual client's documentation for using them.
 
+=head3 Exceptions
+
+A REST call to Iron service may fail for several reason.
+All failures generate an exception using the L<Exception::Class|Exception::Class> package.
+Class IronHTTPCallException contains the field status_code, response_message and error.
+Error is formatted as such: IronHTTPCallException: status_code=<HTTP status code> response_message=<response_message>.
+
+    use Try::Tiny;
+    use Scalar::Util qw{blessed};
+    try {
+        my $queried_iron_cache_01 = $iron_cache_client->get_cache('name' => 'unique_cache_name_01');
+    }
+    catch {
+        die $_ unless blessed $_ && $_->can('rethrow');
+        if ( $_->isa('IronHTTPCallException') ) {
+            if ($_->status_code == 404) {
+                print "Bad things! Can not just find the catch in this!\n";
+            }
+        }
+        else {
+            $_->rethrow; # Push the error upwards.
+        }
+    };
+
+When using policies (see next chacter) also exceptions
+NoIronPolicyException and CharacterGroupNotDefinedIronPolicyException
+can be met.
+
+=head3 Policies
+
+Policies is a way to limit the names of message queues, code packages,
+caches and items (item keys)
+to a predefined group of possible strings. This can limit the chances
+for typos and enforce an enterprise policy. The policies are loaded from
+a JSON file which is specified either when creating a 
+IO::Iron::Iron*::Client object, or 
+in the config file F<.iron.json> (or equivalent).
+
+=head4 Policies in Config file
+
+Add the item I<policies> to the config file. The value of the item is the 
+filename of the policies file.
+
+Example config file:
+
+    {
+        "project_id":"51bdf5fb2267d84ced002c99",
+        "token":"-Q9OEHZPhdZtd0KHBzzdUJIqV_E",
+        "host":"cache-aws-us-east-1.iron.io",
+        "policies":"iron_policies.json"
+    }
+
+=head4 Policies file specified when creating the client
+
+    my $policies_filename = '/etc/ironmq/global_policies.json';
+    my $client = IO::Iron::IronCache::Client->new('policies' => $policies_filename);
+
+=head4 Examples of Policies File and Explanation of Configuration
+
+The 'default' policies JSON file:
+
+    (
+    'definition' => {
+        'character_group' => {
+        },
+        'no_limitation' => 1, # There is an unlimited number of alternatives.
+    },
+    'queue' => { 'name' => [ '[:alnum:]{1,}' ], },
+    'cache' => {
+        'name' => [ '[:alnum:]{1,}' ],
+        'item_key' => [ '[:alnum:]{1,}' ]
+        },
+    'worker' => { 'name' => [ '[:alnum:]{1,}' ], },
+    );
+
+The above file would set an open policy for IronMQ, IronCache and IronWorker alike.
+The file is divided into four parts: definition for defining meta options, and
+queue|cache|worker parts for defining the changing strings
+(queue|cache|worker names and item keys). The character group I<alnum> covers
+all ascii alphabetic characters (both lower and upper case) and digits (0-9).
+
+N.B. The option I<definition:no_limitation> controls the open/closed policy.
+If I<definition:no_limitation> is set (1=set), the policy control is
+turned off.
+
+An example of policies file 
+
+    {
+        "__comment1":"Use normal regexp. [:digit:] = number:0-9, [:alpha:] = alphabetic character, [:alnum:] = character or number.",
+        "__comment2":"Do not use end/begin limitators '^' and '\$'. They are added automatically.",
+        "__comment3":"Note that character groups are closed inside '[::]', not '[[:]]' as normal POSIX groups.",
+        'definition' => {
+            'character_group' => {
+                "[:lim_uchar:]":"ABC",
+                "[:low_digit:]":"0123"
+            },
+        },
+        "cache":{
+            "name":[
+                "cache_01_main",
+                "cache_[:alpha:]{1}[:digit:]{2}"
+            ],
+            "item_key":[
+                "item.01_[:digit:]{2}",
+                "item.02_[:lim_uchar:]{1,2}"
+            ]
+        }
+    }
+
+This policies file sets policies for cache names and item keys. Both have two
+templates. Template "cache_01_main" is without wildcards: the template list
+can also only contain predefined names or keys. Sometimes this could be
+exactly the wanted behaviour, especially in regard to cache and 
+message queue names.
+
+Items beginning with '__' are considered comments. Comments can not be
+inserted into lists, such as I<character_group>.
+
+The I<definition> part contains the list I<character_group> for user-defined
+groups. The following groups are predefined:
+
+=over 8
+
+=item [:alpha:], ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz
+
+=item [:alnum:], ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
+
+=item [:digit:], 0123456789
+
+=item [:lower:], abcdefghijklmnopqrstuvwxyz
+
+=item [:upper:], ABCDEFGHIJKLMNOPQRSTUVWXYZ
+
+=item [:word:], ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_
+
+=back
+
+All lower ASCII (7-bit) characters are allowed in names and in character
+groups, except for the reserved characters (S<RFC 3986>)
+S<B<!$&'()*+,;=:/?#[]@>>.
+
+A character group definition is closed inside characters '[::]',
+not '[[:]]' as normal POSIX groups. Only the equivalents of the POSIX groups
+mentioned above can be used; e.g. POSIX group C<[[:graph:]]> is not available.
+
+When using the character groups in a name or key, only two markings are allowed:
+C<[:group:]{n}> and C<[:group:]{n,n}>, where C<n> is an integer.
+This limitation (not being able to use any regular expression) is due to the
+double functionality of the policy: a) it acts as a filter when creating
+and naming new message queues, code packages, caches and cache items; 2) it
+can be used to list all possible names, for example when quering for
+cache items.
+
 =cut
 
 
@@ -273,8 +426,6 @@ And well implemented, too, with webhooks for several functions!
 
 =over 4
 
-=item * Policies
-
 =item * Fix the $self->{'caches'} to a hash instead of list.
 
 =item * Implement new features in http://blog.iron.io/2014/05/ironmq-long-polling.html
@@ -287,15 +438,13 @@ And well implemented, too, with webhooks for several functions!
 
 =back
 
-=item * Implement IO::Iron::IronWorker (partly done).
-
 =item * The IronMQ client needs to control the queues, perhaps using semafores.
 
 =item * A buffer mechanism to keep the messages while the IronMQ REST service is unavailable. IO::Iron::IronMQ::ASyncPush?
 
 =item * Implement push queues.
 
-=item * Mock IronMQ for testing.
+=item * Mock IronMQ/IronCache for testing.
 
 =item * Handle message size (total), delay, timeout and expiration min-max values.
 
@@ -321,8 +470,6 @@ And well implemented, too, with webhooks for several functions!
 
 =item * Rethink the using of REST:Client. Since message queues often involve a lot of traffic 
 but always to the same address, we need to optimize REST:Client usage.
-
-=item * Change from JSON to JSON::Any.
 
 =item * Carp::Assert, Carp::Assert::More, other checking deactivation in production?
 

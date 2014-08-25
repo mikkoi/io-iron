@@ -62,6 +62,38 @@ use Try::Tiny;
 
 =head1 METHODS
 
+=head2 is_cache_name_alternatives
+
+=cut
+
+sub is_cache_name_alternatives {
+    my $self = shift;
+    my %params = validate(@_, { } ); # No parameters
+    $log->tracef('Entering is_cache_name_alternatives(%s)', \%params);
+    my $rval = !(
+            defined $self->{'policy'}->{'definition'}->{'no_limitation'}
+            && $self->{'policy'}->{'definition'}->{'no_limitation'} == 1
+            );
+    $log->tracef('Exiting is_cache_name_alternatives():%d', $rval);
+    return $rval;
+}
+
+=head2 is_item_key_alternatives
+
+=cut
+
+sub is_item_key_alternatives {
+    my $self = shift;
+    my %params = validate(@_, { } ); # No parameters
+    $log->tracef('Entering is_item_key_alternatives(%s)', \%params);
+    my $rval = !(
+            defined $self->{'policy'}->{'definition'}->{'no_limitation'}
+            && $self->{'policy'}->{'definition'}->{'no_limitation'} == 1
+            );
+    $log->tracef('Exiting is_item_key_alternatives():%d', $rval);
+    return $rval;
+}
+
 =head2 cache_name_alternatives
 
 Return all possible cache name alternatives according to the current policy.
@@ -72,19 +104,47 @@ Return all possible cache name alternatives according to the current policy.
 
 =back
 
+Return: list of cache name alternatives
+
+Will throw NoIronPolicyException if there is no limit to the alternatives.
+
 =cut
 
 sub cache_name_alternatives {
     my $self = shift;
-    my %params = validate(
-        @_, {
-        }
-    );
+    my %params = validate(@_, { } ); # No parameters
     $log->tracef('Entering cache_name_alternatives(%s)', \%params);
-    my @alternatives = $self->alternatives(
-            'required_policy' => 'name',
-            );
+
+    my @alternatives = $self->alternatives( 'required_policy' => 'name' );
+
     $log->tracef('Exiting cache_name_alternatives():%s', \@alternatives);
+    return @alternatives;
+}
+
+=head2 item_key_alternatives
+
+Return all possible item key alternatives according to the current policy.
+
+=over 8
+
+[No parameters.]
+
+=back
+
+Return: list of item key alternatives
+
+Will throw NoIronPolicyException if there is no limit to the alternatives.
+
+=cut
+
+sub item_key_alternatives {
+    my $self = shift;
+    my %params = validate(@_, { } ); # No parameters
+    $log->tracef('Entering item_key_alternatives(%s)', \%params);
+
+    my @alternatives = $self->alternatives( 'required_policy' => 'item_key' );
+
+    $log->tracef('Exiting item_key_alternatives():%s', \@alternatives);
     return @alternatives;
 }
 

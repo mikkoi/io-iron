@@ -16,7 +16,7 @@ plan tests => 1;
 require IO::Iron::IronCache::Client;
 require IO::Iron::IronCache::Item;
 
-#use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
+use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
 use Data::Dumper; $Data::Dumper::Maxdepth = 4;
 
 diag("Testing IO::Iron::IronCache::Client with policies, Perl $], $^X");
@@ -37,13 +37,13 @@ my $test_policy = {
     },
   'name' => [
               'cache_01_main',
-              'cache_01_[[:digit:]]{3}'
+              'cache_01_[:digit:]{3}'
             ],
   'item_key' => [
-                  'item_01_[[:digit:]]{2}',
-                  'item_01_[[:digit:]]{3}',
-                  'item_01_[[:digit:]]{4}',
-                  'item_01_[[:alpha:]]{1,4}'
+                  'item_01_[:digit:]{2}',
+                  'item_01_[:digit:]{3}',
+                  'item_01_[:digit:]{4}',
+                  'item_01_[:alpha:]{1,4}'
                 ]
 };
 

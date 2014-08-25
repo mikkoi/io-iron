@@ -30,15 +30,8 @@ This class is for internal use only.
 
 =cut
 
-#    package IO::Iron::Policy;
-#    # Global creator
-#    BEGIN {
-#        use parent qw( IO::Iron::PolicyBase ); # Inheritance
-#    }
-
 use Log::Any  qw{$log};
 use Hash::Util 0.06 qw{lock_keys unlock_keys};
-use Carp;
 use Carp::Assert;
 use Carp::Assert::More;
 use English '-no_match_vars';
@@ -47,6 +40,12 @@ use Params::Validate qw(:all);
 use Exception::Class (
       'IronPolicyException' => {
         fields => ['policy', 'candidate'],
+      },
+      'NoIronPolicyException' => {
+        fields => [],
+      },
+      'CharacterGroupNotDefinedIronPolicyException' => {
+        fields => [],
       }
   );
 
@@ -73,10 +72,9 @@ sub IRON_CLIENT_DEFAULT_POLICIES {
             (
             'definition' => {
                 'character_set' => 'ascii', # The only supported character set!
-                'character_groups' => {
-                    '[:mychars:]' => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-                    '[:mydigits:]' => '0123456789',
+                'character_group' => {
                 },
+                'no_limitation' => 1, # There is an unlimited number of alternatives.
             },
             'queue' => { 'name' => [ '[[:graph:]]{1,}' ], },
             'cache' => { 'name' => [ '[[:graph:]]{1,}' ], 'item_key' => [ '[[:graph:]]{1,}' ]},
@@ -184,6 +182,7 @@ sub _get_character_group_alternatives {
     my %params = validate(
         @_, {
             'character_group' => { type => SCALAR, regex => qr/^[[:graph:]]+$/msx, }, # name/key name.
+            'keep_posix_group' => { type => BOOLEAN, optional => 1, }, # Keep POSIX (subset) group name and return it.
         },
     );
     #assert_nonempty($params{'character_group'}, 'Parameter character_group has value.');
@@ -192,22 +191,24 @@ sub _get_character_group_alternatives {
     # Predefined groups (subset of POSIX) first!
     $chars = IO::Iron::PolicyBase::CharacterGroup::group(
             'character_group' => $params{'character_group'});
+    if($chars && $params{'keep_posix_group'}) {
+        $chars = $params{'character_group'}; # Put the group name back.
+    }
     if(!$chars) {
-        $chars =
-            $self->{'policy'}->{'definition'}->{'character_groups'}
-            ->{$params{'character_group'}};
+        $chars = $self->{'policy'}->{'definition'}->{'character_group'}
+                ->{$params{'character_group'}};
     }
     if($chars) {
         $log->tracef('$chars=%s;', $chars);
     }
     else {
         $log->fatalf('Character group \'%s\' not defined.', $params{'character_group'});
-        croak("Character group \'$params{'character_group'}\' not defined.");
+        CharacterGroupNotDefinedIronPolicyException->throw(
+                error => 'CharacterGroupNotDefinedIronPolicyException: Character group \'' . $params{'character_group'} . '\' not defined!',
+                );
     }
     return split //msx, $chars;
 }
-
-# Return all possible alternatives
 
 =head2 alternatives
 
@@ -221,6 +222,9 @@ Parameters:
 
 =back
 
+Return: List of possible alternatives if validation is successfull.
+If the policy is not set, throws a NoIronPolicyException.
+
 =cut
 
 sub alternatives {
@@ -233,25 +237,44 @@ sub alternatives {
     assert_hashref( $self->{'policy'}, '\$self->{required_policy} is a reference to a list.');
     $log->tracef('Entering alternatives(%s)', \%params);
 
+    if(defined $self->{'policy'}->{'definition'}->{'no_limitation'} &&
+            $self->{'policy'}->{'definition'}->{'no_limitation'} == 1) {
+        NoIronPolicyException->throw(
+                error => 'NoIronPolicyException: Cannot list alternatives, unlimited number!',
+                );
+    }
     my @alternatives;
     my $templates = $self->{'policy'}->{$params{'required_policy'}};
     assert_listref($templates, '$templates is a reference to a list');
     my @template_alternatives;
     foreach (@{$templates}) {
         $log->tracef('alternatives(): Template:\"%s\".)', $_);
-        @template_alternatives = $self->_do_alt('str' => $_);
+        push @template_alternatives, $self->_do_alt('str' => $_);
     }
-#    assert_listref($templates, "\$templates is a reference to a list");
-#    foreach (@{$templates}) {
-#        $log->tracef('alternatives(): Comparing with template:\"%s\".)', $_);
-#        if($params{'candidate'} =~ /^$_$/xgs) {
-#            $validity = 1;
-#            last;
-#        }
-#    }
     $log->tracef('Exiting alternatives():%s', \@template_alternatives);
     return @template_alternatives;
 }
+
+sub _get_chars_or_remain_POSIX_group {
+    my $self = shift;
+    $log->tracef('Entering _get_chars_or_remain_POSIX_group(%s)', \@_);
+    my $group = $_[0];
+    $log->tracef('_get_chars_or_remain_POSIX_group(): Ask for Group alternatives for :%s', $group);
+    my @chars = $self->_get_character_group_alternatives('character_group' => $group, 'keep_posix_group' => 1);
+    $log->tracef('_get_chars_or_remain_POSIX_group(): Group alternatives:%s', \@chars);
+    my $group_chars = join '', @chars;
+    $log->tracef('Exiting _get_chars_or_remain_POSIX_group():%s', ('[' . $group_chars . ']') );
+    return '[' . $group_chars . ']';
+}
+
+sub _convert_policy_to_normal_regexp {
+    my $self = shift;
+    $log->tracef('Entering _convert_policy_to_normal_regexp(%s)', \@_);
+    my $policy_regexp = $_[0];
+    $policy_regexp =~ s/(\[:[[:graph:]]+?:\])/$self->_get_chars_or_remain_POSIX_group($1)/egsx;
+    $log->tracef('Exiting _convert_policy_to_normal_regexp():%s', $policy_regexp);
+    return $policy_regexp;
+}    
 
 =head2 is_valid_policy
 
@@ -281,12 +304,15 @@ sub is_valid_policy {
     );
     assert_listref( $self->{'policy'}, '\$self->{policy} is a reference to a list.');
     $log->tracef('Entering is_valid_policy(%s)', \%params);
+
     my $validity = 0;
     my $templates = $self->{'policy'}->{$params{'policy'}};
     assert_listref($templates, "\$templates is a reference to a list");
     foreach (@{$templates}) {
-        $log->tracef('is_valid_policy(): Comparing with template:\"%s\".)', $_);
-        if($params{'candidate'} =~ /^$_$/xgs) {
+        $log->tracef('is_valid_policy(): Going to comparing with raw template:\"%s\".)', $_);
+        my $template = $self->_convert_policy_to_normal_regexp($_);
+        $log->tracef('is_valid_policy(): Comparing with template:\"%s\".)', $template);
+        if($params{'candidate'} =~ /^$template$/xgsm) {
             $validity = 1;
             last;
         }
@@ -329,8 +355,9 @@ sub validate_with_policy {
     my $templates = $self->{'policy'}->{$params{'policy'}};
     assert_listref($templates, '\$templates is a reference to a list');
     foreach (@{$templates}) {
-        $log->tracef('validate_with_policy(): Comparing with template:\"%s\".)', $_);
-        if($params{'candidate'} =~ /^$_$/xgsm) {
+        my $template = $self->_convert_policy_to_normal_regexp($_);
+        $log->tracef('validate_with_policy(): Comparing with template:\"%s\".)', $template);
+        if($params{'candidate'} =~ /^$template$/xgsm) {
             $validity = 1;
             last;
         }
@@ -350,7 +377,7 @@ sub validate_with_policy {
 
 =head2 get_policies
 
-Get the policies from file or use the defaults.
+Get the policies from file or use the defaults. This function is for internal use.
 
 The configuration is constructed as follows:
 
@@ -385,6 +412,7 @@ sub get_policies { ## no critic (Subroutines::RequireArgUnpacking)
                 );
     }
     my %policies = %{$all_policies{$self->_THIS_POLICY()}};
+    $policies{'definition'} = $all_policies{'definition'};
     $log->tracef('Exiting get_policies: %s', \%policies);
     return \%policies;
 }

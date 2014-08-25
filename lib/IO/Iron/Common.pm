@@ -199,6 +199,8 @@ Check that the string does not contain any RFC 3986 Reserved Characters:
 
 !$&'()*+,;=:/?#[]@
 
+Return True (1) if contains. Otherwise False (0).
+
 =cut
 
 #my $GEN_DELIMS = q{!} . q{$} . q{&} . q{'} . q{(} . q{)}

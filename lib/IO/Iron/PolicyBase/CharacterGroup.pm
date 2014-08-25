@@ -46,6 +46,8 @@ Parameters:
 
 =back
 
+Return all characters as a string.
+
 =cut
 
 sub group {
@@ -57,11 +59,9 @@ sub group {
     my ($group_name) = $params{'character_group'} =~ /\[:([[:graph:]]+):\]/msx;
     $log->tracef('group_name=%s;', $group_name);
     if($group_name eq 'alpha') { return alpha(); }
-    elsif($group_name eq 'alpha') { return alpha(); }
     elsif($group_name eq 'alnum') { return alnum(); }
     elsif($group_name eq 'digit') { return digit(); }
     elsif($group_name eq 'lower') { return lower(); }
-    #elsif($group_name eq 'punct') { return punct(); }
     elsif($group_name eq 'upper') { return upper(); }
     elsif($group_name eq 'word') { return word(); }
     else { return; }
