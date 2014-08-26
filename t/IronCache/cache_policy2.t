@@ -31,15 +31,12 @@ my $test_policy = {
   'definition' => {
       'character_set' => 'ascii', # The only supported character set!
       'character_group' => {
-          #'[:mychars:]' => 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
-          #'[:mydigits:]' => '0123456789',
           '[:mychars:]' => 'abc',
           '[:mydigits:]' => '23',
       },
   },
   'name' => [
               '[:mychars:]{1,2}[:mydigits:]{1}',
-              #'cache_01_[[:digit:]]{3}'
             ],
   'item_key' => [
                   'item_01_[:digit:]{2}',
@@ -71,9 +68,6 @@ subtest 'Check for valid cache and key names' => sub {
             aa3 ab3 ac3 ba3 bb3 bc3 ca3 cb3 cc3
              )];
     my $gots = [ sort $cache_client->cache_name_alternatives() ];
-    use Data::Dumper;
-    #diag("Expected:" . Dumper($expecteds));
-    #diag("Got:" . Dumper($gots));
     is_deeply($gots, $expecteds, 'Got what expected.');
 
     # Test
@@ -408,8 +402,6 @@ subtest 'Check for valid cache and key names' => sub {
             2015-Jan-33.9
                  )];
     $gots = [ sort $cache_client->cache_name_alternatives() ];
-    #diag("Expected:" . Dumper($expecteds));
-    #diag("Got:" . Dumper($gots));
     is_deeply($gots, $expecteds, 'Got what expected.');
     
     # Test
@@ -445,7 +437,5 @@ subtest 'Check for valid cache and key names' => sub {
             Cache_c333
              )];
     $gots = [ sort $cache_client->cache_name_alternatives() ];
-    #diag("Expected:" . Dumper($expecteds));
-    #diag("Got:" . Dumper($gots));
     is_deeply($gots, $expecteds, 'Got what expected.');
 };

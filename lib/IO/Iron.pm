@@ -181,7 +181,7 @@ Error is formatted as such: IronHTTPCallException: status_code=<HTTP status code
     use Try::Tiny;
     use Scalar::Util qw{blessed};
     try {
-        my $queried_iron_cache_01 = $iron_cache_client->get_cache('name' => 'unique_cache_name_01');
+        my $asked_iron_cache_01 = $iron_cache_client->get_cache('name' => 'unique_cache_name_01');
     }
     catch {
         die $_ unless blessed $_ && $_->can('rethrow');
@@ -195,7 +195,7 @@ Error is formatted as such: IronHTTPCallException: status_code=<HTTP status code
         }
     };
 
-When using policies (see next chacter) also exceptions
+When using policies (see next chapter) also exceptions
 NoIronPolicyException and CharacterGroupNotDefinedIronPolicyException
 can be met.
 
@@ -321,7 +321,7 @@ C<[:group:]{n}> and C<[:group:]{n,n}>, where C<n> is an integer.
 This limitation (not being able to use any regular expression) is due to the
 double functionality of the policy: a) it acts as a filter when creating
 and naming new message queues, code packages, caches and cache items; 2) it
-can be used to list all possible names, for example when quering for
+can be used to list all possible names, for example when querying for
 cache items.
 
 =cut

@@ -88,3 +88,9 @@ subitem
 ABCDEFGHIJKLMNOPQRSTUVWXYZ
 abcdefghijklmnopqrstuvwxyz
 alnum
+CharacterGroupNotDefinedIronPolicyException
+NoIronPolicyException
+POSIX
+ascii
+wildcards
+

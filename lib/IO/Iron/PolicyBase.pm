@@ -66,7 +66,7 @@ These policies allow everything.
 
 =cut
 
-# TODO policy charset, list possible alternatives: 
+# TODO policy character set, list possible alternatives: 
 sub IRON_CLIENT_DEFAULT_POLICIES {
     my %default_policies =
             (
@@ -76,9 +76,9 @@ sub IRON_CLIENT_DEFAULT_POLICIES {
                 },
                 'no_limitation' => 1, # There is an unlimited number of alternatives.
             },
-            'queue' => { 'name' => [ '[[:graph:]]{1,}' ], },
-            'cache' => { 'name' => [ '[[:graph:]]{1,}' ], 'item_key' => [ '[[:graph:]]{1,}' ]},
-            'worker' => { 'name' => [ '[[:graph:]]{1,}' ], },
+            'queue' => { 'name' => [ '[:word:]{1,}' ], },
+            'cache' => { 'name' => [ '[:word:]{1,}' ], 'item_key' => [ '[:word:]{1,}' ]},
+            'worker' => { 'name' => [ '[:word:]{1,}' ], },
             );
     return %default_policies;
 }
@@ -185,7 +185,6 @@ sub _get_character_group_alternatives {
             'keep_posix_group' => { type => BOOLEAN, optional => 1, }, # Keep POSIX (subset) group name and return it.
         },
     );
-    #assert_nonempty($params{'character_group'}, 'Parameter character_group has value.');
     my $chars;
 
     # Predefined groups (subset of POSIX) first!
@@ -306,15 +305,22 @@ sub is_valid_policy {
     $log->tracef('Entering is_valid_policy(%s)', \%params);
 
     my $validity = 0;
-    my $templates = $self->{'policy'}->{$params{'policy'}};
-    assert_listref($templates, "\$templates is a reference to a list");
-    foreach (@{$templates}) {
-        $log->tracef('is_valid_policy(): Going to comparing with raw template:\"%s\".)', $_);
-        my $template = $self->_convert_policy_to_normal_regexp($_);
-        $log->tracef('is_valid_policy(): Comparing with template:\"%s\".)', $template);
-        if($params{'candidate'} =~ /^$template$/xgsm) {
-            $validity = 1;
-            last;
+    if(defined $self->{'policy'}->{'definition'}->{'no_limitation'}
+            && $self->{'policy'}->{'definition'}->{'no_limitation'} == 1) {
+        $log->trace('is_valid_policy', "no_limitation: no policy check!");
+        $validity = 1;
+    }
+    else {
+        my $templates = $self->{'policy'}->{$params{'policy'}};
+        assert_listref($templates, "\$templates is a reference to a list");
+        foreach (@{$templates}) {
+            $log->tracef('is_valid_policy(): Going to comparing with raw template:\"%s\".)', $_);
+            my $template = $self->_convert_policy_to_normal_regexp($_);
+            $log->tracef('is_valid_policy(): Comparing with template:\"%s\".)', $template);
+            if($params{'candidate'} =~ /^$template$/xgsm) {
+                $validity = 1;
+                last;
+            }
         }
     }
     $log->tracef('Exiting is_valid_policy():%d', $validity);

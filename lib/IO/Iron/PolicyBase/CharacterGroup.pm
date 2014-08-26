@@ -110,10 +110,6 @@ sub lower {
     return 'abcdefghijklmnopqrstuvwxyz';
 }
 
-#subpunct{
-#returnqw{-!"},qq{\#},qw{$%&'()*+,./:;<=>?@[\\\]^_`},q/{/,q/|/,q/}/,q/~/;
-#}
-
 =head2 upper
 
 Group [:upper:], ABCDEFGHIJKLMNOPQRSTUVWXYZ.
@@ -137,3 +133,4 @@ sub word {
 }
 
 1;
+

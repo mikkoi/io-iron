@@ -1,4 +1,5 @@
 iron_cache.json
 iron_mq.json
 iron_worker.json
+iron_*.json
 IO-Iron-*

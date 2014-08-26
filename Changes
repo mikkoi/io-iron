@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+        Added a new feature: Policies.
+        Released together with package IO-Iron-Application.
 
 0.09      2014-04-19 09:52:47+03:00 Europe/Helsinki
 	Renamed integ_t/common.pm to avoid naming conflict.

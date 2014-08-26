@@ -41,6 +41,7 @@ subtest 'Setup for testing' => sub {
 	
 	# Create a new cache name.
 	$unique_cache_name_01 = create_unique_cache_name();
+	$unique_cache_name_01 =~ tr/-/_/;
 	
 	# Create a new cache.
 	$created_iron_cache_01 = $iron_cache_client->create_cache(
@@ -208,9 +209,10 @@ subtest 'Put and query items' => sub {
     my $got_item_03 = $created_iron_cache_01->get(
         'key' => $iron_cache_o1_item_03_key
     );
-    diag("returned item_03:" . Dumper($got_item_03));
+    #diag("returned item_03:" . Dumper($got_item_03));
     my $got_item_03_value_hash = $json->decode($got_item_03->value());
-    is(Dumper($got_item_03_value_hash), Dumper(\%iron_cache_o1_item_03_value_hash), "Returned dumped hash equals to original dumper hash.");
+    #is(Dumper($got_item_03_value_hash), Dumper(\%iron_cache_o1_item_03_value_hash), "Returned dumped hash equals to original dumper hash.");
+    is_deeply($got_item_03_value_hash, \%iron_cache_o1_item_03_value_hash, "Returned dumped hash equals to original dumper hash.");
     $Data::Dumper::Maxdepth = 2;
 
     diag("Test with perl Storable serializer module.");
@@ -234,9 +236,9 @@ subtest 'Put and query items' => sub {
     my $got_item_04 = $created_iron_cache_01->get(
         'key' => $iron_cache_o1_item_04_key
     );
-    diag("returned item_04:" . Dumper($got_item_04));
+    #diag("returned item_04:" . Dumper($got_item_04));
     my $got_item_04_value_hash = Storable::thaw($got_item_04->value());
-    is(Dumper($got_item_04_value_hash), Dumper(\%iron_cache_o1_item_04_value_hash), "Returned dumped hash equals to original dumper hash.");
+    is_deeply($got_item_04_value_hash, \%iron_cache_o1_item_04_value_hash, "Returned dumped hash equals to original dumper hash.");
     $Data::Dumper::Maxdepth = 2;
 
 };
