@@ -330,7 +330,7 @@ cache items.
 =head1 TESTING
 
 Subdirectory F<integ_t> contains "integration" tests which require an active Iron.io account and Internet connection.
-To run the tests, create first three files in the main directory: 
+To run the tests, create first three config files in the main directory: 
 F<iron_cache.json>, F<iron_mq.json>, F<iron_worker.json>.
 Set at least the following attributes: B<project_id>, B<token> and B<host>.
 
