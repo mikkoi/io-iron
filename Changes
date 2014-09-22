@@ -1,6 +1,7 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+	Removed release tests from t/.
 
 0.10      2014-08-26 03:04:14+03:00 Europe/Helsinki
         Added a new feature: Policies.
