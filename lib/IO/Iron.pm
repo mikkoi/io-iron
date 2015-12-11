@@ -232,19 +232,19 @@ Example config file:
 
 The 'default' policies JSON file:
 
-    (
-    'definition' => {
-        'character_group' => {
+    {
+    "definition":{
+        "character_group":{
         },
-        'no_limitation' => 1, # There is an unlimited number of alternatives.
+        "no_limitation":1, # There is an unlimited number of alternatives.
     },
-    'queue' => { 'name' => [ '[:alnum:]{1,}' ], },
-    'cache' => {
-        'name' => [ '[:alnum:]{1,}' ],
-        'item_key' => [ '[:alnum:]{1,}' ]
+    "queue":{ "name":[ "[:alnum:]{1,}" ], },
+    "cache":{
+        "name":[ "[:alnum:]{1,}" ],
+        "item_key":[ "[:alnum:]{1,}" ]
         },
-    'worker' => { 'name' => [ '[:alnum:]{1,}' ], },
-    );
+    "worker":{ "name":[ "[:alnum:]{1,}" ], }
+    }
 
 The above file would set an open policy for IronMQ, IronCache and IronWorker alike.
 The file is divided into four parts: definition for defining meta options, and
@@ -262,8 +262,8 @@ An example of policies file
         "__comment1":"Use normal regexp. [:digit:] = number:0-9, [:alpha:] = alphabetic character, [:alnum:] = character or number.",
         "__comment2":"Do not use end/begin limitators '^' and '\$'. They are added automatically.",
         "__comment3":"Note that character groups are closed inside '[::]', not '[[:]]' as normal POSIX groups.",
-        'definition' => {
-            'character_group' => {
+        "definition":{
+            "character_group":{
                 "[:lim_uchar:]":"ABC",
                 "[:low_digit:]":"0123"
             },
