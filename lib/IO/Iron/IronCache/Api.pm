@@ -15,6 +15,10 @@ BEGIN {
 END {
 }
 
+=for stopwords IronCache API APIs Mikko Koivunalho perldoc CPAN AnnoCPAN
+
+=for stopwords ACKNOWLEDGMENTS TODO tradename licensable MERCHANTABILITY
+
 =head1 NAME
 
 IO::Iron::IronCache::Api - IronCache API reference for Perl Client Libraries!
@@ -49,7 +53,7 @@ The APIs to IronCache REST services.
 sub IRONCACHE_LIST_CACHES {
 	return {
 			'action_name'  => 'IRONCACHE_LIST_CACHES',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/caches',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/caches',
 			'action'       => 'GET',
 			'return'       => 'LIST',
 			'retry'        => 0,
@@ -70,7 +74,7 @@ sub IRONCACHE_LIST_CACHES {
 sub IRONCACHE_GET_INFO_ABOUT_A_CACHE {
 	return {
 			'action_name'  => 'IRONCACHE_GET_INFO_ABOUT_A_CACHE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/caches/{Cache Name}',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/caches/{Cache Name}',
 			'action'       => 'GET',
 			'return'       => 'HASH',
 			'retry'        => 1,
@@ -89,7 +93,7 @@ sub IRONCACHE_GET_INFO_ABOUT_A_CACHE {
 sub IRONCACHE_DELETE_A_CACHE {
 	return {
 			'action_name'  => 'IRONCACHE_DELETE_A_CACHE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/caches/{Cache Name}',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/caches/{Cache Name}',
 			'action'       => 'DELETE',
 			'return'       => 'MESSAGE',
 			'retry'        => 1,
@@ -110,7 +114,7 @@ sub IRONCACHE_DELETE_A_CACHE {
 sub IRONCACHE_CLEAR_A_CACHE {
 	return {
 			'action_name'  => 'IRONCACHE_CLEAR_A_CACHE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/caches/{Cache Name}/clear',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/caches/{Cache Name}/clear',
 			'action'       => 'POST',
 			'return'       => 'MESSAGE',
 			'retry'        => 0,
@@ -131,7 +135,7 @@ sub IRONCACHE_CLEAR_A_CACHE {
 sub IRONCACHE_PUT_AN_ITEM_INTO_A_CACHE {
 	return {
 			'action_name'  => 'IRONCACHE_PUT_AN_ITEM_INTO_A_CACHE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/caches/{Cache Name}/items/{Key}',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/caches/{Cache Name}/items/{Key}',
 			'action'       => 'PUT',
 			'return'       => 'MESSAGE',
 			'retry'        => 0,
@@ -153,7 +157,7 @@ sub IRONCACHE_PUT_AN_ITEM_INTO_A_CACHE {
 sub IRONCACHE_INCREMENT_AN_ITEMS_VALUE {
 	return {
 			'action_name'  => 'IRONCACHE_INCREMENT_AN_ITEMS_VALUE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/caches/{Cache Name}/items/{Key}/increment',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/caches/{Cache Name}/items/{Key}/increment',
 			'action'       => 'POST',
 			'return'       => 'HASH',
 			'retry'        => 0,
@@ -175,7 +179,7 @@ sub IRONCACHE_INCREMENT_AN_ITEMS_VALUE {
 sub IRONCACHE_GET_AN_ITEM_FROM_A_CACHE {
 	return {
 			'action_name'  => 'IRONCACHE_GET_AN_ITEM_FROM_A_CACHE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/caches/{Cache Name}/items/{Key}',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/caches/{Cache Name}/items/{Key}',
 			'action'       => 'GET',
 			'return'       => 'HASH',
 			'retry'        => 0,
@@ -194,7 +198,7 @@ sub IRONCACHE_GET_AN_ITEM_FROM_A_CACHE {
 sub IRONCACHE_DELETE_AN_ITEM_FROM_A_CACHE {
 	return {
 			'action_name'  => 'IRONCACHE_DELETE_AN_ITEM_FROM_A_CACHE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/caches/{Cache Name}/items/{Key}',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/caches/{Cache Name}/items/{Key}',
 			'action'       => 'DELETE',
 			'return'       => 'MESSAGE',
 			'retry'        => 0,

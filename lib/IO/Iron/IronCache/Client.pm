@@ -18,6 +18,12 @@ BEGIN {
 END {
 }
 
+=for stopwords IronCache API SaaS optimized serialized JSON Storable YAML
+
+=for stopwords stringify cas Cas Params IronHTTPCallException Mikko Koivunalho
+
+=for stopwords perldoc CPAN AnnoCPAN tradename licensable MERCHANTABILITY 
+
 =head1 NAME
 
 IO::Iron::IronCache::Client - IronCache (Online Item-Value Storage) Client.
@@ -79,6 +85,11 @@ require IO::Iron::IronCache::Cache;
 # CONSTANTS for this package
 
 # DEFAULTS
+use Const::Fast;
+
+# Service specific!
+const my $DEFAULT_API_VERSION => '2';
+const my $DEFAULT_HOST => 'cache-aws-us-east-1.iron.io';
 
 
 =head1 DESCRIPTION
@@ -308,11 +319,11 @@ sub new {
 	my $connection = IO::Iron::Connection->new( {
 		'project_id' => $config->{'project_id'},
 		'token' => $config->{'token'},
-		'host' => $config->{'host'},
+		'host' => defined $config->{'host'} ? $config->{'host'} : $DEFAULT_HOST,
 		'protocol' => $config->{'protocol'},
 		'port' => $config->{'port'},
-		'api_version' => $config->{'api_version'},
-		'host_path_prefix' => $config->{'host_path_prefix'},
+		'api_version' => defined $config->{'api_version'} ? $config->{'api_version'} : $DEFAULT_API_VERSION,
+		# 'host_path_prefix' => $config->{'host_path_prefix'},
 		'timeout' => $config->{'timeout'},
 		'connector' => $params{'connector'},
 		}

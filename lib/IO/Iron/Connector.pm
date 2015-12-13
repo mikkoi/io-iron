@@ -58,11 +58,10 @@ use Exception::Class (
 
 # CONSTANTS
 
-use constant { ## no critic (ValuesAndExpressions::ProhibitConstantPragma)
-	HTTP_CODE_OK_MIN => 200,
-	HTTP_CODE_OK_MAX => 299,
-	HTTP_CODE_SERVICE_UNAVAILABLE => 503,
-};
+use Const::Fast;
+const my $HTTP_CODE_OK_MIN => 200;
+const my $HTTP_CODE_OK_MAX => 299;
+const my $HTTP_CODE_SERVICE_UNAVAILABLE => 503;
 
 =head1 DESCRIPTION
 
@@ -174,7 +173,7 @@ sub perform_iron_action { ## no critic (Subroutines::ProhibitExcessComplexity)
 			assert_nonblank( $params->{'{Port}'}, 'params->{Port} is defined and not blank.' );
 			assert_nonblank( $params->{'{Host}'}, 'params->{Host} is defined and not blank.' );
 			assert_nonblank( $params->{'{Project ID}'}, 'params->{Project ID} is defined and not blank.' );
-			assert_nonblank( $params->{'{Host Path Prefix}'}, 'params->{Host Path Prefix} is defined and not blank.' );
+			assert_nonblank( $params->{'{API Version}'}, 'params->{API Version} is defined and not blank.' );
 			assert_nonblank( $params->{'authorization_token'}, 'params->{authorization_token} is defined and not blank.' );
 			assert_nonblank( $params->{'http_client_timeout'}, 'params->{http_client_timeout} is defined and not blank.' );
 			my $url_escape_these_fields = defined $iron_action->{'url_escape'} ? $iron_action->{'url_escape'} : {};
@@ -216,7 +215,7 @@ sub perform_iron_action { ## no critic (Subroutines::ProhibitExcessComplexity)
             $log->debugf('perform_iron_action(): Caught exception:\'%s\'.', $_);
 			croak $_ unless blessed $_ && $_->can('rethrow'); ## no critic (ControlStructures::ProhibitPostfixControls)
 			if ( $_->isa('IronHTTPCallException') ) {
-				if( $_->status_code == HTTP_CODE_SERVICE_UNAVAILABLE() ) {
+				if( $_->status_code == $HTTP_CODE_SERVICE_UNAVAILABLE ) {
 					# 503 Service Unavailable. Clients should implement exponential backoff to retry the request.
 					$keep_on_trying = 1 if ($retry == 1); ## no critic (ControlStructures::ProhibitPostfixControls)
 					# TODO Fix this temporary solution for backoff to retry the request.
@@ -310,7 +309,7 @@ sub perform_http_action {
 	# RETURN:
 	$log->debugf('Returned HTTP response code:%s', $client->responseCode());
 	$log->tracef('Returned HTTP response:%s', $client->responseContent());
-	if( $client->responseCode() >= HTTP_CODE_OK_MIN() && $client->responseCode() <= HTTP_CODE_OK_MAX() ) {
+	if( $client->responseCode() >= $HTTP_CODE_OK_MIN && $client->responseCode() <= $HTTP_CODE_OK_MAX ) {
 		# 200 OK: Successful GET; 201 Created: Successful POST
 		$log->tracef('HTTP Response code: %d, %s', $client->responseCode(), 'Successful!');
 		my $decoded_body_content;

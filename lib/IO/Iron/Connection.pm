@@ -17,9 +17,13 @@ BEGIN {
 END {
 }
 
+=for stopwords Params IronMQ params Mikko Koivunalho perldoc CPAN AnnoCPAN
+
+=for stopwords ACKNOWLEDGMENTS TODO tradename licensable MERCHANTABILITY
+
 =head1 NAME
 
-IO::Iron::Connection - Iron.io Connection reference for Perl Client Libraries!
+IO::Iron::Connection - Internet connection reference!
 
 =cut
 
@@ -40,12 +44,11 @@ use English '-no_match_vars';
 
 
 # DEFAULTS
-use constant { ## no critic (ValuesAndExpressions::ProhibitConstantPragma)
-	DEFAULT_PROTOCOL => 'https',
-	DEFAULT_PORT => 443,
-	DEFAULT_HOST_PATH_PREFIX => '/1',
-	DEFAULT_TIMEOUT => 3,
-};
+use Const::Fast;
+const my $DEFAULT_PROTOCOL => 'https';
+const my $DEFAULT_PORT => 443;
+const my $DEFAULT_TIMEOUT => 3;
+;
 
 
 =head1 DESCRIPTION
@@ -68,8 +71,8 @@ sub new {
 			'host',          # The domain name the API can be located at. Defaults to a product-specific value, but always using Amazon's cloud.
 			'protocol',      # The protocol that will be used to communicate with the API. Defaults to "https", which should be sufficient for 99% of users.
 			'port',          # The port to connect to the API through. Defaults to 443, which should be sufficient for 99% of users.
-			'api_version',   # The version of the API to connect through. Defaults to the version supported by the client. End-users should probably never change this.
-			'host_path_prefix', # Path prefix to the RESTful url. Defaults to '/1'. Used with non-standard clouds/emergency service back up addresses.
+			'api_version',   # The version of the API to connect through. Defaults to the version supported by the client. End-users should probably never change this. Except: IronMQ service upgraded from v2 to v3 in 2015!
+			# 'host_path_prefix', # Path prefix to the RESTful url. Defaults to '/1'. Used with non-standard clouds/emergency service back up addresses.
 			'timeout',       # REST client timeout (for REST calls accessing Iron services)
 			'connector',     # Reference to the object which does the actual REST client calls, or mocks them.
 	);
@@ -78,11 +81,11 @@ sub new {
 	$self->{'project_id'} = defined $params->{'project_id'} ? $params->{'project_id'} : undef;
 	$self->{'token'} = defined $params->{'token'} ? $params->{'token'} : undef;
 	$self->{'host'} = defined $params->{'host'} ? $params->{'host'} : undef;
-	$self->{'protocol'} = defined $params->{'protocol'} ? $params->{'protocol'} : DEFAULT_PROTOCOL();
-	$self->{'port'} = defined $params->{'port'} ? $params->{'port'} : DEFAULT_PORT();
+	$self->{'protocol'} = defined $params->{'protocol'} ? $params->{'protocol'} : $DEFAULT_PROTOCOL;
+	$self->{'port'} = defined $params->{'port'} ? $params->{'port'} : $DEFAULT_PORT;
 	$self->{'api_version'} = defined $params->{'api_version'} ? $params->{'api_version'} : undef;
-	$self->{'host_path_prefix'} = defined $params->{'host_path_prefix'} ? $params->{'host_path_prefix'} : DEFAULT_HOST_PATH_PREFIX();
-	$self->{'timeout'} = defined $params->{'timeout'} ? $params->{'timeout'} : DEFAULT_TIMEOUT();
+	# $self->{'host_path_prefix'} = defined $params->{'host_path_prefix'} ? $params->{'host_path_prefix'} : undef;
+	$self->{'timeout'} = defined $params->{'timeout'} ? $params->{'timeout'} : $DEFAULT_TIMEOUT;
 	# Set up the connector object.
 	if(defined $params->{'connector'}) {
 		$self->{'connector'} = $params->{'connector'}; # The connector has been instantiated for us.
@@ -98,8 +101,8 @@ sub new {
 
 	#$self->_assert_configuration($self);
 
-	$log->infof('IO::Iron::Connection client created with config: (project_id=%s; token=%s; host=%s; protocol=%s; port=%s; host_path_prefix=%s; timeout=%s).',
-		$self->{'project_id'}, $self->{'token'}, $self->{'host'}, $self->{'protocol'}, $self->{'port'}, $self->{'host_path_prefix'}, $self->{'timeout'});
+	$log->infof('IO::Iron::Connection client created with config: (project_id=%s; token=%s; host=%s; protocol=%s; port=%s; api_version=%s; timeout=%s).',
+		$self->{'project_id'}, $self->{'token'}, $self->{'host'}, $self->{'protocol'}, $self->{'port'}, $self->{'api_version'}, $self->{'timeout'});
 	$log->tracef('Exiting new: %s', $self);
 	return $self;
 }
@@ -139,8 +142,8 @@ sub perform_iron_action {
 	$params->{'{Port}'} = $self->{'port'};
 	$params->{'{Host}'} = $self->{'host'};
 	$params->{'{Project ID}'} = $self->{'project_id'};
-	$params->{'{Host Path Prefix}'} = $self->{'host_path_prefix'};
-	$params->{'{Api Version}'} = $self->{'api_version'};
+	# $params->{'{Host Path Prefix}'} = $self->{'host_path_prefix'};
+	$params->{'{API Version}'} = $self->{'api_version'};
 	$params->{'authorization_token'} = $self->{'token'};
 	$params->{'http_client_timeout'} = $self->{'timeout'};
 	$params->{'content_type'} = $content_type;
@@ -176,8 +179,7 @@ sub _assert_configuration {
 	assert_nonblank( $self->{'host'}, 'self->{host} is defined and not blank.' );
 	assert_nonblank( $self->{'protocol'}, 'self->{protocol} is defined and not blank.' );
 	assert_nonblank( $self->{'port'}, 'self->{port} is defined and not blank.' );
-	# api_version does not require a value. No default value available.
-	assert_nonblank( $self->{'host_path_prefix'}, 'self->{host_path_prefix} is defined and not blank.' );
+	assert_nonblank( $self->{'api_version'}, 'self->{api_version} is defined and not blank.' );
 	#assert_nonblank( $self->{'timeout'}, 'self->{timeout} is defined and not blank.' );
 	assert_nonnegative_integer( $self->{'timeout'}, 'self->{timeout} is a nonnegative integer.' );
 	assert_isa( $self->{'connector'}, 'IO::Iron::ConnectorBase', 'self->{connector} is a descendant of IO::Iron::ConnectorBase.' );
@@ -230,7 +232,7 @@ L<http://search.cpan.org/dist/IO-Iron/>
 
 =head1 ACKNOWLEDGMENTS
 
-Cool idea, "message queue in the cloud": http://www.iron.io/.
+Cool idea, "message queue in the cloud": L<IronMQ|http://www.iron.io/>.
 
 =head1 TODO
 
@@ -283,3 +285,4 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =cut
 
 1; # End of IO::Iron::Connection
+
