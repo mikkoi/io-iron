@@ -45,10 +45,7 @@ BEGIN {
 
 #use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
 
-diag("Testing IO::Iron::IronCache, Perl $], $^X");
+diag('Testing IO::Iron::IronCache '
+   . ($IO::Iron::IronCache::VERSION ? "($IO::Iron::IronCache::VERSION)" : '(no version)')
+   . ", Perl $], $^X");
 
-#if(! -e File::Spec->catfile(File::HomeDir->my_home, '.iron.json') 
-#		&& ! defined $ENV{'IRON_PROJECT_ID'}
-#		&& ! -e File::Spec->catfile(File::Spec->curdir(), 'iron.json')) {
-#	BAIL_OUT("NO IRONMQ CONFIGURATION FILE OR ENV VARIABLE IN PLACE! CANNOT CONTINUE!");
-#}

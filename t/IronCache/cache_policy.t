@@ -19,13 +19,13 @@ require IO::Iron::IronCache::Item;
 #use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
 use Data::Dumper; $Data::Dumper::Maxdepth = 4;
 
-diag("Testing IO::Iron::IronCache::Client with policies, Perl $], $^X");
+diag('Testing IO::Iron::IronCache::Client '
+   . ($IO::Iron::IronCache::Client::VERSION ? "($IO::Iron::IronCache::Client::VERSION)" : '(no version)')
+   . " with policies, Perl $], $^X");
 
 ## Test case
 my $project_id;
 my $cache_client;
-my $unique_cache_name_01;
-my $created_iron_cache_01;
 
 my $test_policy = {
     'definition' => {
@@ -50,8 +50,8 @@ my $test_policy = {
 subtest 'Check for valid cache and key names' => sub {
     plan tests => 11;
 
-    my $cache_name = '';
-    my $item_key = '';
+    my $cache_name;
+    my $item_key;
     # Create an IronCache client.
     $cache_client = IO::Iron::IronCache::Client->new(
         #'config' => 'iron_cache.json'
@@ -61,27 +61,24 @@ subtest 'Check for valid cache and key names' => sub {
     $cache_client->{'policy'} = $test_policy;
     $project_id = $cache_client->{'connection'}->{'project_id'};
     # Use $project_id for log message comparisons.
-    
-    # Create a new cache name.
-    #$unique_cache_name_01 = create_unique_cache_name();
-    
+
     $cache_name = 'cache_01_main';
-    is($cache_client->is_valid_cache_name('name' => $cache_name), 1, "Cache name " . $cache_name . " is valid.");
+    is($cache_client->is_valid_cache_name('name' => $cache_name), 1, 'Cache name ' . $cache_name . ' is valid.');
 
     $cache_name = 'cache_01_123';
-    is($cache_client->is_valid_cache_name('name' => $cache_name), 1, "Cache name " . $cache_name . " is valid.");
+    is($cache_client->is_valid_cache_name('name' => $cache_name), 1, 'Cache name ' . $cache_name . ' is valid.');
 
     $cache_name = 'cache_01_12';
-    is($cache_client->is_valid_cache_name('name' => $cache_name), 0, "Cache name " . $cache_name . " is not valid.");
+    is($cache_client->is_valid_cache_name('name' => $cache_name), 0, 'Cache name ' . $cache_name . ' is not valid.');
 
     $cache_name = 'cache_01_AAA';
-    is($cache_client->is_valid_cache_name('name' => $cache_name), 0, "Cache name " . $cache_name . " is not valid.");
+    is($cache_client->is_valid_cache_name('name' => $cache_name), 0, 'Cache name ' . $cache_name . ' is not valid.');
 
     $item_key = 'item_01_12345';
-    is($cache_client->is_valid_item_key('key' => $item_key), 0, "Item name " . $item_key . " is not valid.");
+    is($cache_client->is_valid_item_key('key' => $item_key), 0, 'Item name ' . $item_key . ' is not valid.');
 
     $item_key = 'item_01_AAA';
-    is($cache_client->is_valid_item_key('key' => $item_key), 1, "Item name " . $item_key . " is valid.");
+    is($cache_client->is_valid_item_key('key' => $item_key), 1, 'Item name ' . $item_key . ' is valid.');
 
 
     # Test with more action: exceptions from services.
@@ -90,7 +87,7 @@ subtest 'Check for valid cache and key names' => sub {
         my $created_cache = $cache_client->create_cache(
             'name' => $cache_name,
         );
-    } 'IronPolicyException', 
+    } 'IronPolicyException',
             'Throws IronPolicyException when cache name is not valid according to local policy.';
     like($@, "/IronPolicyException: policy=name candidate=$cache_name/", 'Exception string is ok.');
     #diag("Tried to create cache with name '" . $cache_name . "' which name is invalid. Threw ok.");
@@ -114,7 +111,7 @@ subtest 'Check for valid cache and key names' => sub {
             'key' => $item_key,
             'item' => $cache_item,
         );
-    } 'IronPolicyException', 
+    } 'IronPolicyException',
             'Throws IronPolicyException when item key is not valid according to local policy.';
     like($@, "/IronPolicyException: policy=item_key candidate=$item_key/", 'Exception string is ok.');
 

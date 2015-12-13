@@ -17,15 +17,17 @@ require IO::Iron::IronCache::Client;
 require IO::Iron::IronCache::Item;
 
 #use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
-use Data::Dumper; $Data::Dumper::Maxdepth = 4;
+use Const::Fast;
+const my $DUMPER_DEPTH => 4;
+use Data::Dumper; $Data::Dumper::Maxdepth = $DUMPER_DEPTH;
 
-diag("Testing IO::Iron::IronCache::Client with policies, Perl $], $^X");
+diag('Testing IO::Iron::IronCache::Client '
+   . ($IO::Iron::IronCache::Client::VERSION ? "($IO::Iron::IronCache::Client::VERSION)" : '(no version)')
+   . ", Perl $], $^X");
 
 ## Test case
 my $project_id;
 my $cache_client;
-my $unique_cache_name_01;
-my $created_iron_cache_01;
 
 my $test_policy = {
   'definition' => {
@@ -49,8 +51,6 @@ my $test_policy = {
 subtest 'Check for valid cache and key names' => sub {
     plan tests => 3;
 
-    my $cache_name = '';
-    my $item_key = '';
     # Create an IronCache client.
     $cache_client = IO::Iron::IronCache::Client->new(
         #'config' => 'iron_cache.json'
@@ -403,7 +403,7 @@ subtest 'Check for valid cache and key names' => sub {
                  )];
     $gots = [ sort $cache_client->cache_name_alternatives() ];
     is_deeply($gots, $expecteds, 'Got what expected.');
-    
+
     # Test
     $cache_client->{'policy'}->{'name'} = [
               'Cache_[:mychars:]{1}[:mydigits:]{3}',
@@ -439,3 +439,4 @@ subtest 'Check for valid cache and key names' => sub {
     $gots = [ sort $cache_client->cache_name_alternatives() ];
     is_deeply($gots, $expecteds, 'Got what expected.');
 };
+
