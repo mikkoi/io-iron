@@ -47,52 +47,11 @@ IO::Iron::IronMQ::Client - IronMQ (Online Message Queue) Client.
 
 =head1 REQUIREMENTS
 
-Requires the following packages:
-
-=over 8
-
-=item Log::Any, v. 0.15
-
-=item File::Slurp, v. 9999.19
-
-=item JSON, v. 2.53
-
-=item Carp::Assert::More, v. 1.12
-
-=item REST::Client, v. 88
-
-=item File::HomeDir, v. 1.00,
-
-=item Exception::Class, v. 1.37
-
-=item Try::Tiny, v. 0.18
-
-=item Scalar::Util, v. 1.27
-
-=back
-
-Requires IronMQ account. Three configuration items must be set (others available) before using the functions: 'project_id', 'token' and 'host'.
-These can be set in a json file, as environmental variables or as parameters when creating the object.
-
-=over 8
-
-=item project_id, the identification string, from IronMQ.
-
-=item token, an OAuth authentication token string, from IronMQ.
-
-=item host, the cloud in which you want to operate: e.g.
-'mq-aws-us-east-1.iron.io/1' or 'mq-aws-eu-west-1.iron.io' for AWS (Amazon)
-or 'mq-rackspace-ord.iron.io/1' or 'mq-rackspace-lon.iron.io' for Rackspace.
- 
-Please see L<http://dev.iron.io/mq/reference/api/#base_url|IronMQ REST/HTTP API Reference>
-for available hosts.
-
-=back
+See L<IO::Iron|IO::Iron> for requirements.
 
 =cut
 
-use File::Slurp qw{read_file};
-use Log::Any  qw{$log};
+use Log::Any qw{$log};
 use File::Spec qw{read_file};
 use File::HomeDir;
 use Hash::Util 0.06 qw{lock_keys lock_keys_plus unlock_keys legal_keys};
