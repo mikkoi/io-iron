@@ -114,10 +114,7 @@ sub push { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 				type => ARRAYREF,
 				callbacks => {
 					'assert_class' => sub {
-						use Data::Dumper;
-						#print Dumper($_[0]);
 						foreach my $message (@{$_[0]}) {
-							#print Dumper($message);
 							assert_isa( $message, 'IO::Iron::IronMQ::Message',
 								'Message is IO::Iron::IronMQ::Message.' );
 								# FIXME Do this better!

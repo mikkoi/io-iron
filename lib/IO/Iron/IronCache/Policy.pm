@@ -36,7 +36,6 @@ IO::Iron::IronCache::Policy - Base package (inherited) for IronCache::Client pac
 				'caches',        # References to all objects created of class IO::Iron::IronCache::Cache.
 				legal_keys(%{$self}),
 		);
-		use Data::Dumper; print Dumper($self); print Dumper(\@self_keys);
 		unlock_keys(%{$self});
 		lock_keys_plus(%{$self}, @self_keys);
 		my @caches;

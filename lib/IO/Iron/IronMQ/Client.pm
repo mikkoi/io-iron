@@ -797,10 +797,7 @@ sub add_alerts {
 			'alerts' => { type => ARRAYREF,
 				callbacks => {
 					'Assert item content' => sub {
-						use Data::Dumper;
-						#print Dumper(\@{$_[0]});
 						foreach my $alert (@{$_[0]}) {
-							#print Dumper($alert);
 							# TODO New function: Carp::Assert::More::assert_allowed(). Allowed keys in hash.
 							assert_exists($alert, [ 'type', 'queue', 'trigger' ], 'Hash alert contains keys \'type\', \'queue\' and \'trigger\'.');
 						}
@@ -853,7 +850,6 @@ sub replace_alerts {
 			'alerts' => { type => ARRAYREF,
 				callbacks => {
 					'Assert item content' => sub {
-						use Data::Dumper;
 						foreach my $alert (@{$_[0]}) {
 							assert_exists($alert, [ 'type', 'queue', 'trigger' ], 'Hash alert contains keys \'type\', \'queue\' and \'trigger\'.');
 						}
@@ -909,9 +905,7 @@ sub delete_alerts {
 						return exists$_[1]->{'id'} ? 0 : 1;
 					},
 					'Assert item content' => sub {
-						#use Data::Dumper;
 						foreach my $alert (@{$_[0]}) {
-							#print Dumper($alert);
 							assert_exists($alert, [ 'id' ], 'Hash alert contains key \'id\'.');
 						}
 						return 1;
