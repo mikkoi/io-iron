@@ -17,6 +17,10 @@ BEGIN {
 END {
 }
 
+=for stopwords IronCache IronMQ IronWorker config json
+
+=for stopwords Mikko Koivunalho perldoc CPAN AnnoCPAN tradename licensable MERCHANTABILITY
+
 =head1 NAME
 
 IO::Iron::Common - Common routines for Client Libraries to Iron services IronCache, IronMQ and IronWorker.
@@ -31,7 +35,8 @@ IO::Iron::Common - Common routines for Client Libraries to Iron services IronCac
 =cut
 
 use Path::Tiny qw{path};
-use Log::Any  qw{$log};
+use Try::Tiny;
+use Log::Any qw{$log};
 require JSON::MaybeXS;
 use File::Spec ();
 use File::HomeDir ();
@@ -89,13 +94,13 @@ The configuration is constructed as follows:
 
 =over 8
 
-=item 1. The global configuration file sets the defaults according to the file hierarchy. (.iron.json in home folder)
+=item 1. The global configuration file sets the defaults according to the file hierarchy. (F<.iron.json> in home folder)
 
 =item 2. The global environment variables overwrite the global configuration file's values.
 
 =item 3. The product-specific environment variables overwrite everything before them.
 
-=item 4. The local configuration file overwrites everything before it according to the file hierarchy. (iron.json in the same directory as the script being run)
+=item 4. The local configuration file overwrites everything before it according to the file hierarchy. (F<iron.json> in the same directory as the script being run)
 
 =item 5. The configuration file specified when instantiating the client library overwrites everything before it according to the file hierarchy.
 

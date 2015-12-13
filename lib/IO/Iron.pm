@@ -66,8 +66,6 @@ The IO::Iron::* packages require the following packages (in addition to several 
 
 =item File::HomeDir, v. 1.00,
 
-=item File::Slurp, v. 9999.19
-
 =item JSON, v. 2.53
 
 =item Log::Any, v. 0.15
@@ -77,6 +75,8 @@ The IO::Iron::* packages require the following packages (in addition to several 
 =item REST::Client, v. 88
 
 =item Try::Tiny, v. 0.18
+
+=item Path::Tiny
 
 =item URI::Escape, v. 3.31
 
@@ -95,7 +95,10 @@ as environmental variables or as parameters when creating the object.
 
 =item C<token>, an OAuth authentication token string, from IronIO.
 
-=item C<host>, the cloud in which you want to operate, e.g. 'cache-aws-us-east-1' for AWS (Amazon).
+=item C<host>, the cloud in which you want to operate, e.g. 'cache-aws-us-east-1' for AWS (Amazon) or 'mq-rackspace-ord.iron.io' or 'mq-rackspace-lon.iron.io' for Rackspace.
+ 
+Please see L<http://dev.iron.io/mq/reference/api/#base_url|IronMQ REST/HTTP API Reference>
+for available hosts.
 
 =back
 

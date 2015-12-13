@@ -19,6 +19,10 @@ BEGIN {
 END {
 }
 
+=for stopwords API http Params params Mikko Koivunalho perldoc CPAN AnnoCPAN
+
+=for stopwords ACKNOWLEDGMENTS TODO tradename licensable MERCHANTABILITY
+
 =head1 NAME
 
 IO::Iron::Connector - REST API Connector, HTTP interface class.
