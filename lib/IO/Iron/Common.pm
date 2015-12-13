@@ -2,6 +2,7 @@ package IO::Iron::Common;
 
 ## no critic (Documentation::RequirePodAtEnd)
 ## no critic (Documentation::RequirePodSections)
+## no critic (Subroutines::RequireArgUnpacking)
 
 use 5.010_000;
 use strict;
@@ -29,10 +30,9 @@ IO::Iron::Common - Common routines for Client Libraries to Iron services IronCac
 
 =cut
 
-use File::Slurp ();
+use Path::Tiny qw{path};
 use Log::Any  qw{$log};
 require JSON::MaybeXS;
-#use File::Spec qw{read_file};
 use File::Spec ();
 use File::HomeDir ();
 use Hash::Util 0.06 qw{lock_keys unlock_keys};
@@ -167,11 +167,14 @@ sub _read_iron_config_file {
 
 	my $read_config;
 	my $rval;
-	if( -e $full_path_name) {
+   my $file = path($full_path_name);
+	if ($file->is_file) {
 		$log->tracef('File %s exists', $full_path_name);
-		if(my $file_contents = File::Slurp::read_file($full_path_name)) {
-			$log->tracef('Read file %s', $full_path_name);
-			 my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
+      my $file_contents;
+      try { $file_contents = $file->slurp_utf8 };
+		if($file_contents) {
+			$log->tracef('Slurped file %s', $full_path_name);
+			my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
 			$read_config = $json->decode($file_contents);
 			foreach my $config_key (keys %{$config}) {
 				if (defined $read_config->{$config_key}) {
@@ -210,8 +213,10 @@ Return True (1) if contains. Otherwise False (0).
 #my $RFC_3986_RESERVED_CHARACTERS =~ s/(.{1})/\\$1/sg; # Escape every character.
 sub contains_rfc_3986_res_chars {
 	my @params = validate_pos( @_, { type => SCALAR } );
+   ## no critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
 	my $rfc_3986_reserved_characters = q{\!\$\&\'\(\)\*\+\,\;\=\:\/\?\#\[\]\@};
-	return ($params[0] =~ /[$rfc_3986_reserved_characters]+/) ? 1 : 0;
+   ## critic (ValuesAndExpressions::RequireInterpolationOfMetachars)
+	return ($params[0] =~ m/[$rfc_3986_reserved_characters]{1,}/msx) ? 1 : 0;
 }
 
 
