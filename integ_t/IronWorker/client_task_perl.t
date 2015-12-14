@@ -5,11 +5,10 @@ use warnings FATAL => 'all';
 use Test::More;
 use Test::Exception;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
-use File::Slurp;
 use lib 't';
 use lib 'integ_t';
-require 'iron_io_integ_tests_common.pl';
-plan tests => 6;
+use IronTestsCommon;
+
 require IO::Iron::IronWorker::Client;
 
 #use Log::Any::Adapter ('Stderr');    # Activate to get all log messages.
@@ -18,7 +17,7 @@ $Data::Dumper::Maxdepth = 4;
 diag( "Testing IO::Iron::IronWorker::Client, Perl $], $^X" );
 ## Test case
 
-my $worker_as_string_rev_01 = <<EOF;
+my $worker_as_string_rev_01 = <<'EOF';
 #!/usr/bin/env perl
 use 5.010; use strict; use warnings;
 my %args = \@ARGV;
@@ -42,12 +41,12 @@ subtest 'Setup for testing' => sub {
 	$iron_worker_client = IO::Iron::IronWorker::Client->new( 'config' => 'iron_worker.json' );
 
 	# Create a new code package name.
-	$unique_code_package_name_01    = create_unique_code_package_name();
+	$unique_code_package_name_01    = IronTestsCommon::create_unique_code_package_name();
 	$unique_code_executable_name_01 = $unique_code_package_name_01 . '.sh';
 
 	# Create archive
 	my $zip = Archive::Zip->new();
-	diag("Uploading this script: " . $worker_as_string_rev_01);
+	diag('Uploading this script: ' . $worker_as_string_rev_01);
 
 	# Pack wrapper into archive, rename into unique string
 	my $perl_sh_wrapper_as_string;
@@ -63,15 +62,14 @@ subtest 'Setup for testing' => sub {
 	use IO::String;
 	my $io = IO::String->new($worker_as_zip_rev_01);
 	{
-		no warnings 'once';
-		tie *IO, 'IO::String';
+		no warnings 'once'; ## no critic (TestingAndDebugging::ProhibitNoWarnings)
+		tie *IO, 'IO::String'; ## no critic (Miscellanea::ProhibitTies)
 	}
 	$zip->writeToFileHandle($io);
 	isnt( $worker_as_zip_rev_01, $unique_code_executable_name_01, 'Compressed does not match with uncompressed.' );
 	diag('Compressed two versions of the worker with zip.');
 };
 
-my @send_message_ids;
 subtest 'Upload worker and confirm the upload' => sub {
 	plan tests => 1;
 
@@ -86,7 +84,7 @@ subtest 'Upload worker and confirm the upload' => sub {
 		'runtime' => 'sh',
 	);
 	isnt( $uploaded_code_id, undef, 'Code package uploaded.' );
-	diag("Code package rev 1 uploaded.");
+	diag('Code package rev 1 uploaded.');
 };
 
 subtest 'confirm worker upload' => sub {
@@ -101,12 +99,12 @@ subtest 'confirm worker upload' => sub {
 		}
 	}
 	isnt( $code_package_id, undef, 'Code package ID retrieved.' );
-	diag("Code package rev 1 upload confirmed.");
+	diag('Code package rev 1 upload confirmed.');
 
 
 
 	diag('Download and check...');
-	my ($downloaded, $file_name) = $iron_worker_client->download_code_package( 
+	my ($downloaded, $file_name) = $iron_worker_client->download_code_package(
 		'id' => $code_package_id,
 		'revision' => 1,
 		);
@@ -121,11 +119,11 @@ subtest 'confirm worker upload' => sub {
 	my $downloaded_unzipped = $zip->contents($unique_code_executable_name_01);
 	#is($downloaded_unzipped, $worker_as_string_rev_01, 'Code package matches the original unpacked.');
 
-	diag("First release downloaded.");
+	diag('First release downloaded.');
 	diag("First release($unique_code_executable_name_01):\n" . $downloaded_unzipped);
 	$downloaded_unzipped = $zip->contents('iron-pl.pl');
 	diag("First release($downloaded_unzipped):\n" . $downloaded_unzipped);
-	
+
 };
 
 subtest 'Queue a task, confirm the creation, wait until finished, confirm log' => sub {
@@ -144,18 +142,18 @@ subtest 'Queue a task, confirm the creation, wait until finished, confirm log' =
 	is( $ret_task_id, $task_id, 'task object was updated with task id.' );
 	my $task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
 	is( $task_info->{'id'}, $task_id, 'Task id matches with task id from get_info_about_task().' );
-	diag("Wait for task completion.");
+	diag('Wait for task completion.');
 
 	until ( $task_info->{'status'} =~ /(complete|error|killed|timeout)/ ) {
-		diag("Sleep 3 secs; query status again...");
+		diag('Sleep 3 secs; query status again...');
 		sleep 3;
-		diag( "Status:" . $task_info->{'status'} );
+		diag( 'Status:' . $task_info->{'status'} );
 		$task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
 	}
-	diag("Task completed.");
-	diag( "Status:" . $task_info->{'status'} );
+	diag('Task completed.');
+	diag( 'Status:' . $task_info->{'status'} );
 	my $task_log = $task->log();
-	diag( "Task log:" . $task_log );
+	diag( 'Task log:' . $task_log );
 	my $first_row_of_log = (split qq{\n}, $task_log)[0] . "\n" . (split qq{\n}, $task_log)[1];
 	is( $first_row_of_log, "Hello, World!\nARGV values:", 'Task log matches.' );
 };
@@ -177,21 +175,21 @@ subtest 'Queue a task, confirm the creation, cancel it, retry, set progress, wai
 	my $task_id = $task->id();
 	is( $ret_task_id, $task_id, 'task object was updated with task id.' );
 	my $task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
-	is( $task_info->{'id'},     $task_id );
+	is( $task_info->{'id'},     $task_id, 'Returned task id matches given id' );
 	is( $task_info->{'status'}, 'queued', 'Task is queued.' );
 
 	# cancel task
 	$task->cancel();
 	$task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
 	is( $task_info->{'status'}, 'cancelled', 'Task is cancelled.' );
-	diag("Task is cancelled.");
+	diag('Task is cancelled.');
 
 	# retry task
 	my $delay = 3;
 	$delay += 0; # To double secure it is a number and JSON will treat it as a number!
 	my $new_task_id = $task->retry( 'delay' => $delay );
-	diag("Task is retried after 3 seconds.");
-	diag("Wait for task completion.");
+	diag('Task is retried after 3 seconds.');
+	diag('Wait for task completion.');
 	$task_id = $task->id();    # New task id after retry().
 	is( $new_task_id, $task_id, 'Task got a new id. Same as what retry() returned.' );
 	diag("New task id from retry:$task_id.");
@@ -199,20 +197,20 @@ subtest 'Queue a task, confirm the creation, cancel it, retry, set progress, wai
 	# set progress
 	$task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
 	until ( $task_info->{'status'} =~ /(complete|error|killed|timeout)/ ) {
-		diag("Sleep 1 sec; query status again...");
+		diag('Sleep 1 sec; query status again...');
 		sleep 1;
-		diag( "Status:" . $task_info->{'status'} );
+		diag( 'Status:' . $task_info->{'status'} );
 		$task->set_progress( 'percent' => 10, 'msg' => 'One tenth done.' );
 		$task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
 	}
 	is( $task_info->{'msg'}, 'One tenth done.', 'Progress message matches.' );
-	diag("Task completed.");
-	diag( "Status:" . $task_info->{'status'} );
+	diag('Task completed.');
+	diag( 'Status:' . $task_info->{'status'} );
 	$task->set_progress( 'percent' => 100, 'msg' => 'All done.' );
 	$task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
 	is( $task_info->{'msg'}, 'All done.', 'Progress message matches.' );
 	my $task_log = $task->log();
-	diag( "Task log:" . $task_log );
+	diag( 'Task log:' . $task_log );
 	my $first_row_of_log = (split qq{\n}, $task_log)[0] . "\n" . (split qq{\n}, $task_log)[1];
 	is( $first_row_of_log, "Hello, World!\nARGV values:", 'Task log matches.' );
 
@@ -250,5 +248,8 @@ subtest 'Clean up.' => sub {
 		}
 	}
 	is( $found, undef, 'Code package not exists. Delete confirmed.' );
-	diag("Code package deleted.");
+	diag('Code package deleted.');
 };
+
+done_testing();
+
