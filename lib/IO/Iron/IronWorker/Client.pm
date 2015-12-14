@@ -68,7 +68,7 @@ IO::Iron::IronWorker::Client - IronWorker (Online Worker Platform) Client.
 	my @code_package_revisions = $iron_worker_client->
 		list_code_package_revisions( 'id' => $code_package_id );
 
-	my $downloaded = $iron_worker_client->download_code_package( 
+	my ($downloaded, file_name) = $iron_worker_client->download_code_package( 
 		'id' => $code_package_id,
 		'revision' => 1,
 	);
@@ -338,7 +338,7 @@ Method delete_code_package() removes the code package from IronWorker service.
 The uploaded code package can be retrieved with method download_code_package().
 The downloaded file is a zip archive.
 
-	my $downloaded = $iron_worker_client->download_code_package( 
+	my ($downloaded, $file_name) = $iron_worker_client->download_code_package( 
 		'id' => $code_package_id, 'revision' => 1,
 	);
 
@@ -708,7 +708,7 @@ Download an IronWorker code package.
 =item Params: code package id. Code package must exist. If not, fails with an exception.
 subparam: revision.
 
-=item Return: (list) the code package zipped (as it was uploaded), code package file name.
+=item Return: (list) the code package zipped (as it was uploaded), code package file name (with "_[1|later].zip" suffix).
 
 =item Exception: IronHTTPCallException if fails. (IronHTTPCallException: status_code=<HTTP status code> response_message=<response_message>)
 
