@@ -16,6 +16,8 @@ BEGIN {
 END {
 }
 
+=for stopwords IronWorker API Mikko Koivunalho perldoc CPAN AnnoCPAN ACKNOWLEDGMENTS TODO tradename licensable MERCHANTABILITY
+
 =head1 NAME
 
 IO::Iron::IronWorker::Api - IronWorker API reference for Perl Client Libraries!
@@ -47,7 +49,7 @@ This package is for internal use of IO::Iron::IronWorker::Client/Queue packages.
 sub IRONWORKER_LIST_CODE_PACKAGES {
 	return {
 			'action_name'    => 'IRONWORKER_LIST_CODE_PACKAGES',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/codes',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/codes',
 			'action'         => 'GET',
 			'return'         => 'LIST:codes',
 			'retry'          => 0,
@@ -68,7 +70,7 @@ sub IRONWORKER_LIST_CODE_PACKAGES {
 sub IRONWORKER_UPLOAD_OR_UPDATE_A_CODE_PACKAGE {
 	return {
 			'action_name'    => 'IRONWORKER_UPLOAD_OR_UPDATE_A_CODE_PACKAGE',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/codes',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/codes',
 			'action'         => 'POST',
 			'return'         => 'HASH',
 			'retry'          => 1,
@@ -89,7 +91,7 @@ sub IRONWORKER_UPLOAD_OR_UPDATE_A_CODE_PACKAGE {
 sub IRONWORKER_GET_INFO_ABOUT_A_CODE_PACKAGE {
 	return {
 			'action_name'    => 'IRONWORKER_GET_INFO_ABOUT_A_CODE_PACKAGE',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/codes/{Code ID}',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/codes/{Code ID}',
 			'action'         => 'GET',
 			'return'         => 'HASH',
 			'retry'          => 1,
@@ -108,7 +110,7 @@ sub IRONWORKER_GET_INFO_ABOUT_A_CODE_PACKAGE {
 sub IRONWORKER_DELETE_A_CODE_PACKAGE {
 	return {
 			'action_name'  => 'IRONWORKER_DELETE_A_CODE_PACKAGE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/codes/{Code ID}',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/codes/{Code ID}',
 			'action'       => 'DELETE',
 			'return'       => 'MESSAGE',
 			'retry'        => 1,
@@ -127,7 +129,7 @@ sub IRONWORKER_DELETE_A_CODE_PACKAGE {
 sub IRONWORKER_DOWNLOAD_A_CODE_PACKAGE {
 	return {
 			'action_name'    => 'IRONWORKER_DOWNLOAD_A_CODE_PACKAGE',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/codes/{Code ID}/download',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/codes/{Code ID}/download',
 			'action'         => 'GET',
 			'return'         => 'BINARY',
 			'retry'          => 1,
@@ -147,7 +149,7 @@ sub IRONWORKER_DOWNLOAD_A_CODE_PACKAGE {
 sub IRONWORKER_LIST_CODE_PACKAGE_REVISIONS {
 	return {
 			'action_name'    => 'IRONWORKER_LIST_CODE_PACKAGE_REVISIONS',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/codes/{Code ID}/revisions',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/codes/{Code ID}/revisions',
 			'action'         => 'GET',
 			'return'         => 'LIST:revisions',
 			'retry'          => 1,
@@ -170,7 +172,7 @@ sub IRONWORKER_LIST_CODE_PACKAGE_REVISIONS {
 sub IRONWORKER_LIST_TASKS {
 	return {
 			'action_name'    => 'IRONWORKER_LIST_TASKS',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/tasks',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/tasks',
 			'action'         => 'GET',
 			'return'         => 'LIST:tasks',
 			'retry'          => 1,
@@ -192,7 +194,7 @@ sub IRONWORKER_LIST_TASKS {
 sub IRONWORKER_QUEUE_A_TASK {
 	return {
 			'action_name'    => 'IRONWORKER_QUEUE_A_TASK',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/tasks',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/tasks',
 			'action'         => 'POST',
 			'return'         => 'HASH',
 			'retry'          => 1,
@@ -212,7 +214,7 @@ sub IRONWORKER_QUEUE_A_TASK {
 sub IRONWORKER_QUEUE_A_TASK_FROM_A_WEBHOOK {
 	return {
 			'action_name'    => 'IRONWORKER_QUEUE_A_TASK_FROM_A_WEBHOOK',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/tasks/webhook',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/tasks/webhook',
 			'action'         => 'POST',
 			'return'         => 'HASH',
 			'retry'          => 1,
@@ -234,7 +236,7 @@ sub IRONWORKER_QUEUE_A_TASK_FROM_A_WEBHOOK {
 sub IRONWORKER_GET_INFO_ABOUT_A_TASK {
 	return {
 			'action_name'    => 'IRONWORKER_GET_INFO_ABOUT_A_TASK',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/tasks/{Task ID}',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/tasks/{Task ID}',
 			'action'         => 'GET',
 			'return'         => 'HASH',
 			'retry'          => 1,
@@ -253,7 +255,7 @@ sub IRONWORKER_GET_INFO_ABOUT_A_TASK {
 sub IRONWORKER_GET_A_TASKS_LOG {
 	return {
 			'action_name'    => 'IRONWORKER_GET_A_TASKS_LOG',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/tasks/{Task ID}/log',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/tasks/{Task ID}/log',
 			'action'         => 'GET',
 			'return'         => 'PLAIN_TEXT',
 			'retry'          => 1,
@@ -272,7 +274,7 @@ sub IRONWORKER_GET_A_TASKS_LOG {
 sub IRONWORKER_CANCEL_A_TASK {
 	return {
 			'action_name'    => 'IRONWORKER_CANCEL_A_TASK',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/tasks/{Task ID}/cancel',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/tasks/{Task ID}/cancel',
 			'action'         => 'POST',
 			'return'         => 'MESSAGE',
 			'retry'          => 1,
@@ -291,7 +293,7 @@ sub IRONWORKER_CANCEL_A_TASK {
 sub IRONWORKER_SET_A_TASKS_PROGRESS {
 	return {
 			'action_name'    => 'IRONWORKER_SET_A_TASKS_PROGRESS',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/tasks/{Task ID}/progress',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/tasks/{Task ID}/progress',
 			'action'         => 'POST',
 			'return'         => 'MESSAGE',
 			'retry'          => 1,
@@ -311,7 +313,7 @@ sub IRONWORKER_SET_A_TASKS_PROGRESS {
 sub IRONWORKER_RETRY_A_TASK {
 	return {
 			'action_name'    => 'IRONWORKER_RETRY_A_TASK',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/tasks/{Task ID}/retry',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/tasks/{Task ID}/retry',
 			'action'         => 'POST',
 			'return'         => 'MESSAGE',
 			'retry'          => 1,
@@ -333,7 +335,7 @@ sub IRONWORKER_RETRY_A_TASK {
 sub IRONWORKER_LIST_SCHEDULED_TASKS {
 	return {
 			'action_name'    => 'IRONWORKER_LIST_SCHEDULED_TASKS',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/schedules',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/schedules',
 			'action'         => 'GET',
 			'return'         => 'LIST:schedules',
 			'retry'          => 1,
@@ -354,7 +356,7 @@ sub IRONWORKER_LIST_SCHEDULED_TASKS {
 sub IRONWORKER_SCHEDULE_A_TASK {
 	return {
 			'action_name'    => 'IRONWORKER_SCHEDULE_A_TASK',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/schedules',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/schedules',
 			'action'         => 'POST',
 			'return'         => 'HASH',
 			'retry'          => 1,
@@ -374,7 +376,7 @@ sub IRONWORKER_SCHEDULE_A_TASK {
 sub IRONWORKER_GET_INFO_ABOUT_A_SCHEDULED_TASK {
 	return {
 			'action_name'    => 'IRONWORKER_GET_INFO_ABOUT_A_SCHEDULED_TASK',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/schedules/{Schedule ID}',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/schedules/{Schedule ID}',
 			'action'         => 'GET',
 			'return'         => 'HASH',
 			'retry'          => 1,
@@ -393,7 +395,7 @@ sub IRONWORKER_GET_INFO_ABOUT_A_SCHEDULED_TASK {
 sub IRONWORKER_CANCEL_A_SCHEDULED_TASK {
 	return {
 			'action_name'    => 'IRONWORKER_CANCEL_A_SCHEDULED_TASK',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/schedules/{Schedule ID}/cancel',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/schedules/{Schedule ID}/cancel',
 			'action'         => 'POST',
 			'return'         => 'MESSAGE',
 			'retry'          => 1,

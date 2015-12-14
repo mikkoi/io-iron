@@ -18,6 +18,12 @@ BEGIN {
 END {
 }
 
+=for stopwords IronWorker multi API scalability HTTPS optimized params msg perl
+
+=for stopwords recognized stringified JSON STDOUT IronHTTPCallException Params runtime config subparam
+
+=for stopwords Mikko Koivunalho perldoc CPAN AnnoCPAN ACKNOWLEDGMENTS tradename licensable MERCHANTABILITY 
+ 
 =head1 NAME
 
 IO::Iron::IronWorker::Client - IronWorker (Online Worker Platform) Client.
@@ -180,6 +186,11 @@ require IO::Iron::IronWorker::Task;
 # CONSTANTS for this package
 
 # DEFAULTS
+use Const::Fast;
+
+# Service specific!
+const my $DEFAULT_API_VERSION => '2';
+const my $DEFAULT_HOST => 'worker-aws-us-east-1.iron.io';
 
 
 =head1 DESCRIPTION
@@ -490,17 +501,16 @@ sub new {
 	my $connection = IO::Iron::Connection->new( {
 		'project_id' => $config->{'project_id'},
 		'token' => $config->{'token'},
-		'host' => $config->{'host'},
+		'host' => defined $config->{'host'} ? $config->{'host'} : $DEFAULT_HOST,
 		'protocol' => $config->{'protocol'},
 		'port' => $config->{'port'},
-		'api_version' => $config->{'api_version'},
-		'host_path_prefix' => $config->{'host_path_prefix'},
+		'api_version' => defined $config->{'api_version'} ? $config->{'api_version'} : $DEFAULT_API_VERSION,
 		'timeout' => $config->{'timeout'},
 		'connector' => $params{'connector'},
 		}
 	);
 	$self->{'connection'} = $connection;
-	$log->debugf('IronWorker Connection created with config: (project_id=%s; token=%s; host=%s; timeout=%s).', $config->{'project_id'}, $config->{'token'}, $config->{'host'}, $config->{'timeout'});
+	$log->debugf('IronWorker Client created with config: (project_id=%s; token=%s; host=%s; timeout=%s).', $config->{'project_id'}, $config->{'token'}, $config->{'host'}, $config->{'timeout'});
 	$log->tracef('Exiting new: %s', $self);
 	return $self;
 }
@@ -1109,7 +1119,7 @@ sub schedule {
 		);
 	$self->{'last_http_status_code'} = $http_status_code;
 
-	my ( @ids, $msg );
+	my ( @ids, $msg ); ## no critic (Variables::ProhibitUnusedVariables)
 	my @ret_tasks = ( @{ $response_message->{'schedules'} } );    # scheduled tasks.
 	foreach my $task (@{$params{'tasks'}}) {
 		my $task_info = shift @ret_tasks;
