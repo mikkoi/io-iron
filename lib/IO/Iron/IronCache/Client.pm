@@ -88,7 +88,7 @@ require IO::Iron::IronCache::Cache;
 use Const::Fast;
 
 # Service specific!
-const my $DEFAULT_API_VERSION => '2';
+const my $DEFAULT_API_VERSION => '1';
 const my $DEFAULT_HOST => 'cache-aws-us-east-1.iron.io';
 
 
