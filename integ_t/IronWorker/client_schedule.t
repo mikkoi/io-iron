@@ -5,7 +5,6 @@ use warnings FATAL => 'all';
 use Test::More;
 use Test::Exception;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
-use File::Slurp;
 
 use lib 't';
 use lib 'integ_t';
