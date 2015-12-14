@@ -8,7 +8,7 @@ use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 
 use lib 't';
 use lib 'integ_t';
-require 'iron_io_integ_tests_common.pl';
+use IronTestsCommon;
 
 plan tests => 6;
 
@@ -16,18 +16,19 @@ require IO::Iron::IronWorker::Client;
 
 #use Log::Any::Adapter ('Stderr');    # Activate to get all log messages.
 use Data::Dumper;
-$Data::Dumper::Maxdepth = 4;
+$Data::Dumper::Maxdepth = 4; ## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
 
 diag("Testing IO::Iron::IronWorker::Client, Perl $], $^X");
 
 ## Test case
 diag('Testing IO::Iron::IronWorker::Client');
 
-my $worker_as_string_rev_01 = <<EOF;
+my $worker_as_string_rev_01 = <<'EOF';
 #!/bin/sh
 sleep 3
 echo "Hello, World!"
 EOF
+
 my $worker_as_zip_rev_01;
 
 my $iron_worker_client;
@@ -42,7 +43,7 @@ subtest 'Setup for testing' => sub {
 	  IO::Iron::IronWorker::Client->new( 'config' => 'iron_worker.json', );
 
 	# Create a new code package name.
-	$unique_code_package_name_01    = create_unique_code_package_name();
+	$unique_code_package_name_01    = IronTestsCommon::create_unique_code_package_name();
 	$unique_code_executable_name_01 = $unique_code_package_name_01 . '.sh';
 
 	my $zip           = Archive::Zip->new();
@@ -54,8 +55,8 @@ subtest 'Setup for testing' => sub {
 	use IO::String;
 	my $io = IO::String->new($worker_as_zip_rev_01);
 	{
-		no warnings 'once';
-		tie *IO, 'IO::String';
+		no warnings 'once'; ## no critic (TestingAndDebugging::ProhibitNoWarnings)
+		tie *IO, 'IO::String'; ## no critic (Miscellanea::ProhibitTies)
 	}
 	$zip->writeToFileHandle($io);
 
@@ -67,7 +68,6 @@ subtest 'Setup for testing' => sub {
 	diag('Compressed two versions of the worker with zip.');
 };
 
-my @send_message_ids;
 subtest 'Upload worker' => sub {
 	plan tests => 1;
 
@@ -99,7 +99,7 @@ subtest 'confirm worker upload' => sub {
 	}
 	isnt( $code_package_id, undef, 'Code package ID retrieved.' );
 
-	diag("Code package rev 1 upload confirmed.");
+	diag('Code package rev 1 upload confirmed.');
 };
 
 subtest
@@ -143,7 +143,7 @@ subtest
 	# Task scheduled
 	my $task_01_info =
 	  $iron_worker_client->get_info_about_scheduled_task( 'id' => $task_01_id );
-	is( $task_01_info->{'id'},     $task_01_id );
+	is( $task_01_info->{'id'}, $task_01_id, 'Scheduled task id matches.' );
 	is( $task_01_info->{'status'}, 'scheduled', 'Task is scheduled.' );
 
 	# list scheduled tasks
@@ -163,14 +163,14 @@ subtest
 	$task_01_info =
 	  $iron_worker_client->get_info_about_scheduled_task( 'id' => $task_01_id );
 	is( $task_01_info->{'status'}, 'cancelled', 'Scheduled task is cancelled.' );
-	diag("Scheduled task 1 is cancelled.");
+	diag('Scheduled task 1 is cancelled.');
 	$task_02->cancel_scheduled();
   };
 
 subtest 'Get task results, set progress' => sub {
 	plan tests => 3;
 
-	my ( $downloaded, $file_name ) = 
+	my ( $downloaded, $file_name ) =
 		$iron_worker_client->download_code_package(
 			'id'       => $code_package_id,
 			'revision' => 1,
@@ -183,13 +183,10 @@ subtest 'Get task results, set progress' => sub {
 		( $unique_code_package_name_01 . '_1.zip' ),
 		'Code package file name matches the original with "_1.zip" suffix.'
 	);
+    # Needless to compare unzipped package with the original.
+    # If zipped packages/strings match, the original is intact!
 
-	my $downloaded_unzipped;
-	my $zip = Archive::Zip->new();
-
-	is( 1, 1, 'needless' );
-
-	diag("First release downloaded.");
+	diag('First release downloaded.');
 };
 
 subtest 'Clean up.' => sub {
@@ -209,11 +206,12 @@ subtest 'Clean up.' => sub {
 	}
 	is( $found, undef, 'Code package not exists. Delete confirmed.' );
 
-	diag("Code package deleted.");
+	diag('Code package deleted.');
 };
 
 END {
-	diag("Activating END sequence.");
+	diag('Activating END sequence.');
+	diag('Ensure that the package is deleted even if test aborted.');
 	$iron_worker_client->delete_code_package( 'id' => $code_package_id );
 }
 
