@@ -10,8 +10,6 @@ use lib 't';
 use lib 'integ_t';
 use IronTestsCommon;
 
-plan tests => 6;
-
 require IO::Iron::IronWorker::Client;
 
 #use Log::Any::Adapter ('Stderr');    # Activate to get all log messages.
@@ -36,7 +34,6 @@ my $unique_code_package_name_01;
 my $unique_code_executable_name_01;
 my $code_package_id;
 subtest 'Setup for testing' => sub {
-	plan tests => 1;
 
 	# Create an IronWorker client.
 	$iron_worker_client =
@@ -66,10 +63,10 @@ subtest 'Setup for testing' => sub {
 		'Compressed does not match with uncompressed.'
 	);
 	diag('Compressed two versions of the worker with zip.');
+    done_testing();
 };
 
 subtest 'Upload worker' => sub {
-	plan tests => 1;
 
 	# Upload
 	my $uploaded_code_id;
@@ -84,10 +81,10 @@ subtest 'Upload worker' => sub {
 	isnt( $uploaded_code_id, undef, 'Code package uploaded.' );
 
 	diag("Code package \'$unique_code_package_name_01\' rev 1 uploaded.");
+    done_testing();
 };
 
 subtest 'confirm worker upload' => sub {
-	plan tests => 1;
 
 	# And confirm the upload...
 	my @code_packages = $iron_worker_client->list_code_packages();
@@ -100,12 +97,12 @@ subtest 'confirm worker upload' => sub {
 	isnt( $code_package_id, undef, 'Code package ID retrieved.' );
 
 	diag('Code package rev 1 upload confirmed.');
+    done_testing();
 };
 
 subtest
 'Queue a task, confirm the creation, cancel it, retry, wait until finished, confirm log'
   => sub {
-	plan tests => 8;
 
 	# queue_task
 	my $payload_01 =
@@ -165,10 +162,11 @@ subtest
 	is( $task_01_info->{'status'}, 'cancelled', 'Scheduled task is cancelled.' );
 	diag('Scheduled task 1 is cancelled.');
 	$task_02->cancel_scheduled();
-  };
+
+    done_testing();
+};
 
 subtest 'Get task results, set progress' => sub {
-	plan tests => 3;
 
 	my ( $downloaded, $file_name ) =
 		$iron_worker_client->download_code_package(
@@ -187,10 +185,10 @@ subtest 'Get task results, set progress' => sub {
     # If zipped packages/strings match, the original is intact!
 
 	diag('First release downloaded.');
+    done_testing();
 };
 
 subtest 'Clean up.' => sub {
-	plan tests => 2;
 
 	my $deleted =
 	  $iron_worker_client->delete_code_package( 'id' => $code_package_id );
@@ -207,6 +205,7 @@ subtest 'Clean up.' => sub {
 	is( $found, undef, 'Code package not exists. Delete confirmed.' );
 
 	diag('Code package deleted.');
+    done_testing();
 };
 
 END {
@@ -214,4 +213,6 @@ END {
 	diag('Ensure that the package is deleted even if test aborted.');
 	$iron_worker_client->delete_code_package( 'id' => $code_package_id );
 }
+
+done_testing();
 
