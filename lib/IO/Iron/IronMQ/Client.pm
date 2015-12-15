@@ -2,6 +2,8 @@ package IO::Iron::IronMQ::Client;
 
 ## no critic (Documentation::RequirePodAtEnd)
 ## no critic (Documentation::RequirePodSections)
+## no critic (ControlStructures::ProhibitPostfixControls)
+## no critic (Subroutines::RequireArgUnpacking)
 
 use 5.010_000;
 use strict;
@@ -15,6 +17,16 @@ BEGIN {
 # Global destructor
 END {
 }
+
+=for stopwords IronMQ API HTTPS optimized OAuth https config Config filename
+
+=for stopwords json dir successfull serialized JSON Storable YAML stringify
+
+=for stopwords unreserves IronHTTPCallException Params io succcessful
+
+=for stopwords Mikko Koivunalho perldoc CPAN AnnoCPAN ACKNOWLEDGMENTS
+
+=for stopwords TODO semafores tradename licensable MERCHANTABILITY
 
 =head1 NAME
 
@@ -69,6 +81,11 @@ require IO::Iron::IronMQ::Queue;
 # CONSTANTS for this package
 
 # DEFAULTS
+use Const::Fast;
+
+# Service specific!
+const my $DEFAULT_API_VERSION => '1';
+const my $DEFAULT_HOST => 'mq-rackspace-lon.iron.io';
 
 
 =head1 DESCRIPTION
@@ -113,17 +130,15 @@ The following parameters can be given to new() as items in the first parameter w
 
 =item api_version,       The version of the API to connect through. Defaults to the version supported by the client.
 
-=item host_path_prefix,  Path prefix to the RESTful url. Defaults to '/1'. Used with non-standard clouds/emergency service back up addresses.
-
 =item timeout,           REST client timeout (for REST calls accessing IronMQ.)
 
 =item config,            Config filename with path if required.
 
 =back
 
-You can also give the parameters in the config file '.iron.json'
+You can also give the parameters in the config file F<.iron.json>
 (in home dir) or 
-'iron.json' (in current dir) or as environmental variables. Please read 
+F<iron.json> (in current dir) or as environmental variables. Please read 
 L<http://dev.iron.io/mq/reference/configuration/|http://dev.iron.io/mq/reference/configuration/>
 for further details.
 
