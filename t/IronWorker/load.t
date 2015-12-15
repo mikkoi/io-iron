@@ -39,13 +39,7 @@ BEGIN {
 
 #use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
 
-diag("Testing IO::Iron::IronWorker $IO::Iron::IronWorker::Client::VERSION, Perl $], $^X");
-
-#if(! -e File::Spec->catfile(File::HomeDir->my_home, '.iron.json') 
-#		&& ! defined $ENV{'IRON_PROJECT_ID'}
-#		&& ! -e File::Spec->catfile(File::Spec->curdir(), 'iron.json')) {
-#	BAIL_OUT("NO IRON.IO CONFIGURATION FILE OR ENV VARIABLE IN PLACE! CANNOT CONTINUE!");
-#}
-
-###BAIL_OUT("STOP TESTING HERE!");
+diag('Testing IO::Iron::IronCache::Client '
+   . ($IO::Iron::IronWorker::Client::VERSION ? "($IO::Iron::IronWorker::Client::VERSION)" : '(no version)')
+   . ", Perl $], $^X");
 

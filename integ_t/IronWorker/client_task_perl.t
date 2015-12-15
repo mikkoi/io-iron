@@ -1,30 +1,49 @@
 #!perl -T
+
+## no critic (ControlStructures::ProhibitUntilBlocks)
+
 use 5.006;
 use strict;
 use warnings FATAL => 'all';
 use Test::More;
 use Test::Exception;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
+use Path::Tiny;
 use lib 't';
 use lib 'integ_t';
 use IronTestsCommon;
 
 require IO::Iron::IronWorker::Client;
 
+use Const::Fast;
+const my $SLEEP_SHORT => 1;
+const my $SLEEP_LONG  => 3;
+const my $HRS_PER_DAY => 24;
+const my $MIN_PER_HR  => 60;
+const my $SEC_PER_MIN => 60;
+
 #use Log::Any::Adapter ('Stderr');    # Activate to get all log messages.
-use Data::Dumper;
-$Data::Dumper::Maxdepth = 4;
-diag( "Testing IO::Iron::IronWorker::Client, Perl $], $^X" );
+
+diag(
+    'Testing IO::Iron::IronWorker::Client '
+      . (
+        $IO::Iron::IronWorker::Client::VERSION
+        ? "($IO::Iron::IronWorker::Client::VERSION)"
+        : '(no version)'
+      )
+      . ", Perl $], $^X"
+);
+
 ## Test case
 
 my $worker_as_string_rev_01 = <<'EOF';
 #!/usr/bin/env perl
 use 5.010; use strict; use warnings;
-my %args = \@ARGV;
-print qq{Hello, World!\\n};
-print qq{ARGV values:\\n};
-foreach my \$arg_key (keys %args) {
-	print \$arg_key . q{ IS } . qq{\$args{\$arg_key}\\n};
+my %args = @ARGV;
+print qq{Hello, World!\n};
+print qq{ARGV values:\n};
+foreach my $arg_key (keys %args) {
+	print $arg_key . q{ IS } . qq{$args{$arg_key}\n};
 }
 EOF
 #\$args{'arg1'} = 'arg1_content';
@@ -50,7 +69,7 @@ subtest 'Setup for testing' => sub {
 
 	# Pack wrapper into archive, rename into unique string
 	my $perl_sh_wrapper_as_string;
-	File::Slurp::read_file('integ_t/IronWorker/perl_sh_wrapper.sh', buf_ref => \$perl_sh_wrapper_as_string);
+	$perl_sh_wrapper_as_string = path('integ_t/IronWorker/perl_sh_wrapper.sh')->slurp_utf8;
 	{
 		my $string_member = $zip->addString( $perl_sh_wrapper_as_string, $unique_code_executable_name_01 );
 		$string_member->desiredCompressionMethod(COMPRESSION_DEFLATED);
@@ -101,8 +120,6 @@ subtest 'confirm worker upload' => sub {
 	isnt( $code_package_id, undef, 'Code package ID retrieved.' );
 	diag('Code package rev 1 upload confirmed.');
 
-
-
 	diag('Download and check...');
 	my ($downloaded, $file_name) = $iron_worker_client->download_code_package(
 		'id' => $code_package_id,
@@ -113,7 +130,7 @@ subtest 'confirm worker upload' => sub {
 	is($file_name, ($unique_code_package_name_01 . '_1.zip'), 'Code package file name matches the original with "_1.zip" suffix.');
 
 	my $io = IO::String->new($zipped_contents);
-	tie *IO, 'IO::String';
+	tie *IO, 'IO::String'; ## no critic (Miscellanea::ProhibitTies)
 	my $zip = Archive::Zip->new();
 	$zip->readFromFileHandle($io);
 	my $downloaded_unzipped = $zip->contents($unique_code_executable_name_01);
@@ -144,9 +161,9 @@ subtest 'Queue a task, confirm the creation, wait until finished, confirm log' =
 	is( $task_info->{'id'}, $task_id, 'Task id matches with task id from get_info_about_task().' );
 	diag('Wait for task completion.');
 
-	until ( $task_info->{'status'} =~ /(complete|error|killed|timeout)/ ) {
-		diag('Sleep 3 secs; query status again...');
-		sleep 3;
+	until ( $task_info->{'status'} =~ m/(?:complete|error|killed|timeout)/msx ) {
+		diag("Sleep $SLEEP_LONG secs; query status again...");
+		sleep $SLEEP_LONG;
 		diag( 'Status:' . $task_info->{'status'} );
 		$task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
 	}
@@ -154,7 +171,7 @@ subtest 'Queue a task, confirm the creation, wait until finished, confirm log' =
 	diag( 'Status:' . $task_info->{'status'} );
 	my $task_log = $task->log();
 	diag( 'Task log:' . $task_log );
-	my $first_row_of_log = (split qq{\n}, $task_log)[0] . "\n" . (split qq{\n}, $task_log)[1];
+	my $first_row_of_log = (split m/\n/msx, $task_log)[0] . "\n" . (split m/\n/msx, $task_log)[1];
 	is( $first_row_of_log, "Hello, World!\nARGV values:", 'Task log matches.' );
 };
 
@@ -185,10 +202,10 @@ subtest 'Queue a task, confirm the creation, cancel it, retry, set progress, wai
 	diag('Task is cancelled.');
 
 	# retry task
-	my $delay = 3;
+	my $delay = $SLEEP_LONG;
 	$delay += 0; # To double secure it is a number and JSON will treat it as a number!
 	my $new_task_id = $task->retry( 'delay' => $delay );
-	diag('Task is retried after 3 seconds.');
+	diag("Task is retried after $SLEEP_LONG seconds.");
 	diag('Wait for task completion.');
 	$task_id = $task->id();    # New task id after retry().
 	is( $new_task_id, $task_id, 'Task got a new id. Same as what retry() returned.' );
@@ -196,9 +213,9 @@ subtest 'Queue a task, confirm the creation, cancel it, retry, set progress, wai
 
 	# set progress
 	$task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
-	until ( $task_info->{'status'} =~ /(complete|error|killed|timeout)/ ) {
-		diag('Sleep 1 sec; query status again...');
-		sleep 1;
+	until ( $task_info->{'status'} =~ m/(?:complete|error|killed|timeout)/msx ) {
+		diag("Sleep $SLEEP_SHORT sec; query status again...");
+		sleep $SLEEP_SHORT;
 		diag( 'Status:' . $task_info->{'status'} );
 		$task->set_progress( 'percent' => 10, 'msg' => 'One tenth done.' );
 		$task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
@@ -211,19 +228,19 @@ subtest 'Queue a task, confirm the creation, cancel it, retry, set progress, wai
 	is( $task_info->{'msg'}, 'All done.', 'Progress message matches.' );
 	my $task_log = $task->log();
 	diag( 'Task log:' . $task_log );
-	my $first_row_of_log = (split qq{\n}, $task_log)[0] . "\n" . (split qq{\n}, $task_log)[1];
+	my $first_row_of_log = (split m/\n/msx, $task_log)[0] . "\n" . (split m/\n/msx, $task_log)[1];
 	is( $first_row_of_log, "Hello, World!\nARGV values:", 'Task log matches.' );
 
 	# list_tasks
 	my $found;
-	my $from_time = time - ( 24 * 60 * 60 );
-	my $to_time   = time - ( 1 * 60 * 60 );
+	my $from_time = time - ( $HRS_PER_DAY * $MIN_PER_HR * $SEC_PER_MIN );
+	my $to_time   = time - ( 1 * $MIN_PER_HR * $SEC_PER_MIN );
 	my @tasks = $iron_worker_client->tasks(
 		'code_name' => $unique_code_package_name_01,
 		'complete'  => 1,
 
-		#'from_time' => $from_time,
-		#'to_time' => $to_time,
+		##'from_time' => $from_time,
+      ##'to_time' => $to_time,
 	);
 	diag( 'Found ' . scalar @tasks . ' tasks.' );
 	foreach (@tasks) {
@@ -232,7 +249,8 @@ subtest 'Queue a task, confirm the creation, cancel it, retry, set progress, wai
 			last;
 		}
 	}
-	isnt( $found, undef, 'Code package ID retrieved.' );
+	isnt( $found, undef, 'Task ID retrieved.' );
+   diag( "Task ID $found found among all tasks." );
 };
 
 subtest 'Clean up.' => sub {

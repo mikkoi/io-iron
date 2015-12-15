@@ -9,8 +9,6 @@ require IO::Iron::IronMQ::Client;
 require IO::Iron::IronMQ::Queue;
 require IO::Iron::IronMQ::Message;
 
-plan tests => 36;
-
 BEGIN {
 	use_ok('IO::Iron::IronMQ::Client') || print "Bail out!\n";
 	can_ok('IO::Iron::IronMQ::Client', 'new');
@@ -56,13 +54,15 @@ BEGIN {
 
 #use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
 
-diag("Testing IO::Iron::IronMQ $IO::Iron::IronMQ::Client::VERSION, Perl $], $^X");
+diag(
+    'Testing IO::Iron::IronMQ::Client '
+      . (
+        $IO::Iron::IronMQ::Client::VERSION
+        ? "($IO::Iron::IronMQ::Client::VERSION)"
+        : '(no version)'
+      )
+      . ", Perl $], $^X"
+);
 
-#if(! -e File::Spec->catfile(File::HomeDir->my_home, '.iron.json') 
-#		&& ! defined $ENV{'IRON_PROJECT_ID'}
-#		&& ! -e File::Spec->catfile(File::Spec->curdir(), 'iron.json')) {
-#	BAIL_OUT("NO IRONMQ CONFIGURATION FILE OR ENV VARIABLE IN PLACE! CANNOT CONTINUE!");
-#}
-
-###BAIL_OUT("STOP TESTING HERE!");
+done_testing();
 

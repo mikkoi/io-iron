@@ -45,7 +45,7 @@ BEGIN {
 
 #use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
 
-diag('Testing IO::Iron::IronCache '
-   . ($IO::Iron::IronCache::VERSION ? "($IO::Iron::IronCache::VERSION)" : '(no version)')
+diag('Testing IO::Iron::IronCache::Client '
+   . ($IO::Iron::IronCache::Client::VERSION ? "($IO::Iron::IronCache::Client::VERSION)" : '(no version)')
    . ", Perl $], $^X");
 
