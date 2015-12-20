@@ -5,7 +5,7 @@ package IO::Iron::IronMQ::Message;
 
 use 5.010_000;
 use strict;
-use warnings FATAL => 'all';
+use warnings;
 
 # Global creator
 BEGIN {

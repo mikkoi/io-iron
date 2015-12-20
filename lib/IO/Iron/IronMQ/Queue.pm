@@ -6,7 +6,7 @@ package IO::Iron::IronMQ::Queue;
 
 use 5.010_000;
 use strict;
-use warnings FATAL => 'all';
+use warnings;
 
 # Global creator
 BEGIN {
