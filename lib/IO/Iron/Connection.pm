@@ -72,7 +72,6 @@ sub new {
 			'protocol',      # The protocol that will be used to communicate with the API. Defaults to "https", which should be sufficient for 99% of users.
 			'port',          # The port to connect to the API through. Defaults to 443, which should be sufficient for 99% of users.
 			'api_version',   # The version of the API to connect through. Defaults to the version supported by the client. End-users should probably never change this. Except: IronMQ service upgraded from v2 to v3 in 2015!
-			# 'host_path_prefix', # Path prefix to the RESTful url. Defaults to '/1'. Used with non-standard clouds/emergency service back up addresses.
 			'timeout',       # REST client timeout (for REST calls accessing Iron services)
 			'connector',     # Reference to the object which does the actual REST client calls, or mocks them.
 	);
@@ -84,7 +83,6 @@ sub new {
 	$self->{'protocol'} = defined $params->{'protocol'} ? $params->{'protocol'} : $DEFAULT_PROTOCOL;
 	$self->{'port'} = defined $params->{'port'} ? $params->{'port'} : $DEFAULT_PORT;
 	$self->{'api_version'} = defined $params->{'api_version'} ? $params->{'api_version'} : undef;
-	# $self->{'host_path_prefix'} = defined $params->{'host_path_prefix'} ? $params->{'host_path_prefix'} : undef;
 	$self->{'timeout'} = defined $params->{'timeout'} ? $params->{'timeout'} : $DEFAULT_TIMEOUT;
 	# Set up the connector object.
 	if(defined $params->{'connector'}) {
@@ -142,7 +140,6 @@ sub perform_iron_action {
 	$params->{'{Port}'} = $self->{'port'};
 	$params->{'{Host}'} = $self->{'host'};
 	$params->{'{Project ID}'} = $self->{'project_id'};
-	# $params->{'{Host Path Prefix}'} = $self->{'host_path_prefix'};
 	$params->{'{API Version}'} = $self->{'api_version'};
 	$params->{'authorization_token'} = $self->{'token'};
 	$params->{'http_client_timeout'} = $self->{'timeout'};

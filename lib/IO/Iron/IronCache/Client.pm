@@ -323,7 +323,6 @@ sub new {
 		'protocol' => $config->{'protocol'},
 		'port' => $config->{'port'},
 		'api_version' => defined $config->{'api_version'} ? $config->{'api_version'} : $DEFAULT_API_VERSION,
-		# 'host_path_prefix' => $config->{'host_path_prefix'},
 		'timeout' => $config->{'timeout'},
 		'connector' => $params{'connector'},
 		}

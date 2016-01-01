@@ -22,7 +22,7 @@ END {
 
 =for stopwords json dir successfull serialized JSON Storable YAML stringify
 
-=for stopwords unreserves IronHTTPCallException Params io succcessful
+=for stopwords unreserves IronHTTPCallException Params succcessful
 
 =for stopwords Mikko Koivunalho perldoc CPAN AnnoCPAN ACKNOWLEDGMENTS
 
@@ -470,11 +470,10 @@ sub new {
 	my $connection = IO::Iron::Connection->new( {
 		'project_id' => $config->{'project_id'},
 		'token' => $config->{'token'},
-		'host' => $config->{'host'},
+		'host' => defined $config->{'host'} ? $config->{'host'} : $DEFAULT_HOST,
 		'protocol' => $config->{'protocol'},
 		'port' => $config->{'port'},
-		'api_version' => $config->{'api_version'},
-		'host_path_prefix' => $config->{'host_path_prefix'},
+		'api_version' => defined $config->{'api_version'} ? $config->{'api_version'} : $DEFAULT_API_VERSION,
 		'timeout' => $config->{'timeout'},
 		'connector' => $params{'connector'},
 		}

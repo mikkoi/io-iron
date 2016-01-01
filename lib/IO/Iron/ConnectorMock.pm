@@ -156,7 +156,7 @@ sub perform_iron_action { ## no critic (Subroutines::ProhibitExcessComplexity)
             assert_nonblank( $params->{'{Port}'}, 'params->{Port} is defined and not blank.' );
             assert_nonblank( $params->{'{Host}'}, 'params->{Host} is defined and not blank.' );
             assert_nonblank( $params->{'{Project ID}'}, 'params->{Project ID} is defined and not blank.' );
-            assert_nonblank( $params->{'{Host Path Prefix}'}, 'params->{Host Path Prefix} is defined and not blank.' );
+            assert_nonblank( $params->{'{API Version}'}, 'params->{API Version} is defined and not blank.' );
             assert_nonblank( $params->{'authorization_token'}, 'params->{authorization_token} is defined and not blank.' );
             assert_nonblank( $params->{'http_client_timeout'}, 'params->{http_client_timeout} is defined and not blank.' );
             my $url_escape_these_fields = defined $iron_action->{'url_escape'} ? $iron_action->{'url_escape'} : {};

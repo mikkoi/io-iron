@@ -1,13 +1,15 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+   Remove the config item Host Path Prefix, use instead API Version.
+   Set Defaults to all clients: DEFAULT_API_VERSION, DEFAULT_HOST.
 
 0.11      2014-09-22 03:28:07+03:00 Europe/Helsinki
-	Removed release tests from t/.
+   Removed release tests from t/.
 
 0.10      2014-08-26 03:04:14+03:00 Europe/Helsinki
-        Added a new feature: Policies.
-        Released together with package IO-Iron-Application.
+   Added a new feature: Policies.
+   Released together with package IO-Iron-Application.
 
 0.09      2014-04-19 09:52:47+03:00 Europe/Helsinki
 	Renamed integ_t/common.pm to avoid naming conflict.

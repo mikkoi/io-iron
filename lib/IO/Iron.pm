@@ -158,8 +158,6 @@ parameters. See section L<SYNOPSIS|/#SYNOPSIS> for an example.
 
 =item C<api_version>,       The version of the API to connect through. Defaults to the version supported by the client.
 
-=item C<host_path_prefix>,  Path prefix to the RESTful url. Defaults to '/1'. Used with non-standard clouds/emergency service back up addresses.
-
 =item C<timeout>,           REST client timeout (for REST calls accessing IronMQ.)
 
 =item C<config>,            Config filename with path if required.

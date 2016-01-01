@@ -16,6 +16,8 @@ BEGIN {
 END {
 }
 
+=for stopwords IronMQ API Mikko Koivunalho perldoc CPAN AnnoCPAN ACKNOWLEDGMENTS TODO tradename licensable MERCHANTABILITY
+
 =head1 NAME
 
 IO::Iron::IronMQ::Api - IronMQ API reference for Perl Client Libraries!
@@ -47,7 +49,7 @@ This package is for internal use of IO::Iron::IronMQ::Client/Queue packages.
 sub IRONMQ_LIST_MESSAGE_QUEUES {
 	return {
 			'action_name'  => 'IRONMQ_LIST_MESSAGE_QUEUES',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues',
 			'action'       => 'GET',
 			'return'       => 'LIST',
 			'retry'        => 0,
@@ -68,7 +70,7 @@ sub IRONMQ_LIST_MESSAGE_QUEUES {
 sub IRONMQ_GET_INFO_ABOUT_A_MESSAGE_QUEUE {
 	return {
 			'action_name'  => 'IRONMQ_GET_INFO_ABOUT_A_MESSAGE_QUEUE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}',
 			'action'       => 'GET',
 			'return'       => 'HASH',
 			'retry'        => 1,
@@ -87,7 +89,7 @@ sub IRONMQ_GET_INFO_ABOUT_A_MESSAGE_QUEUE {
 sub IRONMQ_UPDATE_A_MESSAGE_QUEUE {
 	return {
 			'action_name'  => 'IRONMQ_UPDATE_A_MESSAGE_QUEUE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}',
 			'action'       => 'POST',
 			'return'       => 'MESSAGE',
 			'retry'        => 1,
@@ -107,7 +109,7 @@ sub IRONMQ_UPDATE_A_MESSAGE_QUEUE {
 sub IRONMQ_ADD_SUBSCRIBERS_TO_A_MESSAGE_QUEUE {
 	return {
 			'action_name'  => 'IRONMQ_ADD_SUBSCRIBERS_TO_A_MESSAGE_QUEUE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/subscribers',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/subscribers',
 			'action'       => 'POST',
 			'return'       => 'MESSAGE',
 			'retry'        => 1,
@@ -127,7 +129,7 @@ sub IRONMQ_ADD_SUBSCRIBERS_TO_A_MESSAGE_QUEUE {
 sub IRONMQ_DELETE_SUBSCRIBERS_FROM_A_MESSAGE_QUEUE {
 	return {
 			'action_name'  => 'IRONMQ_DELETE_SUBSCRIBERS_FROM_A_MESSAGE_QUEUE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/subscribers',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/subscribers',
 			'action'       => 'DELETE',
 			'return'       => 'MESSAGE',
 			'retry'        => 1,
@@ -147,7 +149,7 @@ sub IRONMQ_DELETE_SUBSCRIBERS_FROM_A_MESSAGE_QUEUE {
 sub IRONMQ_DELETE_A_MESSAGE_QUEUE {
 	return {
 			'action_name'  => 'IRONMQ_DELETE_A_MESSAGE_QUEUE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}',
 			'action'       => 'DELETE',
 			'return'       => 'MESSAGE',
 			'retry'        => 1,
@@ -166,7 +168,7 @@ sub IRONMQ_DELETE_A_MESSAGE_QUEUE {
 sub IRONMQ_CLEAR_ALL_MESSAGES_FROM_A_QUEUE {
 	return {
 			'action_name'  => 'IRONMQ_CLEAR_ALL_MESSAGES_FROM_A_QUEUE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/clear',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/clear',
 			'action'       => 'POST',
 			'return'       => 'MESSAGE',
 			'retry'        => 1,
@@ -190,7 +192,7 @@ sub IRONMQ_CLEAR_ALL_MESSAGES_FROM_A_QUEUE {
 sub IRONMQ_ADD_ALERTS_TO_A_QUEUE {
 	return {
 			'action_name'  => 'IRONMQ_ADD_ALERTS_TO_A_QUEUE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/alerts',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/alerts',
 			'action'       => 'POST',
 			'return'       => 'MESSAGE',
 			'retry'        => 1,
@@ -212,7 +214,7 @@ sub IRONMQ_ADD_ALERTS_TO_A_QUEUE {
 sub IRONMQ_REPLACE_ALERTS_ON_A_QUEUE {
 	return {
 			'action_name'  => 'IRONMQ_REPLACE_ALERTS_ON_A_QUEUE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/alerts',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/alerts',
 			'action'       => 'PUT',
 			'return'       => 'MESSAGE',
 			'retry'        => 1,
@@ -234,7 +236,7 @@ sub IRONMQ_REPLACE_ALERTS_ON_A_QUEUE {
 sub IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE {
 	return {
 			'action_name'  => 'IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/alerts',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/alerts',
 			'action'       => 'DELETE',
 			'return'       => 'MESSAGE',
 			'retry'        => 1,
@@ -254,7 +256,7 @@ sub IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE {
 sub IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE_BY_ID {
 	return {
 			'action_name'  => 'IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE_BY_ID',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/alerts/{Alert ID}',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/alerts/{Alert ID}',
 			'action'       => 'DELETE',
 			'return'       => 'MESSAGE',
 			'retry'        => 1,
@@ -276,7 +278,7 @@ sub IRONMQ_REMOVE_ALERTS_FROM_A_QUEUE_BY_ID {
 sub IRONMQ_ADD_MESSAGES_TO_A_QUEUE {
 	return {
 			'action_name'    => 'IRONMQ_ADD_MESSAGES_TO_A_QUEUE',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/messages',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages',
 			'action'         => 'POST',
 			'return'         => 'HASH',
 			'retry'          => 1,
@@ -296,7 +298,7 @@ sub IRONMQ_ADD_MESSAGES_TO_A_QUEUE {
 sub IRONMQ_GET_MESSAGES_FROM_A_QUEUE {
 	return {
 			'action_name'    => 'IRONMQ_GET_MESSAGES_FROM_A_QUEUE',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/messages',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages',
 			'action'         => 'GET',
 			'return'         => 'HASH',
 			'retry'          => 1,
@@ -316,7 +318,7 @@ sub IRONMQ_GET_MESSAGES_FROM_A_QUEUE {
 sub IRONMQ_PEEK_MESSAGES_ON_A_QUEUE {
 	return {
 			'action_name'    => 'IRONMQ_PEEK_MESSAGES_ON_A_QUEUE',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/messages/peek',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages/peek',
 			'action'         => 'GET',
 			'return'         => 'HASH',
 			'retry'          => 1,
@@ -336,7 +338,7 @@ sub IRONMQ_PEEK_MESSAGES_ON_A_QUEUE {
 sub IRONMQ_DELETE_A_MESSAGE_FROM_A_QUEUE {
 	return {
 			'action_name'    => 'IRONMQ_DELETE_A_MESSAGE_FROM_A_QUEUE',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}',
 			'action'         => 'DELETE',
 			'return'         => 'MESSAGE',
 			'retry'          => 1,
@@ -355,7 +357,7 @@ sub IRONMQ_DELETE_A_MESSAGE_FROM_A_QUEUE {
 sub IRONMQ_DELETE_MULTIPLE_MESSAGES_FROM_A_QUEUE {
 	return {
 			'action_name'    => 'IRONMQ_DELETE_MULTIPLE_MESSAGES_FROM_A_QUEUE',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/messages',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages',
 			'action'         => 'DELETE',
 			'return'         => 'MESSAGE',
 			'retry'          => 1,
@@ -375,7 +377,7 @@ sub IRONMQ_DELETE_MULTIPLE_MESSAGES_FROM_A_QUEUE {
 sub IRONMQ_TOUCH_A_MESSAGE_ON_A_QUEUE {
 	return {
 			'action_name'    => 'IRONMQ_TOUCH_A_MESSAGE_ON_A_QUEUE',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/touch',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/touch',
 			'action'         => 'POST',
 			'return'         => 'MESSAGE',
 			'retry'          => 1,
@@ -395,7 +397,7 @@ sub IRONMQ_TOUCH_A_MESSAGE_ON_A_QUEUE {
 sub IRONMQ_RELEASE_A_MESSAGE_ON_A_QUEUE {
 	return {
 			'action_name'    => 'IRONMQ_RELEASE_A_MESSAGE_ON_A_QUEUE',
-			'href'           => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/release',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/release',
 			'action'         => 'POST',
 			'return'         => 'MESSAGE',
 			'retry'          => 1,
@@ -415,7 +417,7 @@ sub IRONMQ_RELEASE_A_MESSAGE_ON_A_QUEUE {
 sub IRONMQ_GET_PUSH_STATUS_FOR_A_MESSAGE {
 	return {
 			'action_name'  => 'IRONMQ_GET_PUSH_STATUS_FOR_A_MESSAGE',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/subscribers',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/subscribers',
 			'action'       => 'GET',
 			'return'       => 'HASH',
 			'retry'        => 1,
@@ -434,7 +436,7 @@ sub IRONMQ_GET_PUSH_STATUS_FOR_A_MESSAGE {
 sub IRONMQ_ACKNOWLEDGE_AND_DELETE_PUSH_MESSAGE_FOR_A_SUBSCRIBER {
 	return {
 			'action_name'  => 'IRONMQ_ACKNOWLEDGE_AND_DELETE_PUSH_MESSAGE_FOR_A_SUBSCRIBER',
-			'href'         => '{Protocol}://{Host}:{Port}{Host Path Prefix}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/subscribers/{Subscriber ID}',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/subscribers/{Subscriber ID}',
 			'action'       => 'DELETE',
 			'return'       => 'MESSAGE',
 			'retry'        => 1,

@@ -66,7 +66,6 @@ sub IRON_CONFIG_KEYS {
 		'port',             # The port to connect to the API through. Defaults to 443, which should be sufficient for 99% of users.
 		'api_version',      # The version of the API to connect through. Defaults to the version supported by the client. End-users should probably never change this. Except: IronMQ service upgraded from v2 to v3 in 2015!
         # IO::Iron additions:
-		# 'host_path_prefix', # Path prefix to the RESTful url. Defaults to '/1'. Used with non-standard clouds/emergency service back up addresses.
 		'timeout',          # REST client timeout (for REST calls accessing IronMQ). N.B. This is not a IronMQ config option! It only configures client this client.
 		'policies',         # Filename of JSON file containing policies.
 	);
@@ -147,7 +146,6 @@ sub get_config { ## no critic (Subroutines::RequireArgUnpacking)
 #	$config->{'protocol'}    = $ENV{'IRON_PROTOCOL'}
 #	$config->{'port'}        = $ENV{'IRON_PORT'}
 #	$config->{'api_version'} = $ENV{'IRON_API_VERSION'}
-#	$config->{'host_path_prefix'} = $ENV{'IRON_HOST_PATH_PREFIX'}
 #	$config->{'timeout'}     = $ENV{'IRON_TIMEOUT'}
 sub _read_iron_config_env_vars {
 	my ($config) = @_;
