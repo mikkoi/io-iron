@@ -40,6 +40,26 @@ This package is for internal use of IO::Iron::IronMQ::Client/Queue packages.
 
 =head2 Operate message queues
 
+=head3 IRONMQ_V3_CREATE_MESSAGE_QUEUE
+
+/projects/{Project ID}/queues/{Queue Name}
+
+=cut
+
+sub IRONMQ_V3_CREATE_MESSAGE_QUEUE {
+	return {
+			'action_name'  => 'IRONMQ_V3_CREATE_MESSAGE_QUEUE',
+			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}',
+			'action'       => 'PUT',
+			'return'       => 'HASH',
+			'retry'        => 1,
+			'require_body' => 1,
+			'request_fields' => { 'message_timeout' => 1, 'message_expiration' => 1, 'type' => 1, 'push' => 1 },
+			'url_escape'   => { '{Project ID}' => 1, '{Queue Name}' => 1 },
+			'log_message'  => '(project={Project ID}, queue={Queue Name}). Created queue.',
+		};
+}
+
 =head3 IRONMQ_LIST_MESSAGE_QUEUES
 
 /projects/{Project ID}/queues

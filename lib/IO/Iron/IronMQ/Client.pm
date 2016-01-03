@@ -18,15 +18,15 @@ BEGIN {
 END {
 }
 
-=for stopwords IronMQ API HTTPS optimized OAuth https config Config filename
+=begin stopwords
 
-=for stopwords json dir successfull serialized JSON Storable YAML stringify
+IronMQ API HTTPS optimized OAuth https config Config filename
+json dir successfull serialized JSON Storable YAML stringify
+unreserves IronHTTPCallException Params succcessful
+Mikko Koivunalho perldoc CPAN AnnoCPAN ACKNOWLEDGMENTS
+semafores tradename licensable MERCHANTABILITY io TODO
 
-=for stopwords unreserves IronHTTPCallException Params succcessful
-
-=for stopwords Mikko Koivunalho perldoc CPAN AnnoCPAN ACKNOWLEDGMENTS
-
-=for stopwords TODO semafores tradename licensable MERCHANTABILITY
+=end stopwords
 
 =head1 NAME
 
@@ -71,7 +71,12 @@ use Carp::Assert;
 use Carp::Assert::More;
 use English '-no_match_vars';
 use Params::Validate qw(:all);
-
+use Scalar::Util qw{looks_like_number};
+use Exception::Class (
+      'IronParameterException' => {
+      	fields => ['error_message'],
+      }
+  );
 
 use IO::Iron::IronMQ::Api;
 use IO::Iron::Common;
@@ -451,6 +456,7 @@ sub new {
 	my $self = IO::Iron::ClientBase->new();
 	# Add more keys to the self hash.
 	my @self_keys = (
+         'api_version',   # API version.
 			'queues',        # References to all objects created of class IO::Iron::IronMQ::Queue.
 			legal_keys(%{$self}),
 	);
@@ -459,6 +465,7 @@ sub new {
 	my $config = IO::Iron::Common::get_config(%params);
 	$log->debugf('The config: %s', $config);
 	$self->{'project_id'} = defined $config->{'project_id'} ? $config->{'project_id'} : undef;
+   $self->{'api_version'} = defined $config->{'api_version'} ? $config->{'api_version'} : $DEFAULT_API_VERSION;
 	$self->{'queues'} = [];
 	assert_nonblank( $self->{'project_id'}, 'self->{project_id} is not defined or is blank');
 
@@ -473,7 +480,7 @@ sub new {
 		'host' => defined $config->{'host'} ? $config->{'host'} : $DEFAULT_HOST,
 		'protocol' => $config->{'protocol'},
 		'port' => $config->{'port'},
-		'api_version' => defined $config->{'api_version'} ? $config->{'api_version'} : $DEFAULT_API_VERSION,
+		'api_version' => $self->{'api_version'},
 		'timeout' => $config->{'timeout'},
 		'connector' => $params{'connector'},
 		}
@@ -556,7 +563,18 @@ sub create_queue {
 		@_, {
 			'name' => { type => SCALAR, callbacks => {
                     'RFC 3986 reserved character check' => sub { return ! IO::Iron::Common::contains_rfc_3986_res_chars(shift) },
-                }}, # queue name.
+            }}, # queue name.
+         'message_timeout' => { type => SCALAR, optional => 1, callbacks => {
+               'Is numeric' => sub { return looks_like_number(shift) },
+               'v3' => sub { return $self->{'api_version'} eq '3' },
+            }}, # How many seconds a reservation will be valid.
+         'message_expiration' => { type => SCALAR, optional => 1, callbacks => {
+               'Is numeric' => sub { return looks_like_number(shift) },
+               'v3' => sub { return $self->{'api_version'} eq '3' },
+            }}, # How long in seconds to keep the item on the queue before it is deleted.
+         'type' => { type => SCALAR, optional => 1, default => 'pull', callbacks => {
+               'v3' => sub { return $self->{'api_version'} eq '3' },
+            }}, # [multicast, unicast, pull] where multicast and unicast define push queues.
 			'subscribers' => { type => ARRAYREF, optional => 1 }, # array of subscriber hashes containing a required "url" field and an optional "headers" map for custom headers.
 			'push_type' => { type => SCALAR, optional => 1 }, # Either multicast to push to all subscribers or unicast to push to one and only one subscriber. Default is multicast.
 			'retries' => { type => SCALAR, optional => 1 }, # retries: How many times to retry on failure. Default is 3. Maximum is 100.
@@ -568,30 +586,60 @@ sub create_queue {
 	assert_nonblank( $params{'name'}, 'Parameter \'name\' is a non blank string');
 
 	my $connection = $self->{'connection'};
-	my %item_body;
-	$item_body{'subscribers'} = $params{'subscribers'} if ($params{'subscribers'});
-	$item_body{'push_type'} = $params{'push_type'} if ($params{'push_type'});
-	$item_body{'retries'} = $params{'retries'} if ($params{'retries'});
-	$item_body{'retries_delay'} = $params{'retries_delay'} if ($params{'retries_delay'});
-	$item_body{'error_queue'} = $params{'error_queue'} if ($params{'error_queue'});
-	my ($http_status_code, $response_message) = $connection->perform_iron_action(
-			IO::Iron::IronMQ::Api::IRONMQ_UPDATE_A_MESSAGE_QUEUE(),
-			{
-				'{Queue Name}' => $params{'name'},
-				'body'         => \%item_body,
-			}
-		);
-	$self->{'last_http_status_code'} = $http_status_code;
-	my $get_queue_id = $response_message->{'id'};
-	my $get_queue_name = $response_message->{'name'};
-	my $queue = IO::Iron::IronMQ::Queue->new({
-		'ironmq_client' => $self, # Pass a reference to the parent object.
-		'connection' => $connection,
-		'id' => $get_queue_id,
-		'name' => $get_queue_name,
-	});
-	$log->debugf('Created a new IO::Iron::IronMQ::Queue object (queue id=%s; queue name=%s).', $get_queue_id, $get_queue_name);
-	$log->tracef('Exiting create_queue: %s', $queue);
+   my $queue;
+   if($self->{'api_version'} eq '1') {
+      my %item_body;
+      $item_body{'subscribers'} = $params{'subscribers'} if ($params{'subscribers'});
+      $item_body{'push_type'} = $params{'push_type'} if ($params{'push_type'});
+      $item_body{'retries'} = $params{'retries'} if ($params{'retries'});
+      $item_body{'retries_delay'} = $params{'retries_delay'} if ($params{'retries_delay'});
+      $item_body{'error_queue'} = $params{'error_queue'} if ($params{'error_queue'});
+      my ($http_status_code, $response_message) = $connection->perform_iron_action(
+            IO::Iron::IronMQ::Api::IRONMQ_UPDATE_A_MESSAGE_QUEUE(),
+            {
+               '{Queue Name}' => $params{'name'},
+               'body'         => \%item_body,
+            }
+         );
+      $self->{'last_http_status_code'} = $http_status_code;
+      my $get_queue_id = $response_message->{'id'};
+      my $get_queue_name = $response_message->{'name'};
+      $queue = IO::Iron::IronMQ::Queue->new({
+         'ironmq_client' => $self, # Pass a reference to the parent object.
+         'connection' => $connection,
+         'id' => $get_queue_id,
+         'name' => $get_queue_name,
+      });
+   } elsif($self->{'api_version'} eq '3') {
+      my %item_body;
+      $item_body{'message_timeout'} = $params{'message_timeout'} if ($params{'message_timeout'});
+      $item_body{'message_expiration'} = $params{'message_expiration'} if ($params{'message_expiration'});
+      $item_body{'type'} = $params{'type'};
+      $item_body{'push'} = $params{'push'} if ($params{'push'});
+      my ($http_status_code, $response_message) = $connection->perform_iron_action(
+            IO::Iron::IronMQ::Api::IRONMQ_V3_CREATE_MESSAGE_QUEUE(),
+            {
+               '{Queue Name}' => $params{'name'},
+               'body'         => \%item_body,
+            }
+         );
+      $self->{'last_http_status_code'} = $http_status_code;
+      my $get_queue_id = $response_message->{'queue'}->{'project_id'};
+      my $get_queue_name = $response_message->{'queue'}->{'name'};
+      $queue = IO::Iron::IronMQ::Queue->new({
+         'ironmq_client' => $self, # Pass a reference to the parent object.
+         'connection' => $connection,
+         'id' => $get_queue_id,
+         'name' => $get_queue_name,
+      });
+   } else {
+		IronParameterException->throw(
+				error_message => 'Unknown API version',
+				error => 'IronParameterException: Unknown API version',
+				);
+   }
+	$log->debugf( 'Created a new IO::Iron::IronMQ::Queue object (queue id=%s; queue name=%s).', $queue->id(), $queue->name() );
+	$log->tracef( 'Exiting create_queue: %s', $queue );
 	return $queue;
 }
 
