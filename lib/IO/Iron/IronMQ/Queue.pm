@@ -41,6 +41,7 @@ use Params::Validate qw(:all);
 
 use IO::Iron::Common;
 use IO::Iron::IronMQ::Api;
+require IO::Iron::IronMQ::Message;
 
 
 =head1 SUBROUTINES/METHODS
