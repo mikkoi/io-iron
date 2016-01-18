@@ -1,6 +1,8 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+
+0.11_01   2016-01-18 11:17:02+01:00 Europe/Stockholm (TRIAL RELEASE)
    Remove the config item Host Path Prefix, use instead API Version.
    Set Defaults to all clients: DEFAULT_API_VERSION, DEFAULT_HOST.
 
