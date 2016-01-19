@@ -280,6 +280,14 @@ After creating the client three sets of commands is available:
 
 =back
 
+=item Commands for stacks:
+
+=over 8
+
+=item IO::Iron::IronWorker::Client::list_scheduled_tasks()
+
+=back
+
 =back
 
 =head3 Operating code packages
@@ -438,6 +446,11 @@ Get all scheduled tasks as IO::Iron::IronWorker::Task objects.
 
 	my @scheduled_tasks = $iron_worker_client->scheduled_tasks();
 
+=head3 Stacks
+
+Get a list of all available stacks.
+
+   my @stacks = $iron_worker_client->list_available_stacks();
 
 =head3 Exceptions
 
@@ -1196,6 +1209,41 @@ sub get_info_about_scheduled_task {
 	my $info = $response_message;
 	$log->tracef('Exiting get_info_about_scheduled_task: %s', $info);
 	return $info;
+}
+
+###############################################
+########### FUNCTIONS: STACKS #################
+###############################################
+
+=head2 list_available_stacks
+
+Return a list of stacks available for running IronWorker code packages in.
+
+=over 8
+
+=item Params: [None]
+
+=item Return: List of strings.
+
+=back
+
+=cut
+
+sub list_available_stacks {
+	my ($self) = @_;
+	$log->tracef('Entering list_available_stacks()');
+
+	my $connection = $self->{'connection'};
+	my ($http_status_code, $response_message) = $connection->perform_iron_action(
+			IO::Iron::IronWorker::Api::IRONWORKER_LIST_OF_AVAILABLE_STACKS(), { } );
+	$self->{'last_http_status_code'} = $http_status_code;
+	my @stacks;
+	foreach (@{$response_message}) {
+		push @stacks, $_;
+	}
+	$log->debugf('Returning %d stacks.', scalar @stacks);
+	$log->tracef('Exiting list_available_stacks(): %s', \@stacks);
+	return @stacks;
 }
 
 

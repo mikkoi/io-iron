@@ -405,6 +405,27 @@ sub IRONWORKER_CANCEL_A_SCHEDULED_TASK {
 		};
 }
 
+=head2 Stacks
+
+=head3 IRONWORKER_LIST_OF_AVAILABLE_STACKS
+
+/stacks
+
+=cut
+
+sub IRONWORKER_LIST_OF_AVAILABLE_STACKS {
+	return {
+			'action_name'    => 'IRONWORKER_LIST_OF_AVAILABLE_STACKS',
+			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/stacks',
+			'action'         => 'GET',
+			'return'         => 'LIST', # Return as JSON.
+			'retry'          => 0,
+			'require_body'   => 0,
+			'paged'          => 0,
+			'url_escape'     => { },
+			'log_message'    => '(). Listed stacks.',
+		};
+}
 
 =head1 AUTHOR
 

@@ -43,7 +43,11 @@ my %args = @ARGV;
 print qq{Hello, World!\n};
 print qq{ARGV values:\n};
 foreach my $arg_key (keys %args) {
-	print $arg_key . q{ IS } . qq{$args{$arg_key}\n};
+	print $arg_key . q{:} . qq{$args{$arg_key}\n};
+}
+print qq{ENV values:\n};
+foreach my $key (keys %ENV) {
+   print $key . q{:} . $ENV{$key} . qq{\n};
 }
 EOF
 #\$args{'arg1'} = 'arg1_content';
