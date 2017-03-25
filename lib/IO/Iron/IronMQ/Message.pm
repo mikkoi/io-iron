@@ -2,6 +2,7 @@ package IO::Iron::IronMQ::Message;
 
 ## no critic (Documentation::RequirePodAtEnd)
 ## no critic (Documentation::RequirePodSections)
+## no critic (Subroutines::RequireArgUnpacking)
 
 use 5.010_000;
 use strict;
@@ -14,6 +15,10 @@ BEGIN {
 # Global destructor
 END {
 }
+
+=for stopwords IronMQ UNDEF Mikko Koivunalho perldoc CPAN AnnoCPAN tradename
+
+=for stopwords licensable MERCHANTABILITY
 
 =head1 NAME
 
@@ -48,8 +53,8 @@ use Params::Validate qw(:all);
 
 Creator function.
 UNDEF values not accepted.
-body is mandatory, timeout, delay, expires_in are optional.
-id and reserved_count are for internal use.
+body is mandatory; delay and push_headers are optional.
+id, reserved_count and reservation_id are for internal use.
 
 =cut
 
@@ -57,33 +62,33 @@ sub new {
 	my $class = shift;
 	my %params = validate(
 		@_, {
-			'body' => { type => SCALAR, },                      # Message body (free text), can be empty.
-			'timeout' => { type => SCALAR, optional => 1, },    # When reading from queue, after timeout (in seconds), item will be placed back onto queue.
-			'delay' => { type => SCALAR, optional => 1, },      # The item will not be available on the queue until this many seconds have passed.
-			'expires_in' => { type => SCALAR, optional => 1, }, # How long in seconds to keep the item on the queue before it is deleted.
-			'id' => { type => SCALAR, optional => 1, },         # Message id from IronMQ queue (after message has been pulled/peeked).
+			'body' => { type => SCALAR, },                          # Message body (free text), can be empty.
+			'delay' => { type => SCALAR, optional => 1, },          # The item will not be available on the queue until this many seconds have passed.
+            'push_headers' => { type => HASHREF, optional => 1, },  # Headers for push queues.
+			'id' => { type => SCALAR, optional => 1, },             # Message id from IronMQ queue (after message has been pulled/peeked).
 			'reserved_count' => { type => SCALAR, optional => 1, }, # FIXME item reserved_count
+			'reservation_id' => { type => SCALAR, optional => 1, }, # Reservation id string from the queue.
 		}
 	);
 	$log->tracef('Entering new(%s, %s)', $class, %params);
 	my $self;
 	my @self_keys = ( ## no critic (CodeLayout::ProhibitQuotedWordLists)
 			'body',                        # Message body (free text), can be empty.
-			'timeout',                     # When reading from queue, after timeout (in seconds), item will be placed back onto queue.
 			'delay',                       # The item will not be available on the queue until this many seconds have passed.
-			'expires_in',                  # How long in seconds to keep the item on the queue before it is deleted.
+            'push_headers',                # Push queue headers.
 			'id',                          # Message id from IronMQ queue (after message has been pulled/peeked).
 			'reserved_count',              # FIXME item reserved_count
+			'reservation_id',              # reservation_id
 	);
 	lock_keys(%{$self}, @self_keys);
 	$self->{'body'} = $params{'body'};
-	$self->{'timeout'} = defined $params{'timeout'} ? $params{'timeout'} : undef;
 	$self->{'delay'} = defined $params{'delay'} ? $params{'delay'} : undef;
-	$self->{'expires_in'} = defined $params{'expires_in'} ? $params{'expires_in'} : undef;
+	$self->{'push_headers'} = defined $params{'push_headers'} ? $params{'push_headers'} : undef;
 	$self->{'id'} = defined $params{'id'} ? $params{'id'} : undef;
 	$self->{'reserved_count'} = defined $params{'reserved_count'} ? $params{'reserved_count'} : undef;
+	$self->{'reservation_id'} = defined $params{'reservation_id'} ? $params{'reservation_id'} : undef;
 	# All of the above can be undefined, except the body: the message can not be empty.
-	# If timeout, delay or expires_in are undefined, the IronMQ defaults (at the server) will be used.
+	# If delay is undefined, the IronMQ defaults (at the server) will be used.
 
 	unlock_keys(%{$self});
 	my $blessed_ref = bless $self, $class;
@@ -102,26 +107,26 @@ When setting, returns the reference to the object.
 
 =item body           Message body (free text), can be empty.
 
-=item timeout        When reading from queue, after timeout (in seconds), item will be placed back onto queue.
-
 =item delay          The item will not be available on the queue until this many seconds have passed.
 
-=item expires_in     How long in seconds to keep the item on the queue before it is deleted.
+=item push_headers   Push queue HTTP headers.
 
 =item id             Message id from IronMQ queue (after message has been pulled/peeked).
 
 =item reserved_count Item reserved count.
+
+=item reservation_id Reservation id string from the queue.
 
 =back
 
 =cut
 
 sub body { return $_[0]->_access_internal('body', $_[1]); }
-sub timeout { return $_[0]->_access_internal('timeout', $_[1]); }
 sub delay { return $_[0]->_access_internal('delay', $_[1]); }
-sub expires_in { return $_[0]->_access_internal('expires_in', $_[1]); }
+sub push_headers { return $_[0]->_access_internal('push_headers', $_[1]); }
 sub id { return $_[0]->_access_internal('id', $_[1]); }
 sub reserved_count { return $_[0]->_access_internal('reserved_count', $_[1]); }
+sub reservation_id { return $_[0]->_access_internal('reservation_id', $_[1]); }
 
 # TODO Move _access_internal() to IO::Iron::Common.
 

@@ -2,6 +2,7 @@ package IO::Iron::IronMQ::Queue;
 
 ## no critic (Documentation::RequirePodAtEnd)
 ## no critic (Documentation::RequirePodSections)
+## no critic (Subroutines::RequireArgUnpacking)
 ## no critic (ControlStructures::ProhibitPostfixControls)
 
 use 5.010_000;
@@ -16,6 +17,11 @@ BEGIN {
 # Global destructor
 END {
 }
+
+=for stopwords IronMQ Params subitem io Mikko Koivunalho perldoc CPAN
+
+=for stopwords AnnoCPAN tradename licensable MERCHANTABILITY Iron.io
+
 
 =head1 NAME
 
@@ -60,7 +66,6 @@ sub new {
 	my $class = shift;
 	my %params = validate(
 		@_, {
-			'id' => { type => SCALAR, }, # queue id.
 			'name' => { type => SCALAR, }, # queue name.
 			'ironmq_client' => { type => OBJECT, }, # Reference to IronMQ client
 			'connection' => { type => OBJECT, },  # Reference to REST client
@@ -70,19 +75,16 @@ sub new {
 	my $self;
 	my @self_keys = ( ## no critic (CodeLayout::ProhibitQuotedWordLists)
 		'ironmq_client',         # Reference to IronMQ client
-		'id',                    # IronMQ queue id
 		'name',                  # Queue name
 		'connection',            # Reference to REST client
 		'last_http_status_code', # After successfull network operation, the return value is here.
 	);
 	lock_keys( %{$self}, @self_keys );
 	$self->{'ironmq_client'} = $params{'ironmq_client'};
-	$self->{'id'}   = $params{'id'};
 	$self->{'name'} = $params{'name'};
 	$self->{'connection'} = $params{'connection'};
 	assert_isa( $self->{'connection'}, 'IO::Iron::Connection', 'self->{\'connection\'} is IO::Iron::Connection.' );
 	assert_isa( $self->{'ironmq_client'}, 'IO::Iron::IronMQ::Client', 'self->{\'ironmq_client\'} is IO::Iron::IronMQ::Client.' );
-	assert_nonblank( $self->{'id'}, 'self->{\'id\'} is defined and is not blank.' );
 	assert_nonblank( $self->{'name'}, 'self->{\'name\'} is defined and is not blank.' );
 
 	unlock_keys( %{$self} );
@@ -133,20 +135,16 @@ sub push { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 	my $connection = $self->{'connection'};
 	my @message_contents;
 	foreach my $message (@messages) {
-		my ( $msg_body, $msg_timeout, $msg_delay, $msg_expires_in ) = (
-			$message->body(),  $message->timeout(),
-			$message->delay(), $message->expires_in(),
+		my ( $msg_body, $msg_delay, $msg_push_headers, ) = (
+			$message->body(), $message->delay(), $message->push_headers(),
 		);
 		my $message_content = {};
-		$message_content->{'body'}       = $msg_body;
-		$message_content->{'timeout'}    = $msg_timeout if defined $msg_timeout;
-		$message_content->{'delay'}      = $msg_delay if defined $msg_delay;
-		$message_content->{'expires_in'} = $msg_expires_in if defined $msg_expires_in;
+		$message_content->{'body'}         = $msg_body;
+		$message_content->{'delay'}        = $msg_delay if defined $msg_delay;
+		$message_content->{'push_headers'} = $msg_push_headers if defined $msg_push_headers;
 		# Gimmick to ensure the proper jsonization of numbers
 		# Otherwise numbers might end up as strings.
-		$message_content->{'timeout'} += 0;
 		$message_content->{'delay'} += 0;
-		$message_content->{'expires_in'} += 0;
 
 		push @message_contents, $message_content;
 	}
@@ -154,7 +152,7 @@ sub push { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
-		IO::Iron::IronMQ::Api::IRONMQ_ADD_MESSAGES_TO_A_QUEUE(),
+		IO::Iron::IronMQ::Api::IRONMQ_POST_MESSAGES(),
 		{
 			'{Queue Name}' => $queue_name,
 			'body'         => \%item_body,
@@ -188,7 +186,9 @@ sub push { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 =over 
 
 =item Params: n (number of messages), 
-timeout (timeout for message processing in the user program)
+timeout (timeout for message processing in the user program),
+wait (Time to long poll for messages, in seconds. Max is 30 seconds. Default 0.),
+delete (If true, do not put each message back on to the queue after reserving. Default false)
 
 =item Return: list of IO::Iron::IronMQ::Message objects, 
 empty list if no messages available.
@@ -209,6 +209,8 @@ sub pull {
 		@_, {
 			'n' => { type => SCALAR, optional => 1, },    # Number of messages to pull.
 			'timeout' => { type => SCALAR, optional => 1, }, # When reading from queue, after timeout (in seconds), item will be placed back onto queue.
+			'wait' => { type => SCALAR, optional => 1, }, # Seconds to long poll the queue.
+            'delete' => { type => SCALAR, optional => 1, } # Do not put each message back on to the queue after reserving.
 		}
 	);
 	assert_positive(wantarray, 'Method pull() only works in LIST context!');
@@ -219,9 +221,11 @@ sub pull {
 	my %query_params;
 	$query_params{'{n}'}       = $params{'n'}       if $params{'n'};
 	$query_params{'{timeout}'} = $params{'timeout'} if $params{'timeout'};
+	$query_params{'{wait}'} = $params{'wait'} if $params{'wait'};
+	$query_params{'{delete}'} = $params{'delete'} if $params{'delete'};
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
-		IO::Iron::IronMQ::Api::IRONMQ_GET_MESSAGES_FROM_A_QUEUE(),
+		IO::Iron::IronMQ::Api::IRONMQ_RESERVE_MESSAGES(),
 		{
 			'{Queue Name}' => $queue_name,
 			%query_params
@@ -240,6 +244,7 @@ sub pull {
 			'timeout'        => $msg->{'timeout'},
 			'id'             => $msg->{'id'},
 			'reserved_count' => $msg->{'reserved_count'},
+			'reservation_id' => $msg->{'reservation_id'},
 		);
 		CORE::push @pulled_messages,
 		  $message;    # using CORE routine, not this class' method.
@@ -313,10 +318,9 @@ sub peek {
 
 =over
 
-=item Params: one or more message ids.
+=item Params: one or more messages (IO::Iron::IronMQ::Message).
 
-=item Return: the deleted message ids (if in list context), or the
-number of messages deleted.
+=item Return: the deleted message ids (if in list context), or the number of messages deleted.
 
 =back
 
@@ -324,20 +328,26 @@ number of messages deleted.
 
 sub delete { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 	my $self = shift;
-	my %params = validate(
-		@_, {
-			'ids' => {
-				type => ARRAYREF,
-			}, # one or more id strings (alphanum text string).
-		}
-	);
-	my @message_ids = @{$params{'ids'}};
-	assert_positive(scalar @message_ids, 'There is one or more message ids.');
-	$log->tracef( 'Entering delete(%s)', @message_ids );
+	# my %params = validate(
+	# 	@_, {
+	# 		'ids' => {
+	# 			type => ARRAYREF,
+	# 		}, # one or more id strings (alphanum text string).
+	# 	}
+	# );
+    my @messages = validate_pos(@_, ( { type => OBJECT, isa => 'IO::Iron::IronMQ::Message', } ) x scalar @_);
+	# my @message_ids = @{$params{'ids'}};
+	assert_positive(scalar @messages, 'There is one or more messages.');
+	$log->tracef( 'Entering delete(%s)', @messages );
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
-	my %item_body  = ( 'ids' => $params{'ids'} );
+	my %item_body  = ( 'ids' => [ ], );
+    my @message_ids;
+    foreach my $msg (@messages) {
+        CORE::push @{$item_body{'ids'}}, { 'id' => $msg->id(), 'reservation_id' => $msg->reservation_id(), };
+        CORE::push @message_ids, $msg->id();
+    }
 
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
@@ -492,8 +502,8 @@ sub clear {
 	  );
 	$self->{'last_http_status_code'} = $http_status_code;
 	my $msg = $response_message->{'msg'};    # Should be 'Cleared'
+    assert( $msg, 'Cleared' );
 	$log->debugf( 'Cleared IronMQ Message queue %s.', $queue_name );
-
 	$log->tracef( 'Exiting clear: %s', 1 );
 	return 1;
 }
@@ -523,10 +533,10 @@ sub size {
 	my $connection = $self->{'connection'};
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
-		IO::Iron::IronMQ::Api::IRONMQ_GET_INFO_ABOUT_A_MESSAGE_QUEUE(),
+		IO::Iron::IronMQ::Api::IRONMQ_GET_QUEUE_INFO(),
 		{ '{Queue Name}' => $queue_name, } );
 	$self->{'last_http_status_code'} = $http_status_code;
-	my $size = $response_message->{'size'};
+	my $size = $response_message->{'queue'}->{'size'};
 	$log->debugf( 'Queue size is %s.', $size );
 
 	$log->tracef( 'Exiting size(): %s', $size );
@@ -559,7 +569,7 @@ sub get_push_status {
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
 	my ($http_status_code, $response_message) = $connection->perform_iron_action(
-			IO::Iron::IronMQ::Api::IRONMQ_GET_PUSH_STATUS_FOR_A_MESSAGE(),
+			IO::Iron::IronMQ::Api::IRONMQ_GET_PUSH_STATUSES_FOR_A_MESSAGE(),
 			{
 				'{Queue Name}' => $queue_name,
 				'{Message ID}'  => $params{'id'},
@@ -585,40 +595,40 @@ sub get_push_status {
 
 =cut
 
-# TODO To test this method in integration unit tests,
-# we need to set up an HTTP server.
-
-sub delete_push_message {
-	my $self = shift;
-	my %params = validate(
-		@_, {
-			'id' => { type => SCALAR, }, # message id.
-			'subscriber' => { type => SCALAR, }, # subscriber id.
-		}
-	);
-	assert_positive(wantarray == 0, 'Method delete_push_message() only works in SCALAR context!');
-	assert_nonblank( $params{'id'}, 'Parameter id is a non null string.');
-	assert_nonblank( $params{'subscriber'}, 'Parameter subscriber is a non null string.');
-	$log->tracef('Entering delete_push_message(%s)', \%params);
-
-	my $queue_name = $self->name();
-	my $connection = $self->{'connection'};
-	my ($http_status_code, $response_message) = $connection->perform_iron_action(
-			IO::Iron::IronMQ::Api::IRONMQ_ACKNOWLEDGE_AND_DELETE_PUSH_MESSAGE_FOR_A_SUBSCRIBER(),
-			{
-				'{Queue Name}' => $queue_name,
-				'{Message ID}'  => $params{'id'},
-				'{Subscriber ID}' => $params{'subscriber'},
-			}
-		);
-	$self->{'last_http_status_code'} = $http_status_code;
-	my $msg = $response_message->{'msg'};    # Should be 'Cleared'
-	$log->debugf('Deleted push message %s.', $params{'id'});
-
-	$log->tracef('Exiting delete_push_message: %d', 1);
-	return 1;
-}
-
+# # TODO To test this method in integration unit tests,
+# # we need to set up an HTTP server.
+#
+# sub delete_push_message {
+# 	my $self = shift;
+# 	my %params = validate(
+# 		@_, {
+# 			'id' => { type => SCALAR, }, # message id.
+# 			'subscriber' => { type => SCALAR, }, # subscriber id.
+# 		}
+# 	);
+# 	assert_positive(wantarray == 0, 'Method delete_push_message() only works in SCALAR context!');
+# 	assert_nonblank( $params{'id'}, 'Parameter id is a non null string.');
+# 	assert_nonblank( $params{'subscriber'}, 'Parameter subscriber is a non null string.');
+# 	$log->tracef('Entering delete_push_message(%s)', \%params);
+#
+# 	my $queue_name = $self->name();
+# 	my $connection = $self->{'connection'};
+# 	my ($http_status_code, $response_message) = $connection->perform_iron_action(
+# 			IO::Iron::IronMQ::Api::IRONMQ_ACKNOWLEDGE_AND_DELETE_PUSH_MESSAGE_FOR_A_SUBSCRIBER(),
+# 			{
+# 				'{Queue Name}' => $queue_name,
+# 				'{Message ID}'  => $params{'id'},
+# 				'{Subscriber ID}' => $params{'subscriber'},
+# 			}
+# 		);
+# 	$self->{'last_http_status_code'} = $http_status_code;
+# 	my $msg = $response_message->{'msg'};    # Should be 'Cleared'
+# 	$log->debugf('Deleted push message %s.', $params{'id'});
+#
+# 	$log->tracef('Exiting delete_push_message: %d', 1);
+# 	return 1;
+# }
+#
 =head2 Getters/setters
 
 Set or get a property.
@@ -641,7 +651,6 @@ When setting, returns the reference to the object.
 =cut
 
 sub ironmq_client { return $_[0]->_access_internal('ironmq_client', $_[1]); }
-sub id { return $_[0]->_access_internal('id', $_[1]); }
 sub name { return $_[0]->_access_internal('name', $_[1]); }
 sub connection { return $_[0]->_access_internal('connection', $_[1]); }
 sub last_http_status_code { return $_[0]->_access_internal('last_http_status_code', $_[1]); }
