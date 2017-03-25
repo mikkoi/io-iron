@@ -41,15 +41,15 @@ Only IronMQ v3. Older v1/v2 no longer supported.
 
 =head2 Operate message queues
 
-=head3 IRONMQ_CREATE_A_MESSAGE_QUEUE
+=head3 IRONMQ_CREATE_QUEUE
 
 /projects/{Project ID}/queues/{Queue Name}
 
 =cut
 
-sub IRONMQ_CREATE_A_MESSAGE_QUEUE {
+sub IRONMQ_CREATE_QUEUE {
 	return {
-			'action_name'  => 'IRONMQ_CREATE_A_MESSAGE_QUEUE',
+			'action_name'  => 'IRONMQ_CREATE_QUEUE',
 			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}',
 			'action'       => 'PUT',
 			'return'       => 'NONE',
@@ -133,11 +133,9 @@ sub IRONMQ_LIST_QUEUES {
 			'return'       => 'LIST',
 			'retry'        => 0,
 			'require_body' => 0,
-			'paged'        => 1,
-			'per_page'     => 100,
-			'url_params'     => { 'n' => 1 },
+			'url_params'   => { 'per_page' => 1, 'previous' => 1, 'prefix' => 1, },
 			'url_escape'   => { '{Project ID}' => 1 },
-			'log_message'  => '(project={Project ID}). Listed message queues.',
+			'log_message'  => '(project={Project ID}). Listed queues.',
 		};
 }
 
@@ -344,8 +342,8 @@ sub IRONMQ_PEEK_MESSAGES_ON_A_QUEUE {
 			'return'         => 'HASH',
 			'retry'          => 1,
 			'require_body'   => 0,
-			'url_params'     => { 'n' => 1 },
-			'url_escape'     => { '{Project ID}' => 1, '{Queue Name}' => 1 },
+			'url_params'     => { 'n' => 1, },
+			'url_escape'     => { '{Project ID}' => 1, '{Queue Name}' => 1, },
 			'log_message'    => '(project={Project ID}, queue={Queue Name}). Peeked at messages on the queue.',
 		};
 }

@@ -619,7 +619,7 @@ sub create_queue {
 	$item_body{'push'} = $params{'push'} if ($params{'push'});
 	$item_body{'dead_letter'} = $params{'dead_letter'} if ($params{'dead_letter'});
 	my ($http_status_code, $response_message) = $connection->perform_iron_action(
-			IO::Iron::IronMQ::Api::IRONMQ_CREATE_A_MESSAGE_QUEUE(),
+			IO::Iron::IronMQ::Api::IRONMQ_CREATE_QUEUE(),
 			{
 				'{Queue Name}' => $params{'name'},
 				'body'         => \%item_body,
@@ -788,7 +788,7 @@ sub list_queues {
 	my ($http_status_code, $response_message) = $connection->perform_iron_action(
 			IO::Iron::IronMQ::Api::IRONMQ_LIST_QUEUES(), { } );
 	$self->{'last_http_status_code'} = $http_status_code;
-	foreach my $queue_info (@{$response_message}) {
+	foreach my $queue_info (@{$response_message->{'queues'}}) {
 		my $queue_name = $queue_info->{'name'};
 		push @queues, $queue_name;
 	}

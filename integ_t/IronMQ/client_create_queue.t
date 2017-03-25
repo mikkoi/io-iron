@@ -59,13 +59,14 @@ subtest 'Confirm result' => sub {
 	$queried_queue = $iron_mq_client->get_queue( 'name' => $queue_name );
 	is($queried_queue->name(), $created_queue->name(), 'Queried queue has the same name as created queue.');
 	is($queried_queue->size(), 0, 'Queried queue size is 0.');
-    # my $previous;
-    # my @all_queue_names;
-    # while ( my @queue_names = $iron_mq_client->list_queues( 'per_page' => 5, 'previous' => $previous ) ) {
-    #     push @all_queue_names, @queue_names;
-    # }
-    # my $found = grep { $_ eq $created_queue->name() } @all_queue_names;
-    # is $found, undef, 'Queue not found.';
+    my $previous = q{};
+    my @all_queue_names;
+    while ( my @queue_names = $iron_mq_client->list_queues( 'per_page' => 5, 'previous' => $previous ) ) {
+        push @all_queue_names, @queue_names;
+        $previous = $queue_names[-1];
+    }
+    my $found = grep { $_ eq $created_queue->name() } @all_queue_names;
+    is $found, undef, 'Queue not found.';
 	diag('Confirmed result.');
 
     done_testing;
