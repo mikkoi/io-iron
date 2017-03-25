@@ -60,7 +60,7 @@ diag("Created message queue " . $unique_queue_name_01 . ".");
 my $queried_iron_mq_queue_01 = $iron_mq_client->get_queue( 'name' => $unique_queue_name_01 );
 isa_ok($queried_iron_mq_queue_01 , "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
 is($queried_iron_mq_queue_01->size(), 0, "Queried queue size is 0.");
-my $queried_iron_mq_queue_info_01 = $iron_mq_client->get_info_about_queue( 'name' => $unique_queue_name_01 );
+my $queried_iron_mq_queue_info_01 = $iron_mq_client->get_queue_info( 'name' => $unique_queue_name_01 );
 is($queried_iron_mq_queue_01->size(), $queried_iron_mq_queue_info_01->{'size'}, "Queried queue size matches with queried info.");
 
 diag("Queried message queue " . $unique_queue_name_01 . ".");

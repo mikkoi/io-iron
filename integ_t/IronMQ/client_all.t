@@ -64,14 +64,14 @@ subtest 'Query the queues' => sub {
 	my $queried_iron_mq_queue_01 = $iron_mq_client->get_queue( 'name' => $unique_queue_name_01 );
 	isa_ok($queried_iron_mq_queue_01 , "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
 	#is($queried_iron_mq_queue_01->size(), 0, "Queried queue size is 0.");
-	my $queried_iron_mq_queue_info_01 = $iron_mq_client->get_info_about_queue( 'name' => $unique_queue_name_01 );
+	my $queried_iron_mq_queue_info_01 = $iron_mq_client->get_queue_info( 'name' => $unique_queue_name_01 );
 	#is($queried_iron_mq_queue_01->size(), $queried_iron_mq_queue_info_01->{'size'}, "Queried queue size matches with queried info.");
 	
 	diag("Queried message queue " . encode_utf8($unique_queue_name_01) . ".");
 	my $queried_iron_mq_queue_02 = $iron_mq_client->get_queue( 'name' => $unique_queue_name_02 );
 	isa_ok($queried_iron_mq_queue_02 , "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
 	#is($queried_iron_mq_queue_02->size(), 0, "Queried queue size is 0.");
-	my $queried_iron_mq_queue_info_02 = $iron_mq_client->get_info_about_queue( 'name' => $unique_queue_name_02 );
+	my $queried_iron_mq_queue_info_02 = $iron_mq_client->get_queue_info( 'name' => $unique_queue_name_02 );
 	#is($queried_iron_mq_queue_02->size(), $queried_iron_mq_queue_info_02->{'size'}, "Queried queue size matches with queried info.");
 	
 	diag("Queried message queue " . encode_utf8($unique_queue_name_02) . ".");
@@ -79,7 +79,7 @@ subtest 'Query the queues' => sub {
 	isa_ok($queried_iron_mq_queue_03 , "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
 	#is($queried_iron_mq_queue_03->size(), 0, "Queried queue size is 0.");
 	diag("Queried message queue " . encode_utf8($unique_queue_name_03) . ".");
-	my $queried_iron_mq_queue_info_03 = $iron_mq_client->get_info_about_queue( 'name' => $unique_queue_name_03 );
+	my $queried_iron_mq_queue_info_03 = $iron_mq_client->get_queue_info( 'name' => $unique_queue_name_03 );
 	#is($queried_iron_mq_queue_03->size(), $queried_iron_mq_queue_info_03->{'size'}, "Queried queue size matches with queried info.");
 	
 	# Query all queues.

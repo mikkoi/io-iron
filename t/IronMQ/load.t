@@ -22,7 +22,7 @@ BEGIN {
 	can_ok('IO::Iron::IronMQ::Client', 'delete_alerts');
 	can_ok('IO::Iron::IronMQ::Client', 'delete_queue');
 	can_ok('IO::Iron::IronMQ::Client', 'get_queues');
-	can_ok('IO::Iron::IronMQ::Client', 'get_info_about_queue');
+	can_ok('IO::Iron::IronMQ::Client', 'get_queue_info');
 
 	use_ok('IO::Iron::IronMQ::Queue') || print "Bail out!\n";
 	can_ok('IO::Iron::IronMQ::Queue', 'new');

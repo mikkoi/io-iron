@@ -45,7 +45,7 @@ IO::Iron::IronMQ::Client - IronMQ (Online Message Queue) Client.
     my $iron_mq_queue = $iron_mq_client->create_queue('name' => 'My_Message_Queue');
     # Or get an existing queue.
     my $iron_mq_queue = $iron_mq_client->get_queue('name' => 'My_Message_Queue');
-    my $queue_info = $iron_mq_client->get_info_about_queue('name' => 'My_Message_Queue');
+    my $queue_info = $iron_mq_client->get_queue_info('name' => 'My_Message_Queue');
     my $iron_mq_msg_send = IO::Iron::IronMQ::Message->new(
         'body' => "My message",
         );
@@ -193,7 +193,7 @@ last_http_status_code().
 
     # Get info about the queue
     # (Return a hash containing items name, id, size, project, etc.).
-    my $queue_info = $iron_mq_client->get_info_about_queue( 'name' => 'My_Message_Queue');
+    my $queue_info = $iron_mq_client->get_queue_info( 'name' => 'My_Message_Queue');
 
 A IO::Iron::IronMQ::Queue object gives access to a single message queue.
 With it you can do all the normal things one would with a message queue.
@@ -642,14 +642,14 @@ sub create_queue {
 
 =cut
 
-sub get_info_about_queue {
+sub get_queue_info {
 	my $self = shift;
 	my %params = validate(
 		@_, {
 			'name' => { type => SCALAR, }, # queue name.
 		}
 	);
-	$log->tracef('Entering get_info_about_queue(%s)', \%params);
+	$log->tracef('Entering get_queue_info(%s)', \%params);
 	assert_nonblank( $params{'name'}, 'Parameter \'name\' is a non blank string');
 
 	my $connection = $self->{'connection'};
@@ -661,7 +661,7 @@ sub get_info_about_queue {
 	my $info = $response_message;
 	# {"id":"51be[...]","name":"Log_Test_Queue","size":0,"total_messages":3,"project_id":"51bd[...]"}
 	$log->debugf('Returned info about queue %s.', $params{'name'});
-	$log->tracef('Exiting get_info_about_queue: %s', $info);
+	$log->tracef('Exiting get_queue_info: %s', $info);
 	return $info;
 }
 

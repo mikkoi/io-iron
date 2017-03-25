@@ -68,7 +68,7 @@ subtest 'Setup for testing' => sub {
 				}
 			],
 		);
-	my $normal_queue_info = $iron_mq_client->get_info_about_queue(
+	my $normal_queue_info = $iron_mq_client->get_queue_info(
 		'name' => $normal_queue->name()
 		);
 	#diag("normal_queue_info: " . Dumper($normal_queue_info) );
@@ -143,7 +143,7 @@ subtest 'Push and pull' => sub {
 				},
 			],
 		);
-	my $normal_queue_info = $iron_mq_client->get_info_about_queue(
+	my $normal_queue_info = $iron_mq_client->get_queue_info(
 		'name' => $normal_queue->name()
 		);
 	#diag("normal_queue_info: " . Dumper($normal_queue_info) );
@@ -172,7 +172,7 @@ subtest 'Push and pull' => sub {
 				{ 'id' => $alert_id, },
 			],
 		);
-	$normal_queue_info = $iron_mq_client->get_info_about_queue(
+	$normal_queue_info = $iron_mq_client->get_queue_info(
 		'name' => $normal_queue->name()
 		);
 	#diag("normal_queue_info: " . Dumper($normal_queue_info) );
@@ -185,7 +185,7 @@ subtest 'Push and pull' => sub {
 		'name' => $normal_queue->name(),
 		'id' => $alert_id,
 		);
-	$normal_queue_info = $iron_mq_client->get_info_about_queue(
+	$normal_queue_info = $iron_mq_client->get_queue_info(
 		'name' => $normal_queue->name()
 		);
 	#diag("normal_queue_info: " . Dumper($normal_queue_info) );
