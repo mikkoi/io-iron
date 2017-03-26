@@ -4,7 +4,6 @@ use strict;
 use warnings FATAL => 'all';
 use Test::More;
 use Test::Exception;
-# use Log::Any::Test;    # should appear before 'use Log::Any'!
 use Log::Any qw($log);
 
 use lib 't';
@@ -17,7 +16,7 @@ require IO::Iron::IronMQ::Client;
 
 #     Attn! Do not use the "use Log::Any" and "use Log::Any::Adapter" at the same time!!
 #     Otherwise can't use Log::Any::Test
-use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
+# use Log::Any::Adapter ('Stderr'); # Activate to get all log messages.
 #use Data::Dumper; $Data::Dumper::Maxdepth = 2;
 
 diag("Testing IO::Iron::IronMQ::Client, Perl $], $^X");
@@ -66,7 +65,7 @@ subtest 'Confirm result' => sub {
         $previous = $queue_names[-1];
     }
     my $found = grep { $_ eq $created_queue->name() } @all_queue_names;
-    is $found, undef, 'Queue not found.';
+    isnt $found, undef, 'Queue not found.';
 	diag('Confirmed result.');
 
     done_testing;
