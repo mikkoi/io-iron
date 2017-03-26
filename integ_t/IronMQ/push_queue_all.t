@@ -44,7 +44,7 @@ subtest 'Setup for testing' => sub {
     $unique_queue_name_03 = create_unique_queue_name() . '_error';
 
     # Create new queues.
-    $push_from_queue = $iron_mq_client->create_queue(
+    $push_from_queue = $iron_mq_client->create_and_get_queue(
             'name' => $unique_queue_name_01,
             'subscribers' => [
                 { "url" => "ironmq:///$unique_queue_name_02" },
@@ -54,15 +54,15 @@ subtest 'Setup for testing' => sub {
             'retries_delay' => 3,
             'error_queue' => $unique_queue_name_03,
         );
-    isa_ok($push_from_queue, "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
+    isa_ok($push_from_queue, "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
     is($push_from_queue->name(), $unique_queue_name_01, "Created queue has the given name.");
     diag("Created push_from message queue " . $unique_queue_name_01 . ".");
-    $push_to_queue = $iron_mq_client->create_queue( 'name' => $unique_queue_name_02 );
-    isa_ok($push_to_queue, "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
+    $push_to_queue = $iron_mq_client->create_and_get_queue( 'name' => $unique_queue_name_02 );
+    isa_ok($push_to_queue, "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
     is($push_to_queue->name(), $unique_queue_name_02, "Created queue has the given name.");
     diag("Created push_to message queue " . $unique_queue_name_02 . ".");
-    $error_queue = $iron_mq_client->create_queue( 'name' => $unique_queue_name_03 );
-    isa_ok($error_queue, "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
+    $error_queue = $iron_mq_client->create_and_get_queue( 'name' => $unique_queue_name_03 );
+    isa_ok($error_queue, "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
     is($error_queue->name(), $unique_queue_name_03, "Created queue has the given name.");
     diag("Created error message queue " . $unique_queue_name_03 . ".");
     
@@ -159,7 +159,7 @@ subtest 'Push and pull' => sub {
             'name' => $unique_queue_name_01,
             'push_type' => 'pull',
         );
-    isa_ok($push_from_queue, "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
+    isa_ok($push_from_queue, "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
     is($push_from_queue->name(), $unique_queue_name_01, "Created queue has the given name.");
     diag("Updated push_from message queue " . $unique_queue_name_01 . " to a normal queue.");
 

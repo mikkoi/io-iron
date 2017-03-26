@@ -42,16 +42,16 @@ subtest 'Setup for testing' => sub {
 	$unique_queue_name_03 = create_unique_queue_name() . '_alert';
 
 	# Create new queues.
-	$normal_queue = $iron_mq_client->create_queue(
+	$normal_queue = $iron_mq_client->create_and_get_queue(
 			'name' => $unique_queue_name_01,
 			'push_type' => 'pull',
 			#'error_queue' => $unique_queue_name_03,
 		);
-	isa_ok($normal_queue, "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
+	isa_ok($normal_queue, "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
 	is($normal_queue->name(), $unique_queue_name_01, "Created queue has the given name.");
 	diag("Created push_from message queue " . $unique_queue_name_01 . ".");
-	$alert_queue = $iron_mq_client->create_queue( 'name' => $unique_queue_name_03 );
-	isa_ok($alert_queue, "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
+	$alert_queue = $iron_mq_client->create_and_get_queue( 'name' => $unique_queue_name_03 );
+	isa_ok($alert_queue, "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
 	is($alert_queue->name(), $unique_queue_name_03, "Created queue has the given name.");
 	diag("Created alert message queue " . $unique_queue_name_03 . ".");
 
@@ -197,7 +197,7 @@ subtest 'Push and pull' => sub {
 #			'name' => $unique_queue_name_01,
 #			'push_type' => 'pull',
 #		);
-#	isa_ok($normal_queue, "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
+#	isa_ok($normal_queue, "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
 #	is($normal_queue->name(), $unique_queue_name_01, "Created queue has the given name.");
 #	diag("Updated push_from message queue " . $unique_queue_name_01 . " to a normal queue.");
 

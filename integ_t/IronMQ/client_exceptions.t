@@ -31,7 +31,7 @@ my $unique_queue_name_01 = create_unique_queue_name();
 my $faulty_queue_name = $unique_queue_name_01 . q{!&[};
 
 throws_ok {
-	my $queried_iron_mq_queue_01 = $iron_mq_client->create_queue( 'name' => $faulty_queue_name );
+	my $queried_iron_mq_queue_01 = $iron_mq_client->create_and_get_queue( 'name' => $faulty_queue_name );
 } '/RFC 3986 reserved character check/', 
 		'Params::Validate throws exception when creating a message queue with faulty characters (RFC 3986 reserved character check) in its name.';
 diag("Creating a queue with forbidden characters (RFC 3986 reserved characters) in name \'" . $unique_queue_name_01 . "\' fails.");
@@ -50,15 +50,15 @@ diag("Tried to get queue " . $unique_queue_name_01 . " which doesn't exist.");
 ## Create a new queue.
 my $created_iron_mq_queue_01;
 lives_ok {
-	$created_iron_mq_queue_01 = $iron_mq_client->create_queue( 'name' => $unique_queue_name_01 );
+	$created_iron_mq_queue_01 = $iron_mq_client->create_and_get_queue( 'name' => $unique_queue_name_01 );
 } 'Creating queue should not fail.';
-isa_ok($created_iron_mq_queue_01, "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
+isa_ok($created_iron_mq_queue_01, "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
 is($created_iron_mq_queue_01->name(), $unique_queue_name_01, "Created queue has the given name.");
 diag("Created message queue " . $unique_queue_name_01 . ".");
 
 # Query the created queue.
 my $queried_iron_mq_queue_01 = $iron_mq_client->get_queue( 'name' => $unique_queue_name_01 );
-isa_ok($queried_iron_mq_queue_01 , "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
+isa_ok($queried_iron_mq_queue_01 , "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
 is($queried_iron_mq_queue_01->size(), 0, "Queried queue size is 0.");
 my $queried_iron_mq_queue_info_01 = $iron_mq_client->get_queue_info( 'name' => $unique_queue_name_01 );
 is($queried_iron_mq_queue_01->size(), $queried_iron_mq_queue_info_01->{'size'}, "Queried queue size matches with queried info.");

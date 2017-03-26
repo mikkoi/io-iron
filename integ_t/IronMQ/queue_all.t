@@ -36,8 +36,8 @@ subtest 'Setup for testing' => sub {
 	$unique_queue_name_01 = create_unique_queue_name();
 	
 	# Create a new queue.
-	$created_iron_mq_queue_01 = $iron_mq_client->create_queue( 'name' => $unique_queue_name_01 );
-	isa_ok($created_iron_mq_queue_01, "IO::Iron::IronMQ::Queue", "create_queue returns a IO::Iron::IronMQ::Queue.");
+	$created_iron_mq_queue_01 = $iron_mq_client->create_and_get_queue( 'name' => $unique_queue_name_01 );
+	isa_ok($created_iron_mq_queue_01, "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
 	is($created_iron_mq_queue_01->name(), $unique_queue_name_01, "Created queue has the given name.");
 	diag("Created message queue " . $unique_queue_name_01 . ".");
 	

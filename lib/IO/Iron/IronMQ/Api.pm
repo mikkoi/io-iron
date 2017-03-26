@@ -130,7 +130,7 @@ sub IRONMQ_LIST_QUEUES {
 			'action_name'  => 'IRONMQ_LIST_QUEUES',
 			'href'         => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues',
 			'action'       => 'GET',
-			'return'       => 'LIST',
+			'return'       => 'HASH',
 			'retry'        => 0,
 			'require_body' => 0,
 			'url_params'   => { 'per_page' => 1, 'previous' => 1, 'prefix' => 1, },
