@@ -328,15 +328,15 @@ sub IRONMQ_GET_MESSAGE_BY_ID {
 		};
 }
 
-=head3 IRONMQ_PEEK_MESSAGES_ON_A_QUEUE
+=head3 IRONMQ_PEEK_MESSAGES
 
 /projects/{Project ID}/queues/{Queue Name}/messages/peek
 
 =cut
 
-sub IRONMQ_PEEK_MESSAGES_ON_A_QUEUE {
+sub IRONMQ_PEEK_MESSAGES {
 	return {
-			'action_name'    => 'IRONMQ_PEEK_MESSAGES_ON_A_QUEUE',
+			'action_name'    => 'IRONMQ_PEEK_MESSAGES',
 			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages',
 			'action'         => 'GET',
 			'return'         => 'HASH',
@@ -348,15 +348,15 @@ sub IRONMQ_PEEK_MESSAGES_ON_A_QUEUE {
 		};
 }
 
-=head3 IRONMQ_DELETE_A_MESSAGE_FROM_A_QUEUE
+=head3 IRONMQ_DELETE_MESSAGE
 
 /projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}
 
 =cut
 
-sub IRONMQ_DELETE_A_MESSAGE_FROM_A_QUEUE {
+sub IRONMQ_DELETE_MESSAGE {
 	return {
-			'action_name'    => 'IRONMQ_DELETE_A_MESSAGE_FROM_A_QUEUE',
+			'action_name'    => 'IRONMQ_DELETE_MESSAGE',
 			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}',
 			'action'         => 'DELETE',
 			'return'         => 'MESSAGE',
@@ -368,15 +368,15 @@ sub IRONMQ_DELETE_A_MESSAGE_FROM_A_QUEUE {
 		};
 }
 
-=head3 IRONMQ_DELETE_MULTIPLE_MESSAGES_FROM_A_QUEUE
+=head3 IRONMQ_DELETE_MESSAGES
 
 /projects/{Project ID}/queues/{Queue Name}/messages
 
 =cut
 
-sub IRONMQ_DELETE_MULTIPLE_MESSAGES_FROM_A_QUEUE {
+sub IRONMQ_DELETE_MESSAGES {
 	return {
-			'action_name'    => 'IRONMQ_DELETE_MULTIPLE_MESSAGES_FROM_A_QUEUE',
+			'action_name'    => 'IRONMQ_DELETE_MESSAGES',
 			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages',
 			'action'         => 'DELETE',
 			'return'         => 'MESSAGE',
@@ -388,15 +388,15 @@ sub IRONMQ_DELETE_MULTIPLE_MESSAGES_FROM_A_QUEUE {
 		};
 }
 
-=head3 IRONMQ_TOUCH_A_MESSAGE_ON_A_QUEUE
+=head3 IRONMQ_TOUCH_MESSAGE
 
 /projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/touch
 
 =cut
 
-sub IRONMQ_TOUCH_A_MESSAGE_ON_A_QUEUE {
+sub IRONMQ_TOUCH_MESSAGE {
 	return {
-			'action_name'    => 'IRONMQ_TOUCH_A_MESSAGE_ON_A_QUEUE',
+			'action_name'    => 'IRONMQ_TOUCH_MESSAGE',
 			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/touch',
 			'action'         => 'POST',
 			'return'         => 'HASH',
@@ -408,15 +408,15 @@ sub IRONMQ_TOUCH_A_MESSAGE_ON_A_QUEUE {
 		};
 }
 
-=head3 IRONMQ_RELEASE_A_MESSAGE_ON_A_QUEUE
+=head3 IRONMQ_RELEASE_MESSAGE
 
 /projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/release
 
 =cut
 
-sub IRONMQ_RELEASE_A_MESSAGE_ON_A_QUEUE {
+sub IRONMQ_RELEASE_MESSAGE {
 	return {
-			'action_name'    => 'IRONMQ_RELEASE_A_MESSAGE_ON_A_QUEUE',
+			'action_name'    => 'IRONMQ_RELEASE_MESSAGE',
 			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages/{Message ID}/release',
 			'action'         => 'POST',
 			'return'         => 'MESSAGE',
@@ -428,15 +428,15 @@ sub IRONMQ_RELEASE_A_MESSAGE_ON_A_QUEUE {
 		};
 }
 
-=head3 IRONMQ_CLEAR_ALL_MESSAGES_FROM_A_QUEUE
+=head3 IRONMQ_CLEAR_MESSAGES
 
 /projects/{Project ID}/queues/{Queue Name}/clear
 
 =cut
 
-sub IRONMQ_CLEAR_ALL_MESSAGES_FROM_A_QUEUE {
+sub IRONMQ_CLEAR_MESSAGES {
 	return {
-			'action_name'    => 'IRONMQ_CLEAR_ALL_MESSAGES_FROM_A_QUEUE',
+			'action_name'    => 'IRONMQ_CLEAR_MESSAGES',
 			'href'           => '{Protocol}://{Host}:{Port}/{API Version}/projects/{Project ID}/queues/{Queue Name}/messages',
 			'action'         => 'DELETE',
 			'return'         => 'MESSAGE',

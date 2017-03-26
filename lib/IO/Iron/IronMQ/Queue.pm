@@ -285,7 +285,7 @@ sub peek {
 	$query_params{'{n}'} = $params{'n'} if $params{'n'};
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
-		IO::Iron::IronMQ::Api::IRONMQ_PEEK_MESSAGES_ON_A_QUEUE(),
+		IO::Iron::IronMQ::Api::IRONMQ_PEEK_MESSAGES(),
 		{
 			'{Queue Name}' => $queue_name,
 			%query_params
@@ -351,7 +351,7 @@ sub delete { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
-		IO::Iron::IronMQ::Api::IRONMQ_DELETE_MULTIPLE_MESSAGES_FROM_A_QUEUE(),
+		IO::Iron::IronMQ::Api::IRONMQ_DELETE_MESSAGES(),
 		{
 			'{Queue Name}' => $queue_name,
 			'body'         => \%item_body,
@@ -409,7 +409,7 @@ sub release {
 	# We do not give delay a default value (0); we let IronMQ use internal default values!
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
-		IO::Iron::IronMQ::Api::IRONMQ_RELEASE_A_MESSAGE_ON_A_QUEUE(),
+		IO::Iron::IronMQ::Api::IRONMQ_RELEASE_MESSAGE(),
 		{
 			'{Queue Name}' => $queue_name,
 			'{Message ID}'  => $params{'id'},
@@ -453,7 +453,7 @@ sub touch {
 	my %item_body;
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
-		IO::Iron::IronMQ::Api::IRONMQ_TOUCH_A_MESSAGE_ON_A_QUEUE(),
+		IO::Iron::IronMQ::Api::IRONMQ_TOUCH_MESSAGE(),
 		{
 			'{Queue Name}' => $queue_name,
 			'{Message ID}'  => $params{'id'},
@@ -494,7 +494,7 @@ sub clear {
 	my %item_body;
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
-		IO::Iron::IronMQ::Api::IRONMQ_CLEAR_ALL_MESSAGES_FROM_A_QUEUE(),
+		IO::Iron::IronMQ::Api::IRONMQ_CLEAR_MESSAGES(),
 		{
 			'{Queue Name}' => $queue_name,
 			'body'         => \%item_body,    # Empty body.
