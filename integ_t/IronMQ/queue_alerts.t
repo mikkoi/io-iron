@@ -91,13 +91,13 @@ my @send_message_ids;
 subtest 'Push the first message' => sub {
 	plan tests => 3;
 	#Queue is empty
-	my @msg_pulls_00 = $alert_queue->pull( 'n' => 2, timeout => 120 );
+	my @msg_pulls_00 = $alert_queue->reserve_messages( 'n' => 2, timeout => 120 );
 	is(scalar @msg_pulls_00, 0, 'No messages pulled from alert queue, size 0.');
 	is($alert_queue->size(), 0, 'alert Queue size is 0.');
 	diag("Empty alert queue at the start.");
 	
 	# Let's send the messages.
-	my $msg_send_id_01 = $normal_queue->push( 'messages' => [ $send_messages[0] ] );
+	my $msg_send_id_01 = $normal_queue->post_messages( 'messages' => [ $send_messages[0] ] );
 	diag("Waiting until alert queue has a message...");
 	until ($alert_queue->size() > 0) {
 		sleep 1;
@@ -112,7 +112,7 @@ my @msg_pulls_02;
 subtest 'Push and pull' => sub {
 	plan tests => 8;
 	# Let's pull some messages.
-	@msg_pulls_01 = $alert_queue->pull();
+	@msg_pulls_01 = $alert_queue->reserve_messages();
 	#diag("IO::Iron::IronMQ::Message: " . Dumper($msg_pulls_01[0]));
     my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
 	my $alert_msg_content = $json->decode($msg_pulls_01[0]->body());

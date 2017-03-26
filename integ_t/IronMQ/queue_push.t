@@ -23,7 +23,7 @@ use Data::Dumper; $Data::Dumper::Maxdepth = 2;
 diag("Testing IO::Iron::IronMQ::Client, Perl $], $^X");
 
 ## Test case
-diag('Testing IO::Iron::IronMQ::Queue method push()');
+diag('Testing IO::Iron::IronMQ::Queue method post_messages()');
 
 my $iron_mq_client;
 my $project_id;
@@ -85,14 +85,14 @@ my $log_message;
 subtest 'Pushing' => sub {
 	plan tests => 7;
 	#Queue is empty
-	my @msg_pulls_00 = $queue->pull( 'n' => 2, 'timeout' => 120 );
+	my @msg_pulls_00 = $queue->reserve_messages( 'n' => 2, 'timeout' => 120 );
 	is(scalar @msg_pulls_00, 0, 'No messages pulled from queue, size 0.');
 	is($queue->size(), 0, 'Queue size is 0.');
 	diag("Empty queue at the start.");
 	
 	# Let's push the messages.
 	$log->clear();
-	my $msg_send_id_01 = $queue->push( 'messages' => [ $send_messages[0] ] );
+	my $msg_send_id_01 = $queue->post_messages( 'messages' => [ $send_messages[0] ] );
 	#my $log_test = 0;
 	#map { $log_test = 1 if ($_->{level} eq 'info' 
 	#		&& $_->{category} eq 'IO::Iron::IronMQ::Queue' 
@@ -104,7 +104,7 @@ subtest 'Pushing' => sub {
 	push @sent_msg_ids, $msg_send_id_01;
 	
 	$log->clear();
-	my @msg_send_ids_02 = $queue->push( 'messages' => [ @send_messages[1,2] ] );
+	my @msg_send_ids_02 = $queue->post_messages( 'messages' => [ @send_messages[1,2] ] );
 	#$log_test = 0;
 	#my $send_ids_text = join ',', @msg_send_ids_02;
 	##diag(Dumper($log->msgs));
@@ -118,7 +118,7 @@ subtest 'Pushing' => sub {
 	is($queue->size(), 3, 'Two messages pushed, queue size is 3.');
 	push @sent_msg_ids, @msg_send_ids_02;
 	
-	my $number_of_msgs_sent = $queue->push( 'messages' => [ @send_messages[3,4,5,6,7] ] );
+	my $number_of_msgs_sent = $queue->post_messages( 'messages' => [ @send_messages[3,4,5,6,7] ] );
 	is($number_of_msgs_sent, 5, '5 more messages pushed.');
 	is($queue->size(), 8, '5 more messages pushed, queue size is 8.');
 	diag("Total 8 messages pushed to queue.");
@@ -129,7 +129,7 @@ subtest 'Pushing' => sub {
 my @msg_pulls;
 subtest 'Pulled messages match with the sent messages.' => sub {
 	plan tests => 16;
-	@msg_pulls = $queue->pull( 'n' => 10, 'timeout' => 120 );
+	@msg_pulls = $queue->reserve_messages( 'n' => 10, 'timeout' => 120 );
 	is( scalar @msg_pulls, 8, "Pulled 8 messages.");
 	my $yaml_de = YAML::Tiny->new(); $yaml_de = $yaml_de->read_string($msg_pulls[1]->body());
 	is_deeply($yaml_de->[0], \%msg_body_hash_02, '#2 message body after serialization matches with the sent message body.');

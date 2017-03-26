@@ -29,8 +29,8 @@ BEGIN {
 	use_ok('IO::Iron::IronMQ::Queue') || BAIL_OUT('Cannot find class!');
 	can_ok('IO::Iron::IronMQ::Queue', 'new');
 	can_ok('IO::Iron::IronMQ::Queue', 'clear');
-	can_ok('IO::Iron::IronMQ::Queue', 'push');
-	can_ok('IO::Iron::IronMQ::Queue', 'pull');
+	can_ok('IO::Iron::IronMQ::Queue', 'post_messages');
+	can_ok('IO::Iron::IronMQ::Queue', 'reserve_messages');
 	can_ok('IO::Iron::IronMQ::Queue', 'peek');
 	can_ok('IO::Iron::IronMQ::Queue', 'delete');
 	can_ok('IO::Iron::IronMQ::Queue', 'touch');

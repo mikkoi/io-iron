@@ -95,7 +95,7 @@ sub new {
 	return $blessed_ref;
 }
 
-=head2 push
+=head2 post_messages
 
 =over
 
@@ -108,7 +108,7 @@ or number of messages.
 
 =cut
 
-sub push { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
+sub post_messages {
 	# TODO Limit the total size!
 	my $self = shift;
 	my %params = validate(
@@ -129,7 +129,7 @@ sub push { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 		}
 	);
 	my @messages = @{$params{'messages'}};
-	$log->tracef( 'Entering push(%s)', @messages );
+	$log->tracef( 'Entering post_messages(%s)', @messages );
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
@@ -146,7 +146,7 @@ sub push { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 		# Otherwise numbers might end up as strings.
 		$message_content->{'delay'} += 0;
 
-		push @message_contents, $message_content;
+        CORE::push @message_contents, $message_content;
 	}
 	my %item_body = ( 'messages' => \@message_contents );
 
@@ -181,7 +181,7 @@ sub push { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 	}
 }
 
-=head2 pull
+=head2 reserve_messages
 
 =over 
 
@@ -197,13 +197,7 @@ empty list if no messages available.
 
 =cut
 
-# TODO Bug in documentation:
-# Returned HTTP response:{"messages":[{"id":"5999128538599854538","body":"{\"code\":0,\"msg\":\"Push request failed:Post https://non_e
-# xisting_host:443/1/projects/non_existing_project_id/queues/non_existing_queue_name/messages: dial tcp: lookup non_existing_host: no
-# such host\",\"source_msg_id\":\"5999128499945083127\",\"subscribers\":[{\"url\":\"ironmq://non_existing_project_id:non_existing_toke
-# n@non_existing_host/non_existing_queue_name\"}]}","timeout":60,"reserved_count":1,"push_status":{}}]}
-
-sub pull {
+sub reserve_messages {
 	my $self = shift;
 	my %params = validate(
 		@_, {
@@ -213,8 +207,8 @@ sub pull {
             'delete' => { type => SCALAR, optional => 1, } # Do not put each message back on to the queue after reserving.
 		}
 	);
-	assert_positive(wantarray, 'Method pull() only works in LIST context!');
-	$log->tracef( 'Entering pull(%s)', \%params );
+	assert_positive(wantarray, 'Method reserve_messages() only works in LIST context!');
+	$log->tracef( 'Entering reserve_messages(%s)', \%params );
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
@@ -249,9 +243,9 @@ sub pull {
 		CORE::push @pulled_messages,
 		  $message;    # using CORE routine, not this class' method.
 	}
-	$log->debugf( 'Pulled %d IronMQ Messages (queue name=%s).',
+	$log->debugf( 'Reserved %d IronMQ Messages (queue name=%s).',
 		scalar @pulled_messages, $self->{'name'} );
-	$log->tracef( 'Exiting pull: %s',
+	$log->tracef( 'Exiting reserve_messages(): %s',
 		@pulled_messages ? @pulled_messages : '[NONE]' );
 	return @pulled_messages;
 }

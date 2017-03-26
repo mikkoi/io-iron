@@ -82,13 +82,13 @@ my @send_message_ids;
 subtest 'Push the first message' => sub {
     plan tests => 3;
     #Queue is empty
-    my @msg_pulls_00 = $push_to_queue->pull( 'n' => 2, timeout => 120 );
+    my @msg_pulls_00 = $push_to_queue->reserve_messages( 'n' => 2, timeout => 120 );
     is(scalar @msg_pulls_00, 0, 'No messages pulled from push to queue, size 0.');
     is($push_to_queue->size(), 0, 'Push to Queue size is 0.');
     diag("Empty push to queue at the start.");
     
     # Let's send the messages.
-    my $msg_send_id_01 = $push_from_queue->push( 'messages' => [ $send_messages[0] ] );
+    my $msg_send_id_01 = $push_from_queue->post_messages( 'messages' => [ $send_messages[0] ] );
     diag("Waiting until push to queue has a message...");
     until ($push_to_queue->size() > 0) {
         sleep 1;
@@ -103,7 +103,7 @@ my @msg_pulls_02;
 subtest 'Push and pull' => sub {
     plan tests => 14;
     # Let's pull some messages.
-    @msg_pulls_01 = $push_to_queue->pull();
+    @msg_pulls_01 = $push_to_queue->reserve_messages();
     isnt($msg_pulls_01[0]->id(), $send_message_ids[0], 'Message ids are not same because the queue is not the same.');
     is($msg_pulls_01[0]->body(), $send_messages[0]->body(), '1st message body equals to sent message body.');
     $push_to_queue->delete( 'ids' => [ $msg_pulls_01[0]->id() ]);
@@ -126,7 +126,7 @@ subtest 'Push and pull' => sub {
     is($add_ret_val, 1, 'add_subscribers returns 1.');
 
     # Push a message (which will go to error)
-    my $msg_send_id_01 = $push_from_queue->push( 'messages' => [ $send_messages[1] ] );
+    my $msg_send_id_01 = $push_from_queue->post_messages( 'messages' => [ $send_messages[1] ] );
     diag("Waiting until error queue has a message...");
     until ($error_queue->size() > 0) {
         sleep 1;
@@ -134,7 +134,7 @@ subtest 'Push and pull' => sub {
     }
     is($error_queue->size(), 1, 'One message pushed to non-existing address, error queue size is 1.');
     push @send_message_ids, $msg_send_id_01;
-    @msg_pulls_01 = $error_queue->pull();
+    @msg_pulls_01 = $error_queue->reserve_messages();
     #diag("IO::Iron::IronMQ::Message: " . Dumper($msg_pulls_01[0]));
     my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
     my $error_msg_content = $json->decode($msg_pulls_01[0]->body());

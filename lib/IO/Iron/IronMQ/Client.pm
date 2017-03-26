@@ -51,9 +51,9 @@ IO::Iron::IronMQ::Client - IronMQ (Online Message Queue) Client.
     my $iron_mq_msg_send = IO::Iron::IronMQ::Message->new(
         'body' => "My message",
         );
-    my $msg_send_id = $iron_mq_queue->push('messages' => [ $iron_mq_msg_send ]);
+    my $msg_send_id = $iron_mq_queue->post_messages('messages' => [ $iron_mq_msg_send ]);
     my $iron_mq_msg_peek = $iron_mq_queue->peek();
-    my @iron_mq_msgs_pull = $iron_mq_queue->pull( n => 1 );
+    my @iron_mq_msgs_pull = $iron_mq_queue->reserve_messages( n => 1 );
     my $pulled_msg_body = $iron_mq_msgs_pull[0]->body();
     my $delete_ret = $iron_mq_queue->delete( 'ids' => [ $iron_mq_msgs_pull[0]->id() ]);
     my $cleared = $iron_mq_queue->clear();
@@ -254,9 +254,9 @@ Get queue name.
 Add one or more messages to the queue. Returns the ids of the messages sent
 or the number of sent messages.
 
-	my $msg_send_id = $iron_mq_queue->push( 'messages' => [ $iron_mq_msg_send_01 ] );
-	my @msg_send_ids = $iron_mq_queue->push( 'messages' => [ $iron_mq_msg_send_01, $iron_mq_msg_send_02 ] );
-	my $number_of_msgs_sent = $iron_mq_queue->push( 'messages' => [ $iron_mq_msg_send_01, $iron_mq_msg_send_02 ] );
+	my $msg_send_id = $iron_mq_queue->post_messages( 'messages' => [ $iron_mq_msg_send_01 ] );
+	my @msg_send_ids = $iron_mq_queue->post_messages( 'messages' => [ $iron_mq_msg_send_01, $iron_mq_msg_send_02 ] );
+	my $number_of_msgs_sent = $iron_mq_queue->post_messages( 'messages' => [ $iron_mq_msg_send_01, $iron_mq_msg_send_02 ] );
 
 Read one or more messages from the queue and reserve them so another process
 cannot access them. Parameters: n (number of messages you want, default 1, 
@@ -265,7 +265,7 @@ if no messages, an empty list will be returned,
 timeout (After timeout (in seconds), item will be placed back onto queue, 
 default is 60 seconds, minimum is 30 seconds, and maximum is 86,400 seconds (24 hours)).
 
-	my @iron_mq_msg_pulls = $iron_mq_queue->pull( n => 10, timeout => 120 );
+	my @iron_mq_msg_pulls = $iron_mq_queue->reserve_messages( n => 10, timeout => 120 );
 
 Read one or more messages from the queue but don't reserve them.
 Parameters: n (number of messages you want, default 1, maximum 100; if there 

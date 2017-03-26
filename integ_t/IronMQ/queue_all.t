@@ -70,20 +70,20 @@ my @send_message_ids;
 subtest 'Push the messages' => sub {
 	plan tests => 7;
 	#Queue is empty
-	my @msg_pulls_00 = $created_iron_mq_queue_01->pull( 'n' => 2, timeout => 120 );
+	my @msg_pulls_00 = $created_iron_mq_queue_01->reserve_messages( 'n' => 2, timeout => 120 );
 	is(scalar @msg_pulls_00, 0, 'No messages pulled from queue, size 0.');
 	is($created_iron_mq_queue_01->size(), 0, 'Queue size is 0.');
 	diag("Empty queue at the start.");
 	
 	# Let's send the messages.
-	my $msg_send_id_01 = $created_iron_mq_queue_01->push( 'messages' => [ $send_messages[0] ] );
+	my $msg_send_id_01 = $created_iron_mq_queue_01->post_messages( 'messages' => [ $send_messages[0] ] );
 	is($created_iron_mq_queue_01->size(), 1, 'One message pushed, queue size is 1.');
 	
-	my @msg_send_ids_02 = $created_iron_mq_queue_01->push( 'messages' => [ @send_messages[1,2] ] );
+	my @msg_send_ids_02 = $created_iron_mq_queue_01->post_messages( 'messages' => [ @send_messages[1,2] ] );
 	is(scalar @msg_send_ids_02, 2, 'Two messages pushed');
 	is($created_iron_mq_queue_01->size(), 3, 'Two messages pushed, queue size is 3.');
 	
-	my $number_of_msgs_sent = $created_iron_mq_queue_01->push( 'messages' => [ @send_messages[3,4,5] ] );
+	my $number_of_msgs_sent = $created_iron_mq_queue_01->post_messages( 'messages' => [ @send_messages[3,4,5] ] );
 	is($number_of_msgs_sent, 3, 'Three more messages pushed.');
 	is($created_iron_mq_queue_01->size(), 6, 'Three more messages pushed, queue size is 6.');
 	diag("6 messages pushed to queue.");
@@ -95,11 +95,11 @@ my @msg_pulls_02;
 subtest 'Pull and peek' => sub {
 	plan tests => 10;
 	# Let's pull some messages.
-	@msg_pulls_01 = $created_iron_mq_queue_01->pull();
+	@msg_pulls_01 = $created_iron_mq_queue_01->reserve_messages();
 	is($msg_pulls_01[0]->id(), $send_message_ids[0], 'Pulled the 1st message.');
 	is($msg_pulls_01[0]->body(), $send_messages[0]->body(), '1st message body equals to sent message body.');
 	
-	@msg_pulls_02 = $created_iron_mq_queue_01->pull( 'n' => 2, timeout => 120 );
+	@msg_pulls_02 = $created_iron_mq_queue_01->reserve_messages( 'n' => 2, timeout => 120 );
 	my $yaml_de = YAML::Tiny->new(); $yaml_de = $yaml_de->read_string($msg_pulls_02[0]->body());
 	is_deeply($yaml_de->[0], \%msg_body_hash_02, '#2 message body after serialization matches with the sent message body.');
 	
@@ -126,7 +126,7 @@ subtest 'Pull and release' => sub {
 	# Let's touch some messages.
 	
 	#Pull the rest first
-	@msg_pulls_04 = $created_iron_mq_queue_01->pull( 'n' => 3, timeout => 120 );
+	@msg_pulls_04 = $created_iron_mq_queue_01->reserve_messages( 'n' => 3, timeout => 120 );
 	is($created_iron_mq_queue_01->size(), 6, 'All 6 messages in queue, all reserved');
 	
 	my $touched_msg_id1 = $created_iron_mq_queue_01->touch('id' => $msg_pulls_01[0]->id());
@@ -142,7 +142,7 @@ subtest 'Pull and release' => sub {
 	# Let's release some messages.
 	
 	#Queue is not empty but we can not read any messages.
-	my @msg_pulls_10 = $created_iron_mq_queue_01->pull( 'n' => 2, timeout => 120 );
+	my @msg_pulls_10 = $created_iron_mq_queue_01->reserve_messages( 'n' => 2, timeout => 120 );
 	is(scalar @msg_pulls_10, 0, 'No messages pulled from queue, size 6.');
 	is($created_iron_mq_queue_01->size(), 6, 'Queue size is 6.');
 	
@@ -151,7 +151,7 @@ subtest 'Pull and release' => sub {
 	my $released_msg_id3 = $created_iron_mq_queue_01->release('id' => $msg_pulls_02[1]->id());
 	
 	# Now we can read back the released messages.
-	@msg_pulls_11 = $created_iron_mq_queue_01->pull( 'n' => 3, timeout => 120 );
+	@msg_pulls_11 = $created_iron_mq_queue_01->reserve_messages( 'n' => 3, timeout => 120 );
 	is(scalar @msg_pulls_11, 3, 'No messages pulled from queue, size 6.');
 	is($created_iron_mq_queue_01->size(), 6, 'Queue size is 6.');
 };
