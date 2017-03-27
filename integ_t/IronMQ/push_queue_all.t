@@ -146,7 +146,7 @@ subtest 'Push and pull' => sub {
     is($error_queue->size(), 0, 'One message pulled and deleted, error queue size is 0.');
 
     # Query push status for the failed message.
-    my $r_hash = $error_queue->get_push_status( 'id' => $send_message_ids[1]);
+    my $r_hash = $error_queue->get_push_statuses( 'id' => $send_message_ids[1]);
     #diag("Iron.io returned: " . Dumper($r_hash));
     my @subscribers = (@{$r_hash->{'subscribers'}});
     #diag("Subscribers: " . Dumper(\@subscribers));

@@ -318,14 +318,14 @@ have received the message, which have failed, how many times
 it's tried to be delivered and the status code returned from 
 the endpoint.
 
-	my $info = $iron_mq_queue->get_push_status( 'id' => $msg_id );
+	my $info = $iron_mq_queue->get_push_statuses( 'id' => $msg_id );
 	my @subscribers = (@{info->{'subscribers'}});
 
 Acknowledge / Delete Push Message for a Subscriber. 
 This is only for use with long running processes that have 
 previously returned a 202.
 
-	my $info = $iron_mq_queue->get_push_status( 'id' => $msg_id );
+	my $info = $iron_mq_queue->get_push_statuses( 'id' => $msg_id );
 	my @subscribers = (@{info->{'subscribers'}});
 	my $push_acknowledged = $iron_mq_queue->delete_push_message(
 		'id' => $msg_id, 'subscriber' => $subscribers[0]->{'id'}

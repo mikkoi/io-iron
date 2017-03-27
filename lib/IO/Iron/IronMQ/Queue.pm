@@ -95,6 +95,41 @@ sub new {
 	return $blessed_ref;
 }
 
+=head2 size
+
+=over
+
+=item Params: [none]
+
+=item Return: queue size (integer).
+
+=back
+
+=cut
+
+sub size {
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			# No parameters
+		}
+	);
+	$log->tracef('Entering size().');
+
+	my $queue_name = $self->name();
+	my $connection = $self->{'connection'};
+	my ( $http_status_code, $response_message ) =
+	  $connection->perform_iron_action(
+		IO::Iron::IronMQ::Api::IRONMQ_GET_QUEUE_INFO(),
+		{ '{Queue Name}' => $queue_name, } );
+	$self->{'last_http_status_code'} = $http_status_code;
+	my $size = $response_message->{'queue'}->{'size'};
+	$log->debugf( 'Queue size is %s.', $size );
+
+	$log->tracef( 'Exiting size(): %s', $size );
+	return $size;
+}
+
 =head2 post_messages
 
 =over
@@ -554,42 +589,7 @@ sub clear_messages {
 	return;
 }
 
-=head2 size
-
-=over
-
-=item Params: [none]
-
-=item Return: queue size (integer).
-
-=back
-
-=cut
-
-sub size {
-	my $self = shift;
-	my %params = validate(
-		@_, {
-			# No parameters
-		}
-	);
-	$log->tracef('Entering size().');
-
-	my $queue_name = $self->name();
-	my $connection = $self->{'connection'};
-	my ( $http_status_code, $response_message ) =
-	  $connection->perform_iron_action(
-		IO::Iron::IronMQ::Api::IRONMQ_GET_QUEUE_INFO(),
-		{ '{Queue Name}' => $queue_name, } );
-	$self->{'last_http_status_code'} = $http_status_code;
-	my $size = $response_message->{'queue'}->{'size'};
-	$log->debugf( 'Queue size is %s.', $size );
-
-	$log->tracef( 'Exiting size(): %s', $size );
-	return $size;
-}
-
-=head2 get_push_status
+=head2 get_push_statuses
 
 =over 8
 
@@ -601,16 +601,16 @@ sub size {
 
 =cut
 
-sub get_push_status {
+sub get_push_statuses {
 	my $self = shift;
 	my %params = validate(
 		@_, {
 			'id' => { type => SCALAR, }, # message id.
 		}
 	);
-	assert_positive(wantarray == 0, 'Method get_push_status() only works in SCALAR context!');
+	assert_positive(wantarray == 0, 'Method get_push_statuses() only works in SCALAR context!');
 	assert_nonblank( $params{'id'}, 'Parameter id is a non null string.');
-	$log->tracef('Entering get_push_status(%s)', \%params);
+	$log->tracef('Entering get_push_statuses(%s)', \%params);
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
@@ -625,7 +625,7 @@ sub get_push_status {
 	my $info = $response_message;
 	$log->debugf('Returned push status for message %s.', $params{'id'});
 
-	$log->tracef('Exiting get_push_status: %s', $info);
+	$log->tracef('Exiting get_push_statuses: %s', $info);
 	return $info;
 }
 
