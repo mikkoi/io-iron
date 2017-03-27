@@ -65,7 +65,7 @@ sub new {
 			'body' => { type => SCALAR, },                          # Message body (free text), can be empty.
 			'delay' => { type => SCALAR, optional => 1, },          # The item will not be available on the queue until this many seconds have passed.
             'push_headers' => { type => HASHREF, optional => 1, },  # Headers for push queues.
-			'id' => { type => SCALAR, optional => 1, },             # Message id from IronMQ queue (after message has been pulled/peeked).
+			'id' => { type => SCALAR, optional => 1, },             # Message id from IronMQ queue (after message has been reserved/peeked).
 			'reserved_count' => { type => SCALAR, optional => 1, }, # FIXME item reserved_count
 			'reservation_id' => { type => SCALAR, optional => 1, }, # Reservation id string from the queue.
 		}

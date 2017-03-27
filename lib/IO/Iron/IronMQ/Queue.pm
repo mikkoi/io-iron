@@ -166,16 +166,16 @@ sub post_messages {
 	$log->debugf( 'Pushed IronMQ Message(s) (queue name=%s; message id(s)=%s).',
 		$self->{'name'}, ( join q{,}, @ids ) );
 	if (wantarray) {
-		$log->tracef( 'Exiting push: %s', ( join q{:}, @ids ) );
+		$log->tracef( 'Exiting post_messages: %s', ( join q{:}, @ids ) );
 		return @ids;
 	}
 	else {
 		if ( scalar @messages == 1 ) {
-			$log->tracef( 'Exiting push: %s', $ids[0] );
+			$log->tracef( 'Exiting post_messages: %s', $ids[0] );
 			return $ids[0];
 		}
 		else {
-			$log->tracef( 'Exiting push: %s', scalar @ids );
+			$log->tracef( 'Exiting post_messages: %s', scalar @ids );
 			return scalar @ids;
 		}
 	}
@@ -212,17 +212,17 @@ sub reserve_messages {
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
-	my %query_params;
-	$query_params{'{n}'}       = $params{'n'}       if $params{'n'};
-	$query_params{'{timeout}'} = $params{'timeout'} if $params{'timeout'};
-	$query_params{'{wait}'} = $params{'wait'} if $params{'wait'};
-	$query_params{'{delete}'} = $params{'delete'} if $params{'delete'};
+	my %fetch_params;
+	$fetch_params{'n'}       = $params{'n'}       if $params{'n'};
+	$fetch_params{'timeout'} = $params{'timeout'} if $params{'timeout'};
+	$fetch_params{'wait'}    = $params{'wait'}    if $params{'wait'};
+	$fetch_params{'delete'}  = $params{'delete'}  if $params{'delete'};
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
 		IO::Iron::IronMQ::Api::IRONMQ_RESERVE_MESSAGES(),
 		{
 			'{Queue Name}' => $queue_name,
-			%query_params
+			'body'         => \%fetch_params,
 		}
 	  );
 	$self->{'last_http_status_code'} = $http_status_code;
@@ -235,7 +235,6 @@ sub reserve_messages {
 			$self->{'name'}, $msg->{'id'} );
 		my $message = IO::Iron::IronMQ::Message->new(
 			'body'           => $msg->{'body'},
-			'timeout'        => $msg->{'timeout'},
 			'id'             => $msg->{'id'},
 			'reserved_count' => $msg->{'reserved_count'},
 			'reservation_id' => $msg->{'reservation_id'},
@@ -308,19 +307,71 @@ sub peek {
 	return @peeked_messages;
 }
 
-=head2 delete
+=head2 delete_message
 
 =over
 
-=item Params: one or more messages (IO::Iron::IronMQ::Message).
+=item Params: one IO::Iron::IronMQ::Message object.
 
-=item Return: the deleted message ids (if in list context), or the number of messages deleted.
+=item Return: [NONE]
 
 =back
 
 =cut
 
-sub delete { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
+sub delete_message {
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'message' => {
+				type => OBJECT,
+                isa => 'IO::Iron::IronMQ::Message',
+                optional => 0,
+			},
+            'subscriber_name' => {
+                type => SCALAR,
+                optional => 1,
+            },
+		}
+	);
+	$log->tracef( 'Entering delete(%s)', \%params );
+
+	my $queue_name = $self->name();
+	my $connection = $self->{'connection'};
+    my $message = $params{'message'};
+	my %item_body  = ( 'reservation_id' => $message->reservation_id(), );
+    $item_body{'subscriber_name'} = $params{'subscriber_name'} if $params{'subscriber_name'};
+	my ( $http_status_code, $response_message ) =
+	  $connection->perform_iron_action(
+		IO::Iron::IronMQ::Api::IRONMQ_DELETE_MESSAGE(),
+		{
+			'{Queue Name}' => $queue_name,
+			'{Message ID}' => $message->id(),
+			'body'         => \%item_body,
+		}
+	  );
+	$self->{'last_http_status_code'} = $http_status_code;
+
+	my $msg = $response_message->{'msg'};    # Should be 'Deleted'
+	$log->debugf( 'Deleted IronMQ Message (queue name=%s; message id=%s.',
+		$queue_name, $params{'message'}->id() );
+	$log->tracef( 'Exiting delete_message(): %s', 'undef' );
+    return;
+}
+
+=head2 delete_messages
+
+=over
+
+=item Params: one or more messages (IO::Iron::IronMQ::Message).
+
+=item Return: undefined.
+
+=back
+
+=cut
+
+sub delete_messages {
 	my $self = shift;
 	# my %params = validate(
 	# 	@_, {
@@ -332,7 +383,7 @@ sub delete { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
     my @messages = validate_pos(@_, ( { type => OBJECT, isa => 'IO::Iron::IronMQ::Message', } ) x scalar @_);
 	# my @message_ids = @{$params{'ids'}};
 	assert_positive(scalar @messages, 'There is one or more messages.');
-	$log->tracef( 'Entering delete(%s)', @messages );
+	$log->tracef( 'Entering delete_messages(%s)', \@messages );
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
@@ -356,49 +407,94 @@ sub delete { ## no critic (Subroutines::ProhibitBuiltinHomonyms)
 	my $msg = $response_message->{'msg'};    # Should be 'Deleted'
 	$log->debugf( 'Deleted IronMQ Message(s) (queue name=%s; message id(s)=%s.',
 		$queue_name, ( join q{,}, @message_ids ) );
-	if (wantarray) {
-		$log->tracef( 'Exiting push: %s', ( join q{:}, @message_ids ) );
-		return @message_ids;
-	}
-	else {
-		if ( scalar @message_ids == 1 ) {
-			$log->tracef( 'Exiting push: %s', $message_ids[0] );
-			return $message_ids[0];
-		}
-		else {
-			$log->tracef( 'Exiting push: %s', scalar @message_ids );
-			return scalar @message_ids;
-		}
-	}
+	$log->tracef( 'Exiting delete_messages: %s', 'undef' );
+    return;
 }
 
-=head2 release
+=head2 touch_message
+
+Changes the reservation_id of the parameter IO::Iron::IronMQ::Message object.
 
 =over
 
-=item Params: Message id.
+=item Params: IO::Iron::IronMQ::Message object.
 
-=item Return: 1
+=item Return: undefined
 
 =back
 
 =cut
 
-sub release {
+sub touch_message {
 	my $self = shift;
 	my %params = validate(
 		@_, {
-			'id' => { type => SCALAR }, # Message id.
-			'delay' => { type => SCALAR, optional => 1, }, # Delay before releasing.
+			'message' => {
+				type => OBJECT,
+                isa => 'IO::Iron::IronMQ::Message',
+                optional => 0,
+			},
+            'timeout' => {
+                type => SCALAR,
+                optional => 1,
+            },
 		}
 	);
-	assert_nonblank( $params{'id'}, 'Paramater id is a non null string.' );
-	assert_nonnegative_integer( $params{'delay'} ? $params{'delay'} : 0, 'Parameter delay is a non negative integer.' );
-	$log->tracef( 'Entering release(%s)', \%params );
+	$log->tracef( 'Entering touch_message(%s)', \%params );
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
-	my %item_body;
+    my $message = $params{'message'};
+	my %item_body  = ( 'reservation_id' => $message->reservation_id(), );
+    $item_body{'timeout'} = $params{'timeout'} if $params{'timeout'};
+	my ( $http_status_code, $response_message ) = $connection->perform_iron_action(
+        IO::Iron::IronMQ::Api::IRONMQ_TOUCH_MESSAGE(),
+        {
+            '{Queue Name}' => $queue_name,
+            '{Message ID}' => $message->id(),
+            'body'         => \%item_body,
+        }
+    );
+	$self->{'last_http_status_code'} = $http_status_code;
+    $message->reservation_id($response_message->{'reservation_id'});
+	$log->debugf( 'Touched IronMQ Message (queue name=%s; message id=%s.',
+		$queue_name, $message->id() );
+
+	$log->tracef( 'Exiting touch_message(): %s', 'undef' );
+	return;
+}
+
+=head2 release_message
+
+=over
+
+=item Params: IO::Iron::IronMQ::Message.
+
+=item Return: undefined
+
+=back
+
+=cut
+
+sub release_message {
+	my $self = shift;
+	my %params = validate(
+		@_, {
+			'message' => {
+				type => OBJECT,
+                isa => 'IO::Iron::IronMQ::Message',
+                optional => 0,
+			},
+			'delay' => { type => SCALAR, optional => 1, }, # Delay before releasing.
+		}
+	);
+	assert_nonnegative_integer( $params{'delay'} ? $params{'delay'} : 0, 'Parameter delay is a non negative integer.' );
+	$log->tracef( 'Entering release_message(%s)', \%params );
+
+	my $queue_name = $self->name();
+	my $connection = $self->{'connection'};
+    my $message = $params{'message'};
+	my %item_body  = ( 'reservation_id' => $message->reservation_id(), );
 	$item_body{'delay'} = $params{'delay'} if $params{'delay'};
 	# We do not give delay a default value (0); we let IronMQ use internal default values!
 	my ( $http_status_code, $response_message ) =
@@ -406,7 +502,7 @@ sub release {
 		IO::Iron::IronMQ::Api::IRONMQ_RELEASE_MESSAGE(),
 		{
 			'{Queue Name}' => $queue_name,
-			'{Message ID}'  => $params{'id'},
+			'{Message ID}'  => $message->id(),
 			'body'         => \%item_body,
 		}
 	  );
@@ -415,73 +511,30 @@ sub release {
 		'Released IronMQ Message(s) (queue name=%s; message id=%s; delay=%d)',
 		$queue_name, $params{'id'}, $params{'delay'} ? $params{'delay'} : 0 );
 
-	$log->tracef( 'Exiting release: %s', 1 );
+	$log->tracef( 'Exiting release_message: %s', 1 );
 	return 1;
 }
 
-=head2 touch
-
-=over
-
-=item Params: Message id.
-
-=item Return: 1 if successful, 0 if failed to touch.
-
-=back
-
-=cut
-
-sub touch {
-	my $self = shift;
-	my %params = validate(
-		@_, {
-			'id' => { type => SCALAR }, # Message id.
-		}
-	);
-	assert_nonblank( $params{'id'}, 'Parameter id is a non null string.' );
-	$log->tracef( 'Entering touch(%s)', \%params );
-
-
-	my $queue_name = $self->name();
-	my $connection = $self->{'connection'};
-	my %item_body;
-	my ( $http_status_code, $response_message ) =
-	  $connection->perform_iron_action(
-		IO::Iron::IronMQ::Api::IRONMQ_TOUCH_MESSAGE(),
-		{
-			'{Queue Name}' => $queue_name,
-			'{Message ID}'  => $params{'id'},
-			'body'         => \%item_body,    # Empty body.
-		}
-	  );
-	$self->{'last_http_status_code'} = $http_status_code;
-	$log->debugf( 'Touched IronMQ Message(s) (queue name=%s; message id(s)=%s.',
-		$queue_name, $params{'id'} );
-
-	$log->tracef( 'Exiting touch: %s', 1 );
-	return 1;
-}
-
-=head2 clear
+=head2 clear_messages
 
 =over
 
 =item Params: [None].
 
-=item Return: 1 if successful.
+=item Return: undefined.
 
 =back
 
 =cut
 
-sub clear {
+sub clear_messages {
 	my $self = shift;
 	my %params = validate(
 		@_, {
 			# No parameters
 		}
 	);
-	$log->tracef('Entering clear()');
+	$log->tracef('Entering clear_messages()');
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
@@ -496,10 +549,9 @@ sub clear {
 	  );
 	$self->{'last_http_status_code'} = $http_status_code;
 	my $msg = $response_message->{'msg'};    # Should be 'Cleared'
-    assert( $msg, 'Cleared' );
 	$log->debugf( 'Cleared IronMQ Message queue %s.', $queue_name );
-	$log->tracef( 'Exiting clear: %s', 1 );
-	return 1;
+	$log->tracef( 'Exiting clear_messages: %s', 'undef' );
+	return;
 }
 
 =head2 size

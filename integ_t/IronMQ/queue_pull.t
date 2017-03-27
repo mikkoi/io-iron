@@ -1,5 +1,7 @@
 #!perl -T
-## no critic (ValuesAndExpressions::ProhibitMagicNumbers)use 5.006;
+## no critic (ValuesAndExpressions::ProhibitMagicNumbers)
+
+use 5.006;
 use strict;
 use warnings FATAL => 'all';
 use Test::More;
@@ -7,7 +9,7 @@ use Test::Exception;
 use Log::Any::Test;    # should appear before 'use Log::Any'!
 use Log::Any qw($log);
 
-use lib q{.};
+use lib 't';
 use lib 'integ_t';
 require 'iron_io_integ_tests_common.pl'; ## no critic (Modules::RequireBarewordIncludes)
 
@@ -70,7 +72,7 @@ my @sent_msg_ids;
 subtest 'Pushing' => sub {
     plan tests => 4;
     #Queue is empty
-    my @msg_pulls_00 = $queue->reserve_messages( q{.} => 2, 'timeout' => 120 );
+    my @msg_pulls_00 = $queue->reserve_messages( 'n' => 2, 'timeout' => 120 );
     is(scalar @msg_pulls_00, 0, 'No messages pulled from queue, size 0.');
     is($queue->size(), 0, 'Queue size is 0.');
     diag('Empty queue at the start.');
@@ -87,8 +89,8 @@ my @msg_pulls;
 subtest 'Pulled messages match with the sent messages.' => sub {
     plan tests => 15;
 
-    $log->clear();
-    @msg_pulls = $queue->reserve_messages( q{.} => 3, 'timeout' => 120 );
+    # $log->clear();
+    @msg_pulls = $queue->reserve_messages( 'n' => 3, 'timeout' => 120 );
     is( scalar @msg_pulls, 3, 'Pulled 3 messages.');
     my $yaml_de = YAML::Tiny->new(); $yaml_de = $yaml_de->read_string($msg_pulls[1]->body());
     is_deeply($yaml_de->[0], \%msg_body_hash_02, '#2 message body after serialization matches with the sent message body.');
@@ -98,7 +100,7 @@ subtest 'Pulled messages match with the sent messages.' => sub {
     is($queue->size(), 6, 'Three messages pulled in total; put queue size is still 6. (pull does not delete messages.)');
     diag('Pulled 3 messages from queue.');
 
-    @msg_pulls = $queue->reserve_messages( q{.} => 7, 'timeout' => 120 );
+    @msg_pulls = $queue->reserve_messages( 'n' => 7, 'timeout' => 120 );
     is( scalar @msg_pulls, 3, 'Pulled 3 messages but asked for 7.');
     is( $msg_pulls[0]->id(), $sent_msg_ids[3], 'Pulled 6 messages, ids match with the sent ids.');
     is( $msg_pulls[1]->id(), $sent_msg_ids[4], 'Pulled 6 messages, ids match with the sent ids.');
@@ -107,38 +109,37 @@ subtest 'Pulled messages match with the sent messages.' => sub {
     diag('Pulled 3 messages from queue.');
 
     # There is no more messages available in the queue for pull to get.
-    @msg_pulls = $queue->reserve_messages( q{.} => 7, 'timeout' => 120 );
+    @msg_pulls = $queue->reserve_messages( 'n' => 7, 'timeout' => 120 );
     is( scalar @msg_pulls, 0, 'Pulled 0 messages but asked for 7.');
     is($queue->size(), 6, 'Three messages pulled in total; put queue size is still 6. (pull does not delete messages.)');
     diag('Pulled 0 messages from queue.');
 
-    my $queue_cleared = $queue->clear();
+    my $queue_cleared = $queue->clear_messages();
     is($queue->size(), 0, 'Cleared the queue, queue size is 0.');
     diag('Cleared the queue, queue size is 0.');
 
-    @msg_pulls = $queue->reserve_messages( q{.} => 1, 'timeout' => 120 );
+    @msg_pulls = $queue->reserve_messages( 'n' => 1, 'timeout' => 120 );
     is( scalar @msg_pulls, 0, 'Pulled 0 messages but asked for 1.');
     diag('Pulled 0 messages from queue.');
 
 };
 
 subtest 'Clean up after us.' => sub {
-    plan tests => 3;
+    plan tests => 2;
     # Let's clear the queue
-    my $queue_cleared = $queue->clear();
+    my $queue_cleared = $queue->clear_messages();
     is($queue->size(), 0, 'Cleared the queue, queue size is 0.');
     diag('Cleared the queue, queue size is 0.');
 
     # Delete queue. Confirm deletion.
-    my $delete_queue_ret_01 = $iron_mq_client->delete_queue( 'name' => $queue_name);
-    is($delete_queue_ret_01, 1, 'Queue is deleted.');
+    $iron_mq_client->delete_queue( 'name' => $queue_name);
     throws_ok {
         my $dummy = $iron_mq_client->get_queue('name' => $queue_name);
     } '/IronHTTPCallException: status_code=404/',
     # IronHTTPCallException: status_code=404 response_message=Queue not found
     # status code 404: server could not find what was requested! Response message can change, code remains 404!
             'Throw IronHTTPCallException when no message queue of given name.';
-    diag('Definately deleted message queue ' . $queue->name() . q{.});
+    diag('Definately deleted message queue ' . $queue->name() . q{'.});
     diag('All cleaned up.')
 };
 
