@@ -1,9 +1,11 @@
 Revision history for {{$dist->name}}
 
 {{$NEXT}}
+   Conversion to IronMQ v3 done.
 
-0.12
+0.12_02
    Add method for API function /stacks in IronWorker.
+   Start conversion to IronMQ v3.
 
 0.11_01   2016-01-18 11:17:02+01:00 Europe/Stockholm (TRIAL RELEASE)
    Remove the config item Host Path Prefix, use instead API Version.
