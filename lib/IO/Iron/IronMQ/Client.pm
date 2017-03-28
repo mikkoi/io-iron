@@ -158,14 +158,8 @@ last_http_status_code().
 
     # Create a new queue. (Parameter queue name;
     # return an IO::Iron::IronMQ::Queue object)
-    my $iron_mq_queue = $iron_mq_client->create_queue(name => 'My_Message_Queue',
-			'subscribers' => [
-				{ "url" => "ironmq:///Other_queue_name" },
-			],
-			'push_type' => 'unicast',
-			'retries' => 0,
-			'retries_delay' => 3,
-			'error_queue' => "Error_queue_name",
+    my $iron_mq_queue = $iron_mq_client->create_and_get_queue(
+            'name' => 'My_Message_Queue',
     );
 
     # Get an existing queue. (Parameter queue name;
@@ -173,25 +167,12 @@ last_http_status_code().
     my $iron_mq_queue = $iron_mq_client->get_queue( 'name' => 'My_Message_Queue');
 
     # Delete an existing queue. (Parameter queue name;
-    # return 1)
-    my $success = $iron_mq_client->delete_queue( 'name' => 'My_Message_Queue');
+    # return undef)
+    $iron_mq_client->delete_queue( 'name' => 'My_Message_Queue');
 
     # Get all the queues. 
     # Return a list of IO::Iron::IronMQ::Queue objects.
     my @iron_mq_queues = $iron_mq_client->get_queues();
-
-    # Update a queue. Return a IO::Iron::IronMQ::Queue object. 
-    # Queue properties: set queue type (pull, multicast, unicast), set subscribers.
-	my $push_from_queue = $iron_mq_client->update_queue(
-			'name' => 'My_Message_Queue',
-			'subscribers' => [
-				{ "url" => "ironmq:///Other_queue_name" },
-			],
-			'push_type' => 'unicast',
-			'retries' => 0,
-			'retries_delay' => 3,
-			'error_queue' => "Error_queue_name",
-		);
 
     # Get info about the queue
     # (Return a hash containing items name, id, size, project, etc.).
@@ -207,17 +188,15 @@ the following attributes:
 
 =item - body, Free text. If you want to put an object or a hash here, it needs to be serialized first; use e.g. JSON, Storable or YAML to stringify it. Then give the resulting string here.
 
-=item - timeout, When reading from queue, after timeout (in seconds), item will be placed back onto queue.
-
 =item - delay, The item will not be available on the queue until this many seconds have passed.
 
-=item - expires_in, How long in seconds to keep the item on the queue before it is deleted.
+=item - push_headersn, Headers for push queues.
 
 =item - id, Message id from IronMQ (available after message has been pulled/peeked).
 
 =item - reserved_count, Not yet implemented. (available after message has been pulled/peeked).
 
-=item - push_status, Not yet implemented. (available after message has been pulled/peeked).
+=item - reservation_id, Reservation id string from the queue.
 
 =back
 
@@ -231,9 +210,7 @@ the following attributes:
 	my $msg_body = $yaml->write_string();
 	my $iron_mq_msg_send_02 = IO::Iron::IronMQ::Message->new(
 			'body' => $msg_body,
-			'timeout' => $msg_timeout, # When reading from queue, after timeout (in seconds), item will be placed back onto queue.
 			'delay' => $msg_delay,	 # The item will not be available on the queue until this many seconds have passed.
-			'expires_in' => $msg_expires_in, # How long in seconds to keep the item on the queue before it is deleted.
 			);
 	# Return YAML serialized structure:
 	my $yaml_de = YAML::Tiny->new(); $yaml_de = $yaml_de->read_string($iron_mq_msg_send_02->body());
@@ -242,10 +219,6 @@ IO::Iron::IronMQ::Queue objects are created by the client IO::Iron::IronMQ::Clie
 With an IO::Iron::IronMQ::Queue object you can push messages to the queue, 
 or pull messages from it. The names push and pull are used because the 
 queue is likened to a pipe. The queue is like a FIFO pipe (first in, first out).
-
-Get queue id.
-
-	my $queue_id = $iron_mq_queue->id();
 
 Get queue name.
 
@@ -298,12 +271,12 @@ its timeout to the duration specified when the message was created.
 Default is 60 seconds.
 Returns 1.
 
-	my $touched_msg = $iron_mq_queue->touch( 'id' => $msg_id_01 );
+	my $touched_msg = $iron_mq_queue->touch_message( 'id' => $msg_id_01 );
 
 Clear all messages from the queue: delete all messages, 
 whether they are reserved or not.
 
-	my $cleared = $iron_mq_queue->clear();
+	my $cleared = $iron_mq_queue->clear_messages();
 
 Get queue size.
 

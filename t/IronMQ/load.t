@@ -28,14 +28,16 @@ BEGIN {
 
 	use_ok('IO::Iron::IronMQ::Queue') || BAIL_OUT('Cannot find class!');
 	can_ok('IO::Iron::IronMQ::Queue', 'new');
-	can_ok('IO::Iron::IronMQ::Queue', 'clear');
+	can_ok('IO::Iron::IronMQ::Queue', 'size');
 	can_ok('IO::Iron::IronMQ::Queue', 'post_messages');
 	can_ok('IO::Iron::IronMQ::Queue', 'reserve_messages');
-	can_ok('IO::Iron::IronMQ::Queue', 'peek');
-	can_ok('IO::Iron::IronMQ::Queue', 'delete');
-	can_ok('IO::Iron::IronMQ::Queue', 'touch');
-	can_ok('IO::Iron::IronMQ::Queue', 'release');
-	can_ok('IO::Iron::IronMQ::Queue', 'size');
+	can_ok('IO::Iron::IronMQ::Queue', 'peek_messages');
+	can_ok('IO::Iron::IronMQ::Queue', 'delete_message');
+	can_ok('IO::Iron::IronMQ::Queue', 'delete_messages');
+	can_ok('IO::Iron::IronMQ::Queue', 'touch_message');
+	can_ok('IO::Iron::IronMQ::Queue', 'release_message');
+	can_ok('IO::Iron::IronMQ::Queue', 'clear_messages');
+	can_ok('IO::Iron::IronMQ::Queue', 'get_push_statuses');
 	# Attributes
 	can_ok('IO::Iron::IronMQ::Queue', 'ironmq_client');
 	can_ok('IO::Iron::IronMQ::Queue', 'name');
