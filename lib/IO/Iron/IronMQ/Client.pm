@@ -556,8 +556,16 @@ sub get_queues {
 	);
 	$log->tracef('Entering get_queues()');
 
+    my $previous = q{};
+    my @queue_names;
+    while( my @names = $self->list_queues( 'per_page' => 30, 'previous' => $previous ) ) {
+        push @queue_names, @names;
+        $previous = $names[-1];
+    }
+    $log->debugf('Got a list of %d queue names.', scalar @queue_names);
+
 	my @queues;
-    foreach my $queue_name ($self->list_queues(%params)) {
+    foreach my $queue_name (@queue_names) {
         push @queues, $self->get_queue('name' => $queue_name);
     }
 
@@ -835,10 +843,10 @@ sub list_queues {
 	my $self = shift;
 	my %params = validate(
 		@_, {
-			'per_page' => { type => SCALAR, optional => 1,
+			'per_page' => { type => SCALAR, optional => 0,
                 regex => qr/^[[:digit:]]{1,}$/msx, ## no critic (Variables::ProhibitPunctuationVars)
             },
-            'previous' => { type => SCALAR, optional => 1, }, # Can be empty string.
+            'previous' => { type => SCALAR, optional => 0, }, # Can be empty string.
             'prefix' => { type => SCALAR, optional => 1, },
 		}
 	);

@@ -220,8 +220,8 @@ sub post_messages {
 
 =over 
 
-=item Params: n (number of messages), 
-timeout (timeout for message processing in the user program),
+=item Params: n (number of messages). default 1, 
+timeout (timeout for message processing in the user program, default: queue value),
 wait (Time to long poll for messages, in seconds. Max is 30 seconds. Default 0.),
 delete (If true, do not put each message back on to the queue after reserving. Default false)
 
@@ -284,7 +284,7 @@ sub reserve_messages {
 	return @pulled_messages;
 }
 
-=head2 peek
+=head2 peek_messages
 
 =over
 
@@ -297,15 +297,15 @@ empty list if no messages available.
 
 =cut
 
-sub peek {
+sub peek_messages {
 	my $self = shift;
 	my %params = validate(
 		@_, {
 			'n' => { type => SCALAR, optional => 1, }, # Number of messages to read.
 		}
 	);
-	assert_positive(wantarray, 'Method peek() only works in LIST context!');
-	$log->tracef( 'Entering peek(%s)', \%params );
+	assert_positive(wantarray, 'Method peek_messages() only works in LIST context!');
+	$log->tracef( 'Entering peek_messages(%s)', \%params );
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
@@ -334,10 +334,9 @@ sub peek {
 		$message->reserved_count($msg->{'reserved_count'}) if $msg->{'reserved_count'};
 		# When peeking, timeout is not returned
 		# (it is irrelevent, because peeking does not reserve the message).
-		CORE::push @peeked_messages,
-		  $message;    # using CORE routine, not this class' method.
+		push @peeked_messages, $message;
 	}
-	$log->tracef( 'Exiting peek: %s',
+	$log->tracef( 'Exiting peek_messages(): %s',
 		@peeked_messages ? @peeked_messages : '[NONE]' );
 	return @peeked_messages;
 }
@@ -629,52 +628,6 @@ sub get_push_statuses {
 	return $info;
 }
 
-=head2 delete_push_message
-
-=over 8
-
-=item Params: id (message id), subscriber (subscriber id).
-
-=item Return: 1 if successful.
-
-=back
-
-=cut
-
-# # TODO To test this method in integration unit tests,
-# # we need to set up an HTTP server.
-#
-# sub delete_push_message {
-# 	my $self = shift;
-# 	my %params = validate(
-# 		@_, {
-# 			'id' => { type => SCALAR, }, # message id.
-# 			'subscriber' => { type => SCALAR, }, # subscriber id.
-# 		}
-# 	);
-# 	assert_positive(wantarray == 0, 'Method delete_push_message() only works in SCALAR context!');
-# 	assert_nonblank( $params{'id'}, 'Parameter id is a non null string.');
-# 	assert_nonblank( $params{'subscriber'}, 'Parameter subscriber is a non null string.');
-# 	$log->tracef('Entering delete_push_message(%s)', \%params);
-#
-# 	my $queue_name = $self->name();
-# 	my $connection = $self->{'connection'};
-# 	my ($http_status_code, $response_message) = $connection->perform_iron_action(
-# 			IO::Iron::IronMQ::Api::IRONMQ_ACKNOWLEDGE_AND_DELETE_PUSH_MESSAGE_FOR_A_SUBSCRIBER(),
-# 			{
-# 				'{Queue Name}' => $queue_name,
-# 				'{Message ID}'  => $params{'id'},
-# 				'{Subscriber ID}' => $params{'subscriber'},
-# 			}
-# 		);
-# 	$self->{'last_http_status_code'} = $http_status_code;
-# 	my $msg = $response_message->{'msg'};    # Should be 'Cleared'
-# 	$log->debugf('Deleted push message %s.', $params{'id'});
-#
-# 	$log->tracef('Exiting delete_push_message: %d', 1);
-# 	return 1;
-# }
-#
 =head2 Getters/setters
 
 Set or get a property.
@@ -683,8 +636,6 @@ When setting, returns the reference to the object.
 =over 8
 
 =item name         Message queue name.
-
-=item id           Message queue id.
 
 =item ironmq_client Reference to the IO::Iron::IronMQ::Client object which instantiated this object.
 

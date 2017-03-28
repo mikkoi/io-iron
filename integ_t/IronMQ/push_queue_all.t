@@ -9,7 +9,7 @@ require JSON::MaybeXS;
 
 use lib 't';
 use lib 'integ_t';
-require 'iron_io_integ_tests_common.pl';
+require 'iron_io_integ_tests_common.pl'; ## no critic (Modules::RequireBarewordIncludes)
 
 plan tests => 4;
 
@@ -32,12 +32,11 @@ my @send_messages;
 my $push_from_queue;
 my $push_to_queue;
 my $error_queue;
-my %msg_body_hash_02;
 subtest 'Setup for testing' => sub {
     plan tests => 6;
     # Create an IronMQ client.
     $iron_mq_client = IO::Iron::IronMQ::Client->new( 'config' => 'iron_mq.json' );
-    
+
     # Create new queue names.
     $unique_queue_name_01 = create_unique_queue_name() . '_push_from';
     $unique_queue_name_02 = create_unique_queue_name() . '_push_to';
@@ -46,26 +45,32 @@ subtest 'Setup for testing' => sub {
     # Create new queues.
     $push_from_queue = $iron_mq_client->create_and_get_queue(
             'name' => $unique_queue_name_01,
-            'subscribers' => [
-                { "url" => "ironmq:///$unique_queue_name_02" },
-            ],
-            'push_type' => 'unicast',
-            'retries' => 0,
-            'retries_delay' => 3,
-            'error_queue' => $unique_queue_name_03,
+            'type' => 'unicast',
+            'push' => {
+                'subscribers' => [
+                    {
+                        'name' => 'Subscriber #1',
+                        'url' => "ironmq:///$unique_queue_name_02",
+                       'headers' => { 'Content-Type' => 'application/json'},
+                    },
+                ],
+                'retries' => 0,
+                'retries_delay' => 3,
+                'error_queue' => $unique_queue_name_03,
+            },
         );
-    isa_ok($push_from_queue, "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
-    is($push_from_queue->name(), $unique_queue_name_01, "Created queue has the given name.");
-    diag("Created push_from message queue " . $unique_queue_name_01 . ".");
+    isa_ok($push_from_queue, 'IO::Iron::IronMQ::Queue', 'create_and_get_queue returns a IO::Iron::IronMQ::Queue.');
+    is($push_from_queue->name(), $unique_queue_name_01, 'Created queue has the given name.');
+    diag('Created push_from message queue \'' . $unique_queue_name_01 . q{\'.});
     $push_to_queue = $iron_mq_client->create_and_get_queue( 'name' => $unique_queue_name_02 );
-    isa_ok($push_to_queue, "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
-    is($push_to_queue->name(), $unique_queue_name_02, "Created queue has the given name.");
-    diag("Created push_to message queue " . $unique_queue_name_02 . ".");
+    isa_ok($push_to_queue, 'IO::Iron::IronMQ::Queue', 'create_and_get_queue returns a IO::Iron::IronMQ::Queue.');
+    is($push_to_queue->name(), $unique_queue_name_02, 'Created queue has the given name.');
+    diag('Created push_to message queue \'' . $unique_queue_name_02 . q{\'.});
     $error_queue = $iron_mq_client->create_and_get_queue( 'name' => $unique_queue_name_03 );
-    isa_ok($error_queue, "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
-    is($error_queue->name(), $unique_queue_name_03, "Created queue has the given name.");
-    diag("Created error message queue " . $unique_queue_name_03 . ".");
-    
+    isa_ok($error_queue, 'IO::Iron::IronMQ::Queue', 'create_and_get_queue returns a IO::Iron::IronMQ::Queue.');
+    is($error_queue->name(), $unique_queue_name_03, 'Created queue has the given name.');
+    diag('Created error message queue \'' . $unique_queue_name_03 . q{\'.});
+
     # Let's create some messages
     my $iron_mq_msg_send_01 = IO::Iron::IronMQ::Message->new( 'body' => 'My message #01' );
     my $iron_mq_msg_send_02 = IO::Iron::IronMQ::Message->new( 'body' => 'My message #02' );
@@ -75,7 +80,7 @@ subtest 'Setup for testing' => sub {
     my $iron_mq_msg_send_06 = IO::Iron::IronMQ::Message->new( 'body' => 'My message #06' );
     push @send_messages, $iron_mq_msg_send_01, $iron_mq_msg_send_02, $iron_mq_msg_send_03,
         $iron_mq_msg_send_04, $iron_mq_msg_send_05, $iron_mq_msg_send_06;
-    diag("Created 6 messages for sending.");
+    diag('Created 6 messages for sending.');
 };
 
 my @send_message_ids;
@@ -85,28 +90,27 @@ subtest 'Push the first message' => sub {
     my @msg_pulls_00 = $push_to_queue->reserve_messages( 'n' => 2, timeout => 120 );
     is(scalar @msg_pulls_00, 0, 'No messages pulled from push to queue, size 0.');
     is($push_to_queue->size(), 0, 'Push to Queue size is 0.');
-    diag("Empty push to queue at the start.");
-    
+    diag('Empty push to queue at the start.');
+
     # Let's send the messages.
     my $msg_send_id_01 = $push_from_queue->post_messages( 'messages' => [ $send_messages[0] ] );
-    diag("Waiting until push to queue has a message...");
-    until ($push_to_queue->size() > 0) {
+    diag('Waiting until push to queue has a message...');
+    until ($push_to_queue->size() > 0) { ## no critic (ControlStructures::ProhibitUntilBlocks, ControlStructures::ProhibitNegativeExpressionsInUnlessAndUntilConditions)
         sleep 1;
-        diag("Waiting until push to queue has a message...");
+        diag('Waiting until push to queue has a message...');
     }
     is($push_to_queue->size(), 1, 'One message pushed, push to queue size is 1.');
     push @send_message_ids, $msg_send_id_01;
 };
 
 my @msg_pulls_01;
-my @msg_pulls_02;
 subtest 'Push and pull' => sub {
     plan tests => 14;
     # Let's pull some messages.
     @msg_pulls_01 = $push_to_queue->reserve_messages();
     isnt($msg_pulls_01[0]->id(), $send_message_ids[0], 'Message ids are not same because the queue is not the same.');
     is($msg_pulls_01[0]->body(), $send_messages[0]->body(), '1st message body equals to sent message body.');
-    $push_to_queue->delete( 'ids' => [ $msg_pulls_01[0]->id() ]);
+    $push_to_queue->delete_message( 'message' => $msg_pulls_01[0] );
     is($push_to_queue->size(), 0, 'One message pulled and deleted, push to queue size is 0.');
 
     # Delete a subscriber and put a new one (a non existing project)
@@ -120,72 +124,70 @@ subtest 'Push and pull' => sub {
     my $add_ret_val = $iron_mq_client->add_subscribers(
             'name' => $unique_queue_name_01,
             'subscribers' => [
-                { 'url' => "ironmq://non_existing_project_id:non_existing_token\@non_existing_host/non_existing_queue_name" },
+                { 'url' => 'ironmq://non_existing_project_id:non_existing_token@non_existing_host/non_existing_queue_name' },
             ],
         );
     is($add_ret_val, 1, 'add_subscribers returns 1.');
 
     # Push a message (which will go to error)
     my $msg_send_id_01 = $push_from_queue->post_messages( 'messages' => [ $send_messages[1] ] );
-    diag("Waiting until error queue has a message...");
-    until ($error_queue->size() > 0) {
+    diag('Waiting until error queue has a message...');
+    until ($error_queue->size() > 0) { ## no critic (ControlStructures::ProhibitUntilBlocks, ControlStructures::ProhibitNegativeExpressionsInUnlessAndUntilConditions)
         sleep 1;
-        diag("Waiting until error queue has a message...Might take some time");
+        diag('Waiting until error queue has a message...Might take some time');
     }
     is($error_queue->size(), 1, 'One message pushed to non-existing address, error queue size is 1.');
     push @send_message_ids, $msg_send_id_01;
     @msg_pulls_01 = $error_queue->reserve_messages();
-    #diag("IO::Iron::IronMQ::Message: " . Dumper($msg_pulls_01[0]));
+    #diag('IO::Iron::IronMQ::Message: ' . Dumper($msg_pulls_01[0]));
     my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
     my $error_msg_content = $json->decode($msg_pulls_01[0]->body());
     #diag(Dumper($error_msg_content));
-    diag("Iron.io returned error: " . $error_msg_content->{'msg'});
+    diag('Iron.io returned error: ' . $error_msg_content->{'msg'});
     isnt($msg_pulls_01[0]->id(), $send_message_ids[0], 'Message ids are not same because the queue is not the same.');
     is($error_msg_content->{'source_msg_id'}, $send_message_ids[1], 'Message ids are the same.');
-    $error_queue->delete( 'ids' => [ $msg_pulls_01[0]->id() ]);
+    $error_queue->delete( 'message' => $msg_pulls_01[0] );
     is($error_queue->size(), 0, 'One message pulled and deleted, error queue size is 0.');
 
     # Query push status for the failed message.
     my $r_hash = $error_queue->get_push_statuses( 'id' => $send_message_ids[1]);
-    #diag("Iron.io returned: " . Dumper($r_hash));
+    #diag('Iron.io returned: ' . Dumper($r_hash));
     my @subscribers = (@{$r_hash->{'subscribers'}});
-    #diag("Subscribers: " . Dumper(\@subscribers));
-    is(scalar @subscribers, 1, "Only one subscriber for the message.");
-    is($subscribers[0]->{'status'}, 'error', "Status is error.");
-    is($subscribers[0]->{'status_code'}, 0, "Status code is 0.");
+    #diag('Subscribers: ' . Dumper(\@subscribers));
+    is(scalar @subscribers, 1, 'Only one subscriber for the message.');
+    is($subscribers[0]->{'status'}, 'error', 'Status is error.');
+    is($subscribers[0]->{'status_code'}, 0, 'Status code is 0.');
 
     # Update the first queue to a normal queue (from a push queue).
     $push_from_queue = $iron_mq_client->update_queue(
             'name' => $unique_queue_name_01,
             'push_type' => 'pull',
         );
-    isa_ok($push_from_queue, "IO::Iron::IronMQ::Queue", "create_and_get_queue returns a IO::Iron::IronMQ::Queue.");
-    is($push_from_queue->name(), $unique_queue_name_01, "Created queue has the given name.");
-    diag("Updated push_from message queue " . $unique_queue_name_01 . " to a normal queue.");
+    isa_ok($push_from_queue, 'IO::Iron::IronMQ::Queue', 'create_and_get_queue returns a IO::Iron::IronMQ::Queue.');
+    is($push_from_queue->name(), $unique_queue_name_01, 'Created queue has the given name.');
+    diag('Updated push_from message queue ' . $unique_queue_name_01 . ' to a normal queue.');
 
 };
 
 subtest 'Clean up.' => sub {
-    plan tests => 6;
+    plan tests => 3;
     # Let's clear the queues
-    $push_from_queue->clear();
+    $push_from_queue->clear_messages();
     is($push_from_queue->size(), 0, 'Cleared the push from queue, queue size is 0.');
-    diag("Cleared the push from queue, queue size is 0.");
-    $push_to_queue->clear();
+    diag('Cleared the push from queue, queue size is 0.');
+    $push_to_queue->clear_messages();
     is($push_to_queue->size(), 0, 'Cleared the push to queue, queue size is 0.');
-    diag("Cleared the push to queue, queue size is 0.");
-    $error_queue->clear();
+    diag('Cleared the push to queue, queue size is 0.');
+    $error_queue->clear_messages();
     is($error_queue->size(), 0, 'Cleared the error queue, queue size is 0.');
-    diag("Cleared the error queue, queue size is 0.");
-    
+    diag('Cleared the error queue, queue size is 0.');
+
     # Delete queues. Confirm deletion.
-    my $delete_queue_ret_01 = $iron_mq_client->delete_queue( 'name' => $unique_queue_name_01 );
-    is($delete_queue_ret_01, 1, "Push from Queue is deleted.");
-    diag("Deleted message queue " . $push_from_queue->name() . ".");
-    my $delete_queue_ret_02 = $iron_mq_client->delete_queue( 'name' => $unique_queue_name_02 );
-    is($delete_queue_ret_02, 1, "Push to Queue is deleted.");
-    diag("Deleted message queue " . $push_to_queue->name() . ".");
-    my $delete_queue_ret_03 = $iron_mq_client->delete_queue( 'name' => $unique_queue_name_03 );
-    is($delete_queue_ret_03, 1, "Error Queue is deleted.");
-    diag("Deleted message queue " . $error_queue->name() . ".");
+    $iron_mq_client->delete_queue( 'name' => $unique_queue_name_01 );
+    diag('Deleted message queue \'' . $push_from_queue->name() . q{\'.});
+    $iron_mq_client->delete_queue( 'name' => $unique_queue_name_02 );
+    diag('Deleted message queue \'' . $push_to_queue->name() . q{\'.});
+    $iron_mq_client->delete_queue( 'name' => $unique_queue_name_03 );
+    diag('Deleted message queue \'' . $error_queue->name() . q{\'.});
 };
+

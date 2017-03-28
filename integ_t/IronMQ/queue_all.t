@@ -109,10 +109,10 @@ subtest 'Pull and peek' => sub {
     diag('Pulled 3 messages from queue.');
 
     # Let's peek some messages.
-    my @msg_peeks_04 = $created_iron_mq_queue_01->peek();
+    my @msg_peeks_04 = $created_iron_mq_queue_01->peek_messages();
     is($msg_peeks_04[0]->body(), $send_messages[3]->body(), 'Peeked the 4th message. Body equals to sent message body.');
 
-    my @msg_peeked_05 = $created_iron_mq_queue_01->peek( 'n' => 3 );
+    my @msg_peeked_05 = $created_iron_mq_queue_01->peek_messages( 'n' => 3 );
     is( $msg_peeked_05[0]->body(), $send_messages[3]->body(), 'Peeked 3 messages, the first message was already peeked last time (peek does not reserve messages).');
     is( $msg_peeked_05[1]->body(), $send_messages[4]->body(), 'Peeked 3, second message body equals to sent message body.');
     is( $msg_peeked_05[2]->body(), $send_messages[5]->body(), 'Peeked 3, third message body equals to sent message body.');

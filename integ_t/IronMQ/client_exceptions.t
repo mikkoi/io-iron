@@ -70,9 +70,9 @@ diag('Queried message queue ' . $unique_queue_name_01 . q{.});
 my @all_queues = $iron_mq_client->get_queues();
 my @found_queues;
 foreach my $queue (@all_queues) {
-    if($queue->name eq $unique_queue_name_01
-        #|| $queue->name eq $unique_queue_name_02 
-        #|| $queue->name eq $unique_queue_name_03
+    if($queue->name() eq $unique_queue_name_01
+        #|| $queue->name() eq $unique_queue_name_02 
+        #|| $queue->name() eq $unique_queue_name_03
         ) {
         push @found_queues, $queue;
     }
