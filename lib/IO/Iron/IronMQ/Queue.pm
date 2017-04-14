@@ -247,17 +247,17 @@ sub reserve_messages {
 
 	my $queue_name = $self->name();
 	my $connection = $self->{'connection'};
-	my %fetch_params;
-	$fetch_params{'n'}       = $params{'n'}       if $params{'n'};
-	$fetch_params{'timeout'} = $params{'timeout'} if $params{'timeout'};
-	$fetch_params{'wait'}    = $params{'wait'}    if $params{'wait'};
-	$fetch_params{'delete'}  = $params{'delete'}  if $params{'delete'};
+	my %item_body;
+	$item_body{'n'}       = $params{'n'}+0        if $params{'n'};
+	$item_body{'timeout'} = $params{'timeout'}+0  if $params{'timeout'};
+	$item_body{'wait'}    = $params{'wait'}+0     if $params{'wait'};
+	$item_body{'delete'}  = $params{'delete'}     if $params{'delete'};
 	my ( $http_status_code, $response_message ) =
 	  $connection->perform_iron_action(
 		IO::Iron::IronMQ::Api::IRONMQ_RESERVE_MESSAGES(),
 		{
 			'{Queue Name}' => $queue_name,
-			'body'         => \%fetch_params,
+			'body'         => \%item_body,
 		}
 	  );
 	$self->{'last_http_status_code'} = $http_status_code;
