@@ -291,7 +291,7 @@ sub IRONMQ_POST_MESSAGES {
 
 =head3 IRONMQ_RESERVE_MESSAGES
 
-/projects/{Project ID}/queues/{Queue Name}/messages
+/projects/{Project ID}/queues/{Queue Name}/reservations
 
 =cut
 
