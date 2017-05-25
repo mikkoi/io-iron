@@ -246,7 +246,6 @@ This routine is only accessed internally.
 sub perform_http_action {
 	my ($self, $action_verb, $href, $params) = @_;
 	my $client = $self->{'client'};
-    # TODO Remove MaybeXS!
 	my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
 	# TODO assert href is URL
 	assert_in($action_verb, ['GET','PATCH','PUT','POST','DELETE','OPTIONS','HEAD'], 'action_verb is a valid HTTP verb.');
