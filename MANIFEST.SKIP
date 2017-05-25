@@ -1,39 +1,34 @@
-Makefile.old
-Build
-Build.bat
-META.*
-MYMETA.*
-.build/
-_build/
-cover_db/
-blib/
-inc/
-.lwpcookies
-.last_cover_stats
-nytprof.out
-pod2htm*.tmp
-pm_to_blib
+# The manifest skip file.
+# Add here all the files that must not be included in the distribution.
+# Regexp and empty lines okay.
+
+# This file
+MANIFEST.SKIP
+
+# Eclipse project stuff
 .includepath
 .settings
 .project
-_prove
-.svn
-MANIFEST.SKIP
-MANIFEST.bak
-clips.pl
-test.pl
-t/00_local_checkchanges.t
-t/00_local_consistentversion.t
-t/00_local_critic.t
-t/perlcriticrc
-t/00_local_lint.t
-t/00_local_checkmanifest.t
-t/00_local_spelling.t
-.json
+
+# No iron config files
+iron.json
+iron_.*.json
+
+# Release builder configs
+dist.ini
+weaver.ini
+
+# Remove some testing stuff
 .proverc
 podpreview.pl
-00_local*
+nytprof.out
+pod2htm*.tmp
+
+# No git vcs stuff
+.git
+
+# Parts of project still being made
 lib/IO/Iron/ConnectorMock.pm
 t/Iron/connector_mock.t
 integ_t/IronWorker/client_task.t
-dist.ini
+
