@@ -247,7 +247,6 @@ sub perform_http_action {
 	my ($self, $action_verb, $href, $params) = @_;
 	my $client = $self->{'client'};
     # TODO Remove MaybeXS!
-    # TODO remove utf8! Body is already encoded - must not encode again! Maybe encode other items to UTF8.
 	my $json = JSON::MaybeXS->new(utf8 => 1, pretty => 1);
 	# TODO assert href is URL
 	assert_in($action_verb, ['GET','PATCH','PUT','POST','DELETE','OPTIONS','HEAD'], 'action_verb is a valid HTTP verb.');
@@ -260,7 +259,7 @@ sub perform_http_action {
 	my $timeout = $params->{'http_client_timeout'};
 	my $request_body;
 	# Headers
-	my $content_type = $params->{'content_type'} ? $params->{'content_type'} : 'application/json';
+	my $content_type = $params->{'content_type'} ? $params->{'content_type'} : 'application/json; charset=utf8';
 	my $authorization = 'OAuth ' . $params->{'authorization_token'};
 	#
 	if($content_type =~ /multipart/is) {
