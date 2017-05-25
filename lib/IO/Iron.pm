@@ -97,7 +97,7 @@ as environmental variables or as parameters when creating the object.
 
 =item C<host>, the cloud in which you want to operate, e.g. 'cache-aws-us-east-1' for AWS (Amazon) or 'mq-rackspace-ord.iron.io' or 'mq-rackspace-lon.iron.io' for Rackspace.
  
-Please see L<http://dev.iron.io/mq/reference/api/#base_url|IronMQ REST/HTTP API Reference>
+Please see L<http://dev.iron.io/mq/3/host/|IronMQ REST, HTTP API Reference>
 for available hosts.
 
 =back

@@ -799,7 +799,7 @@ Return a list of queue names.
 
 Paginated with per_page and previous
 (this is the last queue on the previous page, it will start from the next one.
-If queue with specified name doesn’t exist result will contain
+If queue with specified name does not exist result will contain
 first per_page queues that lexicographically greater than previous).
 
 =over 8
@@ -897,7 +897,7 @@ Delete the given subscribers from the queue.
 
 =item Params: name, subscribers.
 
-=item 1
+=item Returns 1 if succcessful
 
 =item Exception: IronHTTPCallException if fails. (IronHTTPCallException: status_code=<HTTP status code> response_message=<response_message>)
 
@@ -1048,7 +1048,7 @@ Delete the given alerts from the queue.
 
 =item Params: name, alerts.
 
-=item 1
+=item Returns 1 if successful
 
 =item Exception: IronHTTPCallException if fails. (IronHTTPCallException: status_code=<HTTP status code> response_message=<response_message>)
 
