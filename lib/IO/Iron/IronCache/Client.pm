@@ -22,7 +22,7 @@ END {
 
 =for stopwords stringify cas Cas Params IronHTTPCallException Mikko Koivunalho
 
-=for stopwords perldoc CPAN AnnoCPAN tradename licensable MERCHANTABILITY 
+=for stopwords perldoc CPAN AnnoCPAN tradename licensable MERCHANTABILITY
 
 =head1 NAME
 
@@ -41,15 +41,15 @@ IO::Iron::IronCache::Client - IronCache (Online Item-Value Storage) Client.
 	# or
 	use IO::Iron qw(get_ironcache);
 	my $ironcache_client = get_ironcache();
-	
-	# Operate with caches.	
+
+	# Operate with caches.
 	my @iron_caches = $ironcache_client->get_caches();
 	my $iron_cache = $ironcache_client->create_cache('name' => 'My_Iron_Cache');
 	# Or get an existing cache.
 	my $iron_cache = $ironcache_client->get_cache('name' => 'My_Iron_Cache');
 	my $cache_deleted = $ironcache_client->delete_cache('name' => 'My_Iron_Cache');
 	my $info = $ironcache_client->get_info_about_cache('name' => 'My_Iron_Cache');
-	
+
 	# Operate with items.
 	my $iron_cache_item_put = IO::Iron::IronCache::Item->new(
 		'value' => "10",
@@ -105,9 +105,9 @@ The class IO::Iron::IronCache::Client instantiates the 'project', IronCache acce
 
 L<http://www.iron.io/|http://www.iron.io/>
 
-IronCache is a key-value store online, usable on the principle of 
-"Software as a Service", i.e. SaaS. It is available to Internet connecting 
-applications via its REST interface. Built with distributed 
+IronCache is a key-value store online, usable on the principle of
+"Software as a Service", i.e. SaaS. It is available to Internet connecting
+applications via its REST interface. Built with distributed
 cloud applications in mind, it provides on-demand key-value storage,
 value persistance/expiry as requested and cloud-optimized performance.
 [see L<http://www.iron.io/|http://www.iron.io/>]
@@ -121,16 +121,16 @@ IO::Iron::IronCache::Client is a normal Perl package meant to be used as an obje
 
 Please see L<IO::Iron|IO::Iron> for further parameters and general usage.
 
-After creating the client, the client can create a new cache (storage), get or 
-delete an old one or get all the existing caches within 
+After creating the client, the client can create a new cache (storage), get or
+delete an old one or get all the existing caches within
 the same project.
 
-The client has all the methods which interact with 
-the caches; the cache (object of class IO::Iron::IronCache::Cache) 
+The client has all the methods which interact with
+the caches; the cache (object of class IO::Iron::IronCache::Cache)
 has methods which involve items inside the cache.
 
-When failed to do the requested action, the methods return an exception 
-using Perl package Exception::Class. Calling program should trap these 
+When failed to do the requested action, the methods return an exception
+using Perl package Exception::Class. Calling program should trap these
 with e.g. Perl package Try::Tiny.
 
 	# Create the cache client.
@@ -140,24 +140,24 @@ with e.g. Perl package Try::Tiny.
 	$ironcache_client = IO::Iron::IronCache::Client->new(
 		config => 'iron_cache.json
 		);
-	
+
 	# Operate with caches.
-	# Get all the existing caches as objects of 
+	# Get all the existing caches as objects of
 	# class IO::Iron::IronCache::Cache.
 	my @iron_caches = $ironcache_client->get_caches();
-	
+
 	# Create a new cache object by its name.
 	# Returns object of class IO::Iron::IronCache::Cache.
 	my $iron_cache = $ironcache_client->create_cache('name' => 'My_Iron_Cache');
 	# Or get an existing cache.
 	$iron_cache = $ironcache_client->get_cache('name' => 'My_Iron_Cache');
-	
+
 	# Delete a cache by its name. Return 1 for success.
 	my $cache_deleted = $ironcache_client->delete_cache('name' => 'My_Iron_Cache');
-	
+
 	# Get info about a cache.
 	my $info_hash = $ironcache_client->get_info_about_cache('name' => 'My_Iron_Cache');
-	
+
 	# Operate with items.
 	# Create an item.
 	my $iron_cache_item_put = IO::Iron::IronCache::Item->new(
@@ -178,7 +178,7 @@ with e.g. Perl package Try::Tiny.
 An IO::Iron::IronCache::Cache object gives access to a single cache.
 With it you can do all the normal things one would with a key-value store.
 
-Items are objects of the class IO::Iron::IronCache::Item. It contains 
+Items are objects of the class IO::Iron::IronCache::Item. It contains
 the following attributes:
 
 =over 8
@@ -198,7 +198,7 @@ the following attributes:
 =back
 
 Cas value changes every time the item value is updated to cache.
-It can be used to verify that the value has not been changed since the 
+It can be used to verify that the value has not been changed since the
 last get operation.
 
 	$iron_cache_item_key = 'my_item_key';
@@ -214,18 +214,18 @@ last get operation.
 		'add' => 1,
 		);
 
-IO::Iron::IronCache::Cache objects are created by the client 
+IO::Iron::IronCache::Cache objects are created by the client
 (object of IO::Iron::IronCache::Client) or they can be created by the user.
-If an item is put to a cache which doesn't exist yet, 
+If an item is put to a cache which doesn't exist yet,
 IronCache creates a new cache automatically.
 
 While it is possible
 to create a cache object from IO::Iron::IronCache::Cache, user should not
-normally do this. When the cache object is created 
+normally do this. When the cache object is created
 by the Client, it gets the Client's REST connection parameters.
 Otherwise these will need to be set manually.
 
-With an IO::Iron::IronCache::Cache object you can put items to the cache, 
+With an IO::Iron::IronCache::Cache object you can put items to the cache,
 or get existing items from it.
 
 Get cache id. Not really needed for anything.
@@ -241,13 +241,13 @@ Put an item into the cache. Returns 1 if successful.
 
 	my $item_put = $iron_cache->put('key' => $iron_cache_item_key, 'item' => $iron_cache_item_put);
 
-If the item is an integer value, you can simply increment it by another 
-value. If the value is negative, the value in the cache will be 
+If the item is an integer value, you can simply increment it by another
+value. If the value is negative, the value in the cache will be
 decreased. Returns the new value.
 
 	my $item_put_new_value = $iron_cache->increment('key' => $iron_cache_item_key, 'increment' => 15);
 
-Get an item from the cache by its name. Returns an object of the class 
+Get an item from the cache by its name. Returns an object of the class
 IO::Iron::IronCache::Item if successful.
 
 	my $iron_cache_item_get = $iron_cache->get('key' => $iron_cache_item_key);
@@ -335,7 +335,7 @@ sub new {
 
 =head2 get_caches
 
-Return objects of class IO::Iron::IronCache::Cache representing all the caches 
+Return objects of class IO::Iron::IronCache::Cache representing all the caches
 within this project.
 
 =over 8
@@ -467,10 +467,10 @@ sub get_cache {
 =head2 create_cache
 
 Return a IO::Iron::IronCache::Cache object representing
-a particular message cache. This call doesn't actually 
-access IronCache API because, if an item is put to a 
-cache which doesn't exist yet, IronCache creates a new cache 
-automatically. create_cache only creates 
+a particular message cache. This call doesn't actually
+access IronCache API because, if an item is put to a
+cache which doesn't exist yet, IronCache creates a new cache
+automatically. create_cache only creates
 a new IO::Iron::IronCache::Cache object which is linked to its
 creator IO::Iron::IronCache::Client object.
 

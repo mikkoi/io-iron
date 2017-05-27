@@ -65,7 +65,7 @@ const my $HTTP_CODE_SERVICE_UNAVAILABLE => 503;
 
 =head1 DESCRIPTION
 
-This class object handles the actual http traffic. Parameters are 
+This class object handles the actual http traffic. Parameters are
 passed from the calling object (partly from API class) via Connection
 class object. This class can be mocked and replaced when
 the client objects are created.
@@ -113,7 +113,7 @@ sub new {
 
 =item Params: action name, params hash.
 
-=item Return: 1/0 (1 if success, 0 in all failures), 
+=item Return: 1/0 (1 if success, 0 in all failures),
 HTTP return code, hash if success/failed request.
 
 =back

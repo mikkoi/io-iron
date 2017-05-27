@@ -84,8 +84,8 @@ The IO::Iron::* packages require the following packages (in addition to several 
 
 =back
 
-IO::Iron also requires an IronIO account. Three configuration items must 
-be set (others available) before using the functions: 
+IO::Iron also requires an IronIO account. Three configuration items must
+be set (others available) before using the functions:
 C<project_id>, C<token> and C<host>. These can be set in a json file,
 as environmental variables or as parameters when creating the object.
 
@@ -96,8 +96,8 @@ as environmental variables or as parameters when creating the object.
 =item C<token>, an OAuth authentication token string, from IronIO.
 
 =item C<host>, the cloud in which you want to operate, e.g. 'cache-aws-us-east-1' for AWS (Amazon) or 'mq-rackspace-ord.iron.io' or 'mq-rackspace-lon.iron.io' for Rackspace.
- 
-Please see L<http://dev.iron.io/mq/3/host/|IronMQ REST, HTTP API Reference>
+
+Please see L<IronMQ HTTP API Reference|http://dev.iron.io/mq/3/host/>
 for available hosts.
 
 =back
@@ -112,8 +112,8 @@ require IO::Iron::IronWorker::Client;
 
 =head1 DESCRIPTION
 
-IronCache, IronMQ and IronWorker are cloud based services accessible 
-via a REST API. CPAN Distribution IO::Iron contains Perl clients for 
+IronCache, IronMQ and IronWorker are cloud based services accessible
+via a REST API. CPAN Distribution IO::Iron contains Perl clients for
 accessing them.
 
 [See L<http://www.iron.io/|http://www.iron.io/>]
@@ -138,7 +138,7 @@ for download with Git: L<https://github.com/mikkoi/io-iron.git|https://github.co
 =head2 IO::Iron
 
 Package IO::Iron is only a "convenience" module for quick startup.
-The three functions provided are L<ironcache|/#ironcache>, 
+The three functions provided are L<ironcache|/#ironcache>,
 L<ironmq|/#ironmq> and L<ironworker|/#ironworker>.
 
 The following parameters can be given to each of them as hash item type
@@ -164,8 +164,8 @@ parameters. See section L<SYNOPSIS|/#SYNOPSIS> for an example.
 
 =back
 
-You can also give the parameters in the config file F<.iron.json> or 
-F<iron.json> (in local directory) or as environmental variables. Please read 
+You can also give the parameters in the config file F<.iron.json> or
+F<iron.json> (in local directory) or as environmental variables. Please read
 L<Configuring the Official Client Libraries|http://dev.iron.io/mq/reference/configuration/> for further details.
 
 =head3 Client Documentation
@@ -206,13 +206,13 @@ Policies is a way to limit the names of message queues, code packages,
 caches and items (item keys)
 to a predefined group of possible strings. This can limit the chances
 for typos and enforce an enterprise policy. The policies are loaded from
-a JSON file which is specified either when creating a 
-IO::Iron::Iron*::Client object, or 
+a JSON file which is specified either when creating a
+IO::Iron::Iron*::Client object, or
 in the config file F<.iron.json> (or equivalent).
 
 =head4 Policies in Config file
 
-Add the item I<policies> to the config file. The value of the item is the 
+Add the item I<policies> to the config file. The value of the item is the
 filename of the policies file.
 
 Example config file:
@@ -257,7 +257,7 @@ N.B. The option I<definition:no_limitation> controls the open/closed policy.
 If I<definition:no_limitation> is set (1=set), the policy control is
 turned off.
 
-An example of policies file 
+An example of policies file
 
     {
         "__comment1":"Use normal regexp. [:digit:] = number:0-9, [:alpha:] = alphabetic character, [:alnum:] = character or number.",
@@ -284,7 +284,7 @@ An example of policies file
 This policies file sets policies for cache names and item keys. Both have two
 templates. Template "cache_01_main" is without wildcards: the template list
 can also only contain predefined names or keys. Sometimes this could be
-exactly the wanted behaviour, especially in regard to cache and 
+exactly the wanted behaviour, especially in regard to cache and
 message queue names.
 
 Items beginning with '__' are considered comments. Comments can not be
@@ -331,7 +331,7 @@ cache items.
 =head1 TESTING
 
 Subdirectory F<integ_t> contains "integration" tests which require an active Iron.io account and Internet connection.
-To run the tests, create first three config files in the main directory: 
+To run the tests, create first three config files in the main directory:
 F<iron_cache.json>, F<iron_mq.json>, F<iron_worker.json>.
 Set at least the following attributes: B<project_id>, B<token> and B<host>.
 
@@ -469,7 +469,7 @@ And well implemented, too, with webhooks for several functions!
 
 =item * Verify the client is connected when created (by calling queues?)
 
-=item * Rethink the using of REST:Client. Since message queues often involve a lot of traffic 
+=item * Rethink the using of REST:Client. Since message queues often involve a lot of traffic
 but always to the same address, we need to optimize REST:Client usage.
 
 =item * Carp::Assert, Carp::Assert::More, other checking deactivation in production?

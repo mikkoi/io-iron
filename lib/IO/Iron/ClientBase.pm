@@ -18,7 +18,7 @@ END {
 
 =head1 NAME
 
-IO::Iron::ClientBase - Base package for Client Libraries 
+IO::Iron::ClientBase - Base package for Client Libraries
 to Iron services IronCache, IronMQ and IronWorker.
 
 =cut
@@ -41,11 +41,11 @@ to Iron services IronCache, IronMQ and IronWorker.
 		lock_keys_plus(%{$self}, @self_keys);
 		my @caches;
 		$self->{'caches'} = \@caches;
-	
+
 		unlock_keys(%{$self});
 		bless $self, $class;
 		lock_keys(%{$self}, @self_keys);
-	
+
 		return $self;
 	}
 

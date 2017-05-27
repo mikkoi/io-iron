@@ -218,14 +218,14 @@ sub post_messages {
 
 =head2 reserve_messages
 
-=over 
+=over
 
-=item Params: n (number of messages). default 1, 
+=item Params: n (number of messages). default 1,
 timeout (timeout for message processing in the user program, default: queue value),
 wait (Time to long poll for messages, in seconds. Max is 30 seconds. Default 0.),
 delete (If true, do not put each message back on to the queue after reserving. Default false)
 
-=item Return: list of IO::Iron::IronMQ::Message objects, 
+=item Return: list of IO::Iron::IronMQ::Message objects,
 empty list if no messages available.
 
 =back
@@ -290,7 +290,7 @@ sub reserve_messages {
 
 =item Params: n, number of messages to read
 
-=item Return: list of IO::Iron::IronMQ::Message objects, 
+=item Return: list of IO::Iron::IronMQ::Message objects,
 empty list if no messages available.
 
 =back

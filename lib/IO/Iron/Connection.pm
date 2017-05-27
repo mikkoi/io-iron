@@ -111,7 +111,7 @@ sub new {
 
 =item Params: action name, params hash.
 
-=item Return: 1/0 (1 if success, 0 in all failures), 
+=item Return: 1/0 (1 if success, 0 in all failures),
 HTTP return code, hash if success/failed request.
 
 =back

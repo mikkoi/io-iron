@@ -103,10 +103,10 @@ The class IO::Iron::IronMQ::Client instantiates the 'project', IronMQ access con
 
 L<http://www.iron.io/|http://www.iron.io/>
 
-IronMQ is a message queue as a service available to Internet connecting 
-applications via its REST interface. Built with distributed 
-cloud applications in mind, it provides on-demand message 
-queuing with HTTPS transport, one-time FIFO delivery, message persistence, 
+IronMQ is a message queue as a service available to Internet connecting
+applications via its REST interface. Built with distributed
+cloud applications in mind, it provides on-demand message
+queuing with HTTPS transport, one-time FIFO delivery, message persistence,
 and cloud-optimized performance. [see L<http://www.iron.io/|http://www.iron.io/>]
 
 =head2 Using the IronMQ Client Library
@@ -139,20 +139,20 @@ The following parameters can be given to new() as items in the first parameter w
 =back
 
 You can also give the parameters in the config file F<.iron.json>
-(in home dir) or 
-F<iron.json> (in current dir) or as environmental variables. Please read 
+(in home dir) or
+F<iron.json> (in current dir) or as environmental variables. Please read
 L<http://dev.iron.io/mq/reference/configuration/|http://dev.iron.io/mq/reference/configuration/>
 for further details.
 
-After creating the client, the client can create a new message queue, get, 
-modify or delete an old one or get all the existing message queues within 
+After creating the client, the client can create a new message queue, get,
+modify or delete an old one or get all the existing message queues within
 the same project.
 
-The client has all the methods which interact with 
-queues; the queue (object of IO::Iron::IronMQ::Queue) has methods which involve 
+The client has all the methods which interact with
+queues; the queue (object of IO::Iron::IronMQ::Queue) has methods which involve
 messages.
 
-If failed, the methods cause exception. After successfull REST API call, 
+If failed, the methods cause exception. After successfull REST API call,
 the HTTP return code can be retrieved with method
 last_http_status_code().
 
@@ -170,7 +170,7 @@ last_http_status_code().
     # return undef)
     $iron_mq_client->delete_queue( 'name' => 'My_Message_Queue');
 
-    # Get all the queues. 
+    # Get all the queues.
     # Return a list of IO::Iron::IronMQ::Queue objects.
     my @iron_mq_queues = $iron_mq_client->get_queues();
 
@@ -181,7 +181,7 @@ last_http_status_code().
 A IO::Iron::IronMQ::Queue object gives access to a single message queue.
 With it you can do all the normal things one would with a message queue.
 
-Messages are objects of the class IO::Iron::IronMQ::Message. It contains 
+Messages are objects of the class IO::Iron::IronMQ::Message. It contains
 the following attributes:
 
 =over 8
@@ -216,8 +216,8 @@ the following attributes:
 	my $yaml_de = YAML::Tiny->new(); $yaml_de = $yaml_de->read_string($iron_mq_msg_send_02->body());
 
 IO::Iron::IronMQ::Queue objects are created by the client IO::Iron::IronMQ::Client.
-With an IO::Iron::IronMQ::Queue object you can push messages to the queue, 
-or pull messages from it. The names push and pull are used because the 
+With an IO::Iron::IronMQ::Queue object you can push messages to the queue,
+or pull messages from it. The names push and pull are used because the
 queue is likened to a pipe. The queue is like a FIFO pipe (first in, first out).
 
 Get queue name.
@@ -232,22 +232,22 @@ or the number of sent messages.
 	my $number_of_msgs_sent = $iron_mq_queue->post_messages( 'messages' => [ $iron_mq_msg_send_01, $iron_mq_msg_send_02 ] );
 
 Read one or more messages from the queue and reserve them so another process
-cannot access them. Parameters: n (number of messages you want, default 1, 
-maximum 100; if there is less, all available messages will be returned), 
+cannot access them. Parameters: n (number of messages you want, default 1,
+maximum 100; if there is less, all available messages will be returned),
 if no messages, an empty list will be returned,
-timeout (After timeout (in seconds), item will be placed back onto queue, 
+timeout (After timeout (in seconds), item will be placed back onto queue,
 default is 60 seconds, minimum is 30 seconds, and maximum is 86,400 seconds (24 hours)).
 
 	my @iron_mq_msg_pulls = $iron_mq_queue->reserve_messages( n => 10, timeout => 120 );
 
 Read one or more messages from the queue but don't reserve them.
-Parameters: n (number of messages you want, default 1, maximum 100; if there 
+Parameters: n (number of messages you want, default 1, maximum 100; if there
 is less, all available messages will be returned),
 if no messages, an empty list will be returned.
 
 	my @iron_mq_msg_peeks = $iron_mq_queue->peek( n => 10 );
 
-Delete one or more messages from the queue. Call this when you have 
+Delete one or more messages from the queue. Call this when you have
 processed the messages. Returns the ids of the messages deleted
 or the number of deleted messages.
 
@@ -256,9 +256,9 @@ or the number of deleted messages.
 	my $number_of_msgs_deleted = $iron_mq_queue->delete( 'ids' => [ $msg_id_01, $msg_id_02 ] );
 
 Release one or more messages back to the queue.
-Releasing a reserved message unreserves the message and puts 
+Releasing a reserved message unreserves the message and puts
 it back on the queue as if the message had timed out.
-Delay: The item will not be available on the queue until this 
+Delay: The item will not be available on the queue until this
 many seconds have passed. Default is 0 seconds.
 Maximum is 604,800 seconds (7 days).
 
@@ -266,14 +266,14 @@ Returns 1.
 
 	my $released_msg = $iron_mq_queue->release( 'id' => $msg_id_01, 'delay' => $delay );
 
-Touch one or more messages in the queue. Touching a reserved message extends 
-its timeout to the duration specified when the message was created. 
+Touch one or more messages in the queue. Touching a reserved message extends
+its timeout to the duration specified when the message was created.
 Default is 60 seconds.
 Returns 1.
 
 	my $touched_msg = $iron_mq_queue->touch_message( 'id' => $msg_id_01 );
 
-Clear all messages from the queue: delete all messages, 
+Clear all messages from the queue: delete all messages,
 whether they are reserved or not.
 
 	my $cleared = $iron_mq_queue->clear_messages();
@@ -285,17 +285,17 @@ Get queue size.
 
 =head3 Push Queue Commands
 
-Get push status for a message. Retrieve the push status for a 
-particular message which will let you know which subscribers 
-have received the message, which have failed, how many times 
-it's tried to be delivered and the status code returned from 
+Get push status for a message. Retrieve the push status for a
+particular message which will let you know which subscribers
+have received the message, which have failed, how many times
+it's tried to be delivered and the status code returned from
 the endpoint.
 
 	my $info = $iron_mq_queue->get_push_statuses( 'id' => $msg_id );
 	my @subscribers = (@{info->{'subscribers'}});
 
-Acknowledge / Delete Push Message for a Subscriber. 
-This is only for use with long running processes that have 
+Acknowledge / Delete Push Message for a Subscriber.
+This is only for use with long running processes that have
 previously returned a 202.
 
 	my $info = $iron_mq_queue->get_push_statuses( 'id' => $msg_id );
@@ -1176,7 +1176,7 @@ Cool idea, "message queue in the cloud": http://www.iron.io/.
 
 =item * Mock IronMQ for testing.
 
-=item * Rethink the using of REST:Client. Since message queues often involve a lot of traffic 
+=item * Rethink the using of REST:Client. Since message queues often involve a lot of traffic
 but always to the same address, REST:Client might not be the best solution.
 
 =item * Handle message size issues: max 64KB; Includes the entire request (delay, timeout, expiration).

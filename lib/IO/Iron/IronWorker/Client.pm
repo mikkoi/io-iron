@@ -22,8 +22,8 @@ END {
 
 =for stopwords recognized stringified JSON STDOUT IronHTTPCallException Params runtime config subparam
 
-=for stopwords Mikko Koivunalho perldoc CPAN AnnoCPAN ACKNOWLEDGMENTS tradename licensable MERCHANTABILITY 
- 
+=for stopwords Mikko Koivunalho perldoc CPAN AnnoCPAN ACKNOWLEDGMENTS tradename licensable MERCHANTABILITY
+
 =head1 NAME
 
 IO::Iron::IronWorker::Client - IronWorker (Online Worker Platform) Client.
@@ -68,7 +68,7 @@ IO::Iron::IronWorker::Client - IronWorker (Online Worker Platform) Client.
 	my @code_package_revisions = $iron_worker_client->
 		list_code_package_revisions( 'id' => $code_package_id );
 
-	my ($downloaded, file_name) = $iron_worker_client->download_code_package( 
+	my ($downloaded, file_name) = $iron_worker_client->download_code_package(
 		'id' => $code_package_id,
 		'revision' => 1,
 	);
@@ -82,7 +82,7 @@ IO::Iron::IronWorker::Client - IronWorker (Online Worker Platform) Client.
 		'payload'   => $task_payload,
 		#
 		# additional parameters for a task:
-		# 'priority',        # The priority queue to run the task in. 
+		# 'priority',        # The priority queue to run the task in.
 		                     # Valid values are 0, 1, and 2. 0 is the default.
 		# 'timeout',         # The maximum runtime of your task in seconds.
 		# 'delay',           # The number of seconds to delay before actually
@@ -102,7 +102,7 @@ IO::Iron::IronWorker::Client - IronWorker (Online Worker Platform) Client.
 	my $task_id = $iron_worker_client->queue( 'tasks' => $task );
 	# Or:
 	my @task_ids = $iron_worker_client->queue( 'tasks' => [ $task1, $task2 ] );
-	# Or: 
+	# Or:
 	my $number_of_tasks_queued = $iron_worker_client->queue(
 		'tasks' => [ $task1, $task2 ]
 		);
@@ -119,7 +119,7 @@ IO::Iron::IronWorker::Client - IronWorker (Online Worker Platform) Client.
 	my $task_updated_at = $task->updated_at();
 	my $task_log = $task->log(); # Log is text/plain
 	my $cancelled = $task->cancel();
-	my $progress_set = $task->progress( { 
+	my $progress_set = $task->progress( {
 		'percent' => 25,
 		'msg' => 'Not even halfway through!',
 	} );
@@ -145,7 +145,7 @@ IO::Iron::IronWorker::Client - IronWorker (Online Worker Platform) Client.
 	my @scheduled_tasks = $iron_worker_client->schedule(
 		'tasks' => [$schedule_task1, $schedule_task2]
 		);
-	# Or: 
+	# Or:
 	my $number_of_scheduled_tasks = $iron_worker_client->schedule(
 		'tasks' => [$schedule_task1, $schedule_task2]
 		);
@@ -153,7 +153,7 @@ IO::Iron::IronWorker::Client - IronWorker (Online Worker Platform) Client.
 
 	my $scheduled_task_info = $iron_worker_client->
 		get_info_about_scheduled_task( 'id' => $task_id );
-	
+
 
 	my $from_time = time - (24*60*60);
 	my $to_time = time - (1*60*60);
@@ -163,7 +163,7 @@ IO::Iron::IronWorker::Client - IronWorker (Online Worker Platform) Client.
 		'from_time' => $from_time, # Number of seconds since the Unix epoc
 		'to_time' => $to_time, # Number of seconds since the Unix epoc
 	);
-	
+
 	my @scheduled_tasks = $iron_worker_client->scheduled_tasks();
 
 =head1 REQUIREMENTS
@@ -206,9 +206,9 @@ The class IO::Iron::IronWorker::Client instantiates the 'project', IronWorker ac
 
 L<http://www.iron.io/|http://www.iron.io/>
 
-IronWorker is a parallel worker platform delivered as a service to Internet connecting 
-applications via its REST interface. Built with distributed 
-cloud applications in mind, it provides on-demand scalability for workers, 
+IronWorker is a parallel worker platform delivered as a service to Internet connecting
+applications via its REST interface. Built with distributed
+cloud applications in mind, it provides on-demand scalability for workers,
 controls with HTTPS transport and cloud-optimized performance. [see L<http://www.iron.io/|http://www.iron.io/>]
 
 =head2 Using the IronWorker Client Library
@@ -226,7 +226,7 @@ After creating the client three sets of commands is available:
 
 =over 8
 
-=item Commands for operating code packages: 
+=item Commands for operating code packages:
 
 =over 8
 
@@ -292,7 +292,7 @@ After creating the client three sets of commands is available:
 
 =head3 Operating code packages
 
-A code package is simply a script program packed into Zip archive together 
+A code package is simply a script program packed into Zip archive together
 with its dependency files (other libraries, configuration files, etc.).
 
 After creating the zip file and reading it into a perl variable, upload it.
@@ -302,9 +302,9 @@ and simply reading it from a file before uploading it.
 
 	require IO::Iron::IronWorker::Client;
 	use IO::Compress::Zip;
-	
+
 	$iron_worker_client = IO::Iron::IronWorker::Client->new(
-		'config' => 'iron_worker.json' 
+		'config' => 'iron_worker.json'
 	);
 
 	my $worker_as_string_ = <<EOF;
@@ -312,17 +312,17 @@ and simply reading it from a file before uploading it.
 	EOF
 	my $worker_as_zip;
 	my $worker_
-	
+
 	IO::Compress::Zip::zip(\$worker_as_string => \$worker_as_zip);
-	
+
 	my $code_package_return_id = $iron_worker_client->update_code_package(
-		'name' => 'HelloWorld_code_package', 
-		'file' => $worker_as_string, 
-		'file_name' => 'helloworld.pl', 
-		'runtime' => 'perl', 
+		'name' => 'HelloWorld_code_package',
+		'file' => $worker_as_string,
+		'file_name' => 'helloworld.pl',
+		'runtime' => 'perl',
 	);
 
-With method list_code_packages() you can retrieve information about all 
+With method list_code_packages() you can retrieve information about all
 the uploaded code packages. The method get_info_about_code_package()
 will return information about only the requested code package.
 
@@ -346,13 +346,13 @@ Method delete_code_package() removes the code package from IronWorker service.
 The uploaded code package can be retrieved with method download_code_package().
 The downloaded file is a zip archive.
 
-	my ($downloaded, $file_name) = $iron_worker_client->download_code_package( 
+	my ($downloaded, $file_name) = $iron_worker_client->download_code_package(
 		'id' => $code_package_id, 'revision' => 1,
 	);
 
 The code packages get revision numbers according to their upload order.
-The first upload of a code package gets revision number 1. Any subsequent 
-upload of the same code package (same name) will get one higher 
+The first upload of a code package gets revision number 1. Any subsequent
+upload of the same code package (same name) will get one higher
 revision number so the different uploads can be recognized.
 
 	my @code_package_revisions = $iron_worker_client->list_code_package_revisions(
@@ -361,7 +361,7 @@ revision number so the different uploads can be recognized.
 
 =head3 Operating tasks
 
-Every task needs two parameters: the name of the code package on whose 
+Every task needs two parameters: the name of the code package on whose
 code they will run and a payload. The payload is passed to the code
 package as a file. Payload is mandatory so if your code doesn't need it,
 just insert an empty string. Payload can be any string, or stringified
@@ -383,7 +383,7 @@ the task object is updated with returned id.
 	my $task_id = $iron_worker_client->queue('task' => $task);
 	# Or:
 	my @task_ids = $iron_worker_client->queue('task' => [$task1, $task2, ]);
-	# Or: 
+	# Or:
 	my $number_of_tasks_queued = $iron_worker_client->queue(
 		'task' => [$task1, $task2],
 	);
@@ -431,7 +431,7 @@ Schedule the task or tasks. When scheduling, the task object is updated with ret
 	my @scheduled_tasks = $iron_worker_client->schedule(
 		'task' => [$schedule_task1, $schedule_task2]
 	);
-	# Or: 
+	# Or:
 	my $number_of_scheduled_tasks = $iron_worker_client->schedule(
 		'task' => [$schedule_task1, $schedule_task2]
 	);
@@ -608,7 +608,7 @@ sub update_code_package {
 			'name' => { type => SCALAR, }, # Code package name.
 			'file' => { type => SCALAR, optional => 1, # The zip archive as a string buffer.
 				depends => [ 'file_name', 'runtime' ], },
-			'file_name' => { type => SCALAR, optional => 1 },  # Name of the zip file, not 
+			'file_name' => { type => SCALAR, optional => 1 },  # Name of the zip file, not
 			'runtime' => { type => SCALAR, optional => 1, }, # The runtime type, e.g. sh, perl, ruby.
 			'config' => { type => SCALAR, optional => 1, },
 			'max_concurrency' => { type => SCALAR, optional => 1, },
@@ -1003,8 +1003,8 @@ Sample response (in JSON format):
 	    "end_time": 1320268924000000000,
 	    "duration": 43,
 	    "timeout": 3600,
-	    "payload": "{\"foo\":\"bar\"}", 
-	    "updated_at": "2012-11-10T18:31:08.064Z", 
+	    "payload": "{\"foo\":\"bar\"}",
+	    "updated_at": "2012-11-10T18:31:08.064Z",
 	    "created_at": "2012-11-10T18:30:43.089Z"
 	}
 

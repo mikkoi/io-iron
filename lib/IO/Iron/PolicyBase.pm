@@ -66,7 +66,7 @@ These policies allow everything.
 
 =cut
 
-# TODO policy character set, list possible alternatives: 
+# TODO policy character set, list possible alternatives:
 sub IRON_CLIENT_DEFAULT_POLICIES {
     my %default_policies =
             (
@@ -273,7 +273,7 @@ sub _convert_policy_to_normal_regexp {
     $policy_regexp =~ s/(\[:[[:graph:]]+?:\])/$self->_get_chars_or_remain_POSIX_group($1)/egsx;
     $log->tracef('Exiting _convert_policy_to_normal_regexp():%s', $policy_regexp);
     return $policy_regexp;
-}    
+}
 
 =head2 is_valid_policy
 

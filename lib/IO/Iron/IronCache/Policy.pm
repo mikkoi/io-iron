@@ -40,11 +40,11 @@ IO::Iron::IronCache::Policy - Base package (inherited) for IronCache::Client pac
 		lock_keys_plus(%{$self}, @self_keys);
 		my @caches;
 		$self->{'caches'} = \@caches;
-	
+
 		unlock_keys(%{$self});
 		bless $self, $class;
 		lock_keys(%{$self}, @self_keys);
-	
+
 		return $self;
 	}
 
