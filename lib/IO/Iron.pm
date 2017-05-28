@@ -20,6 +20,15 @@ our @EXPORT_OK;
 END {
 }
 
+=for stopwords IronCache IronMQ IronWorker Iron.io API JSON IronIO json OAuth
+aws AWS Rackspace CPAN Github startup ironcache ironmq ironworker https Config
+filename config IronHTTPCallException NoIronPolicyException
+CharacterGroupNotDefinedIronPolicyException alnum ascii wildcards behaviour
+abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ POSIX Subdirectory lv
+Mikko Koivunalho perldoc AnnoCPAN webhooks tradename licensable MERCHANTABILITY
+
+=cut
+
 =head1 NAME
 
 IO::Iron - Client Libraries to Iron services IronCache, IronMQ and IronWorker.
@@ -422,59 +431,6 @@ L<http://search.cpan.org/dist/IO-Iron/>
 
 Cool idea, "message queue in the cloud": L<http://www.iron.io/|http://www.iron.io/>.
 And well implemented, too, with webhooks for several functions!
-
-=head1 TODO
-
-=over 4
-
-=item * Fix the $self->{'caches'} to a hash instead of list.
-
-=item * Implement new features in http://blog.iron.io/2014/05/ironmq-long-polling.html
-
-=over 4
-
-=item - Long Polling
-
-=item - Get-Delete as One Operation
-
-=back
-
-=item * The IronMQ client needs to control the queues, perhaps using semafores.
-
-=item * A buffer mechanism to keep the messages while the IronMQ REST service is unavailable. IO::Iron::IronMQ::ASyncPush?
-
-=item * Implement push queues.
-
-=item * Mock IronMQ/IronCache for testing.
-
-=item * Handle message size (total), delay, timeout and expiration min-max values.
-
-=over 4
-
-=item * Message Var	Default	Maximum	Notes
-
-=item * Message Size	--	64KB	Includes the entire request (delay, timeout, expiration).
-
-=item * Delay	0sec	604,800sec	Message is made available on queue after the delay expires.
-
-=item * Timeout	60sec	86,400sec	Message goes back on queue after timeout unless deleted.
-
-=item * Expiration	604,800sec	2,592,000sec	Equates to 7 days and 30 days, respectively.
-
-=item * Messages per Get	1	100	One or more messages can be handled at a time.
-
-=back
-
-=item * Option to delete queue when IO::Iron::IronMQ::Queue object goes to garbage collection?
-
-=item * Verify the client is connected when created (by calling queues?)
-
-=item * Rethink the using of REST:Client. Since message queues often involve a lot of traffic
-but always to the same address, we need to optimize REST:Client usage.
-
-=item * Carp::Assert, Carp::Assert::More, other checking deactivation in production?
-
-=back
 
 
 =head1 LICENSE AND COPYRIGHT
