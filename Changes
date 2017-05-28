@@ -4,6 +4,7 @@ Revision history for {{$dist->name}}
 
     [Fixes]
 
+    - Start using PodWeaver.
     - Move TODO list from lib/IO/Iron.pm to its own file TODO.
     - Start use [Test::EOL].
     - Cleaning Dist::Zilla config.
