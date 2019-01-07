@@ -58,6 +58,7 @@ use Const::Fast;
 const my $HTTP_CODE_OK_MIN => 200;
 const my $HTTP_CODE_OK_MAX => 299;
 const my $HTTP_CODE_SERVICE_UNAVAILABLE => 503;
+const my $HTTP_CONTENT_TYPE_JSON => q{application/json; charset=utf-8};
 
 =head1 DESCRIPTION
 
@@ -254,7 +255,7 @@ sub perform_http_action {
 	my $timeout = $params->{'http_client_timeout'};
 	my $request_body;
 	# Headers
-	my $content_type = $params->{'content_type'} ? $params->{'content_type'} : 'application/json; charset=utf8';
+	my $content_type = defined($params->{'content_type'}) ? $params->{'content_type'} : $HTTP_CONTENT_TYPE_JSON;
 	my $authorization = 'OAuth ' . $params->{'authorization_token'};
 	#
 	if($content_type =~ /multipart/is) {
