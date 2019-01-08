@@ -2,6 +2,10 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+    [Fixes]
+
+    - Content-type header is left undef.
+
 0.12_01   2019-01-07 22:47:27+01:00 Europe/Stockholm (TRIAL RELEASE)
 
     [Fixes]
