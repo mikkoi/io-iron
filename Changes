@@ -2,6 +2,20 @@ Revision history for {{$dist->name}}
 
 {{$NEXT}}
 
+    [Fixes]
+
+    * Fix bug in integration tests
+    * Rework dist.ini
+    * Fix SYNOPSIS code
+    * Fix broken Changes file
+    * Fix links in POD
+    * Remove trailing newline in LICENSE
+    * Create IO::Iron::Test::Util in t/lib/
+    * Add more files to MANIFEST.SKIP
+    * Add files .perlcriticrc and .perltidyrc, rename old
+    * Add file .mailmap
+    * remove unhandled import arguments [Graham Knop N]
+
 0.13      2019-01-09 00:32:48+01:00 Europe/Stockholm
 
     [Fixes]
