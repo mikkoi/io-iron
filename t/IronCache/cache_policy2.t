@@ -7,9 +7,15 @@ use Test::Exception;
 use Log::Any::Test;    # should appear before 'use Log::Any'!
 use Log::Any qw($log);
 
-use lib 't';
-use lib 'integ_t';
-require 'iron_io_integ_tests_common.pl';
+use FindBin 1.51 qw( $RealBin );
+use File::Spec;
+my $lib_path;
+BEGIN {
+    $lib_path = File::Spec->catdir(($RealBin =~ /(.+)/msx)[0], q{..}, 'lib');
+}
+use lib "$lib_path";
+
+use IO::Iron::Test::Util qw( :all );
 
 plan tests => 1;
 
