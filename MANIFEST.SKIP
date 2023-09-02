@@ -2,13 +2,29 @@
 # Add here all the files that must not be included in the distribution.
 # Regexp and empty lines okay.
 
+# Build files
+Makefile.old
+Build
+Build.bat
+.build/
+_build/
+blib/
+inc/
+pm_to_blib
+.includepath
+_prove
+
 # This file
+MANIFEST.bak
 MANIFEST.SKIP
 
-# Eclipse project stuff
+# Eclipse/other editor project stuff and other files
 .includepath
 .settings
 .project
+.lvimrc
+Session.vim
+dzil-generated-cpanfile
 
 # No iron config files
 iron.json
@@ -17,6 +33,8 @@ iron_.*.json
 # Release builder configs
 dist.ini
 weaver.ini
+.perlcriticrc
+.perltidyrc
 
 # Remove some testing stuff
 .proverc
@@ -32,3 +50,10 @@ lib/IO/Iron/ConnectorMock.pm
 t/Iron/connector_mock.t
 integ_t/IronWorker/client_task.t
 
+# Other
+TODO
+integ_t
+local/
+
+# The GitHub Readme file
+README.md
