@@ -111,11 +111,10 @@ for download with Git: L<https://github.com/mikkoi/io-iron.git|https://github.co
 =head2 IO::Iron
 
 Package IO::Iron is only a "convenience" module for quick startup.
-The three functions provided are L<ironcache|/#ironcache>,
-L<ironmq|/#ironmq> and L<ironworker|/#ironworker>.
+The three functions provided are L</ironcache>, L</ironmq> and L</ironworker>.
 
 The following parameters can be given to each of them as hash item type
-parameters. See section L<SYNOPSIS|/#SYNOPSIS> for an example.
+parameters. See section L</SYNOPSIS> for an example.
 
 =over 8
 
