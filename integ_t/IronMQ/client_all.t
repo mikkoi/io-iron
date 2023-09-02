@@ -40,7 +40,7 @@ subtest 'Setup for testing' => sub {
     is(1,1, 'ok');
 };
 
-my ($created_iron_mq_queue_01, my $created_iron_mq_queue_02, my $created_iron_mq_queue_03);
+my ($created_iron_mq_queue_01, $created_iron_mq_queue_02, $created_iron_mq_queue_03);
 subtest 'Create the queues' => sub {
     plan tests => 6;
     # Create a new queue.
