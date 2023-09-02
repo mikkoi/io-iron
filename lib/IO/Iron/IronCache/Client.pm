@@ -37,14 +37,14 @@ END {
 	require IO::Iron::IronCache::Item;
 	my $ironcache_client = IO::Iron::IronCache::Client->new();
 	# or
-	use IO::Iron qw(get_ironcache);
-	my $ironcache_client = get_ironcache();
+	use IO::Iron qw(ironcache);
+	$ironcache_client = ironcache();
 
 	# Operate with caches.
 	my @iron_caches = $ironcache_client->get_caches();
 	my $iron_cache = $ironcache_client->create_cache('name' => 'My_Iron_Cache');
 	# Or get an existing cache.
-	my $iron_cache = $ironcache_client->get_cache('name' => 'My_Iron_Cache');
+	$iron_cache = $ironcache_client->get_cache('name' => 'My_Iron_Cache');
 	my $cache_deleted = $ironcache_client->delete_cache('name' => 'My_Iron_Cache');
 	my $info = $ironcache_client->get_info_about_cache('name' => 'My_Iron_Cache');
 

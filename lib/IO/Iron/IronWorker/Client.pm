@@ -37,8 +37,8 @@ END {
 
 	my $ironworker_client = IO::Iron::IronWorker::Client->new();
 	# or
-	use IO::Iron qw(get_ironworker);
-	my $iron_worker_client = get_ironworker();
+	use IO::Iron qw(ironworker);
+	my $iron_worker_client = ironworker();
 
 	my $unique_code_package_name = 'HelloWorldCode';
 	my $worker_as_zip; # Zipped Perl script and dependencies.
@@ -66,7 +66,7 @@ END {
 	my @code_package_revisions = $iron_worker_client->
 		list_code_package_revisions( 'id' => $code_package_id );
 
-	my ($downloaded, file_name) = $iron_worker_client->download_code_package(
+	my ($downloaded, $file_name) = $iron_worker_client->download_code_package(
 		'id' => $code_package_id,
 		'revision' => 1,
 	);
@@ -99,13 +99,21 @@ END {
 	# When queuing, the task object is updated with returned id.
 	my $task_id = $iron_worker_client->queue( 'tasks' => $task );
 	# Or:
+	my $task1 = $iron_worker_client->create_task(
+		'code_name' => $unique_code_package_name,
+		'payload'   => $task_payload,
+	);
+	my $task2 = $iron_worker_client->create_task(
+		'code_name' => $unique_code_package_name,
+		'payload'   => $task_payload,
+	);
 	my @task_ids = $iron_worker_client->queue( 'tasks' => [ $task1, $task2 ] );
 	# Or:
 	my $number_of_tasks_queued = $iron_worker_client->queue(
 		'tasks' => [ $task1, $task2 ]
 		);
 	#
-	my $task_id = $task->id();
+	$task_id = $task->id();
 	my $task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
 	until ($task_info->{'status'} =~ /(complete|error|killed|timeout)/) {
 		sleep 3;
@@ -124,7 +132,7 @@ END {
 	my $retried = $task->retry();
 	$task_id = $task->id(); # New task id after retry().
 
-	my $task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
+	$task_info = $iron_worker_client->get_info_about_task( 'id' => $task_id );
 
 	# Schedule task.
 	my $schedule_task = $iron_worker_client->create_task(
@@ -134,12 +142,29 @@ END {
 		'run_every' => 120, # Every two minutes.
 	);
 	$schedule_task->run_times(5);
-	my $end_dt = DateTime::...
-	$schedule_task->end_at($end_dt);
-	$schedule_task->start_at($end_dt);
+	use DateTime;
+	use DateTime::Format::ISO8601;
+	my $dt = DateTime->now;
+	$dt->add( hours => 1 );
+	my $start_dt = DateTime::Format::ISO8601->format_datetime( $dt );
+	$dt->add( hours => 3 );
+	my $end_dt = DateTime::Format::ISO8601->format_datetime( $dt );
+	$schedule_task->start_at( $start_dt );
+	$schedule_task->end_at( $end_dt );
+	#
 	# When scheduling, the task object is updated with returned id.
 	$schedule_task = $iron_worker_client->schedule( 'tasks' => $schedule_task);
 	# Or:
+	my $schedule_task1 = $iron_worker_client->create_task(
+		'code_name' => $unique_code_package_name,
+		'payload'   => $task_payload,
+		'start_at'  => $start_dt,
+	);
+	my $schedule_task2 = $iron_worker_client->create_task(
+		'code_name' => $unique_code_package_name,
+		'payload'   => $task_payload,
+		'start_at'  => $start_dt,
+	);
 	my @scheduled_tasks = $iron_worker_client->schedule(
 		'tasks' => [$schedule_task1, $schedule_task2]
 		);
@@ -162,7 +187,7 @@ END {
 		'to_time' => $to_time, # Number of seconds since the Unix epoc
 	);
 
-	my @scheduled_tasks = $iron_worker_client->scheduled_tasks();
+	@scheduled_tasks = $iron_worker_client->scheduled_tasks();
 
 =head1 REQUIREMENTS
 

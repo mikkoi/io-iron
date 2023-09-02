@@ -42,7 +42,7 @@ END {
     require IO::Iron::IronMQ::Client;
 
     my $iron_mq_client = IO::Iron::IronMQ::Client->new();
-    my $iron_mq_queue = $iron_mq_client->create_queue('name' => 'My_Message_Queue');
+    my $iron_mq_queue_new = $iron_mq_client->create_queue('name' => 'My_Message_Queue');
     # Or get an existing queue.
     my $iron_mq_queue = $iron_mq_client->get_queue('name' => 'My_Message_Queue');
     my $queue_info = $iron_mq_client->get_queue_info('name' => 'My_Message_Queue');
