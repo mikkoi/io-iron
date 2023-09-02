@@ -64,7 +64,7 @@ See L<IO::Iron|IO::Iron> for requirements.
 =cut
 
 use Log::Any qw{$log};
-use File::Spec qw{read_file};
+use File::Spec;
 use File::HomeDir;
 use Hash::Util 0.06 qw{lock_keys lock_keys_plus unlock_keys legal_keys};
 use Carp::Assert;
